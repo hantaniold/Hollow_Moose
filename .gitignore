@@ -1,3 +1,8 @@
 *.o
 *.d
 pintos/src/utils/bin
+*~
+*.svn
+testfolder
+testfolder2
+checksvncommmands
