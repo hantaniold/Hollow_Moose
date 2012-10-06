@@ -1,0 +1,568 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN""http://www.w3.org/TR/html4/loose.dtd">
+<HTML
+><HEAD
+><TITLE
+>Bochs Developers Guide</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
+REL="NEXT"
+TITLE="Resources for developers"
+HREF="c17.html"></HEAD
+><BODY
+CLASS="BOOK"
+BGCOLOR="#FFFFFF"
+TEXT="#000000"
+LINK="#0000FF"
+VLINK="#840084"
+ALINK="#0000FF"
+><DIV
+CLASS="BOOK"
+><A
+NAME="AEN1"
+></A
+><DIV
+CLASS="TITLEPAGE"
+><H1
+CLASS="TITLE"
+><A
+NAME="AEN2"
+>Bochs Developers Guide</A
+></H1
+><H3
+CLASS="AUTHOR"
+><A
+NAME="AEN5"
+></A
+>Kevin Lawton</H3
+><H3
+CLASS="AUTHOR"
+><A
+NAME="AEN8"
+></A
+>Bryce Denney</H3
+><H3
+CLASS="AUTHOR"
+><A
+NAME="AEN11"
+></A
+>Christophe Bothamy</H3
+><H4
+CLASS="EDITEDBY"
+>Edited by</H4
+><H3
+CLASS="EDITOR"
+>Michael Calabrese</H3
+><HR></DIV
+><DIV
+CLASS="TOC"
+><DL
+><DT
+><B
+>Table of Contents</B
+></DT
+><DT
+>1. <A
+HREF="c17.html"
+>Resources for developers</A
+></DT
+><DD
+><DL
+><DT
+>1.1. <A
+HREF="c17.html#AEN20"
+>Setting up CVS write access</A
+></DT
+><DD
+><DL
+><DT
+>1.1.1. <A
+HREF="c17.html#AEN23"
+>Install ssh and cvs</A
+></DT
+><DT
+>1.1.2. <A
+HREF="c17.html#AEN36"
+>ssh to cvs.sf.net</A
+></DT
+><DT
+>1.1.3. <A
+HREF="c17.html#AEN44"
+>Set CVS_RSH environment variable to ssh</A
+></DT
+><DT
+>1.1.4. <A
+HREF="c17.html#AEN48"
+>cvs checkout</A
+></DT
+></DL
+></DD
+><DT
+>1.2. <A
+HREF="x57.html"
+>Using CVS write access</A
+></DT
+><DD
+><DL
+><DT
+>1.2.1. <A
+HREF="x57.html#AEN59"
+>Checking in files</A
+></DT
+></DL
+></DD
+><DT
+>1.3. <A
+HREF="x75.html"
+>SourceForge bug, feature, and patch trackers</A
+></DT
+><DT
+>1.4. <A
+HREF="x79.html"
+>Ideas for other sections</A
+></DT
+></DL
+></DD
+><DT
+>2. <A
+HREF="c83.html"
+>About the code</A
+></DT
+><DD
+><DL
+><DT
+>2.1. <A
+HREF="c83.html#CODE-OVERVIEW"
+>Overview</A
+></DT
+><DT
+>2.2. <A
+HREF="x96.html"
+>Directory Structure</A
+></DT
+><DT
+>2.3. <A
+HREF="x173.html"
+>Emulator Objects</A
+></DT
+><DD
+><DL
+><DT
+>2.3.1. <A
+HREF="x173.html#AEN175"
+>Weird macros and other mysteries</A
+></DT
+><DT
+>2.3.2. <A
+HREF="x173.html#STATIC-METHODS-HACK"
+>Static methods hack</A
+></DT
+><DT
+>2.3.3. <A
+HREF="x173.html#CPU-MEM-OBJECTS"
+>CPU und memory objects in UP/SMP configurations</A
+></DT
+></DL
+></DD
+><DT
+>2.4. <A
+HREF="x191.html"
+>Configure Scripting</A
+></DT
+><DT
+>2.5. <A
+HREF="x195.html"
+>Log Functions</A
+></DT
+><DT
+>2.6. <A
+HREF="x199.html"
+>timers</A
+></DT
+><DT
+>2.7. <A
+HREF="x203.html"
+>Bochs's CMOS map</A
+></DT
+><DT
+>2.8. <A
+HREF="x208.html"
+>Sound Blaster 16 Emulation</A
+></DT
+><DD
+><DL
+><DT
+>2.8.1. <A
+HREF="x208.html#AEN217"
+>How well does it work?</A
+></DT
+><DT
+>2.8.2. <A
+HREF="x208.html#AEN222"
+>Output to a sound card</A
+></DT
+><DT
+>2.8.3. <A
+HREF="x208.html#AEN225"
+>Installation on Linux</A
+></DT
+><DT
+>2.8.4. <A
+HREF="x208.html#AEN230"
+>Configuring Bochs</A
+></DT
+><DT
+>2.8.5. <A
+HREF="x208.html#AEN238"
+>Runtime configuration</A
+></DT
+><DT
+>2.8.6. <A
+HREF="x208.html#AEN243"
+>Features planned for the future</A
+></DT
+><DT
+>2.8.7. <A
+HREF="x208.html#AEN250"
+>Description of the sound output classes</A
+></DT
+><DT
+>2.8.8. <A
+HREF="x208.html#AEN256"
+>Files</A
+></DT
+><DT
+>2.8.9. <A
+HREF="x208.html#AEN266"
+>Classes</A
+></DT
+><DT
+>2.8.10. <A
+HREF="x208.html#AEN283"
+>Methods</A
+></DT
+><DT
+>2.8.11. <A
+HREF="x208.html#AEN290"
+>bx_sound_OS_c(bx_sb16_c*sb16)</A
+></DT
+><DT
+>2.8.12. <A
+HREF="x208.html#AEN304"
+>~bx_sound_OS_c()</A
+></DT
+><DT
+>2.8.13. <A
+HREF="x208.html#AEN307"
+>int openmidioutput(char *device)</A
+></DT
+><DT
+>2.8.14. <A
+HREF="x208.html#AEN319"
+>Description of the parameters:</A
+></DT
+><DT
+>2.8.15. <A
+HREF="x208.html#AEN329"
+>int midiready()</A
+></DT
+><DT
+>2.8.16. <A
+HREF="x208.html#AEN345"
+>int sendmidicommand(int delta, int command, int length, Bit8u data[])</A
+></DT
+><DT
+>2.8.17. <A
+HREF="x208.html#AEN367"
+>int closemidioutput()</A
+></DT
+><DT
+>2.8.18. <A
+HREF="x208.html#AEN379"
+>int openwaveoutput(char *device)</A
+></DT
+><DT
+>2.8.19. <A
+HREF="x208.html#AEN413"
+>int startwaveplayback(int frequency, int bits, int stereo, int format)</A
+></DT
+><DT
+>2.8.20. <A
+HREF="x208.html#AEN486"
+>int waveready()</A
+></DT
+><DT
+>2.8.21. <A
+HREF="x208.html#AEN496"
+>int sendwavepacket(int length, Bit8u data[])</A
+></DT
+><DT
+>2.8.22. <A
+HREF="x208.html#AEN540"
+>int stopwaveplayback()</A
+></DT
+><DT
+>2.8.23. <A
+HREF="x208.html#AEN547"
+>int closewaveoutput()</A
+></DT
+></DL
+></DD
+><DT
+>2.9. <A
+HREF="x558.html"
+>Harddisk Images based on redologs</A
+></DT
+><DD
+><DL
+><DT
+>2.9.1. <A
+HREF="x558.html#AEN569"
+>Description</A
+></DT
+><DT
+>2.9.2. <A
+HREF="x558.html#AEN578"
+>How redologs works ?</A
+></DT
+><DT
+>2.9.3. <A
+HREF="x558.html#AEN671"
+>Parameters</A
+></DT
+><DT
+>2.9.4. <A
+HREF="x558.html#AEN835"
+>Redolog class description</A
+></DT
+><DT
+>2.9.5. <A
+HREF="x558.html#AEN887"
+>Disk image classes description</A
+></DT
+></DL
+></DD
+><DT
+>2.10. <A
+HREF="x983.html"
+>How to add keymapping in a GUI client</A
+></DT
+></DL
+></DD
+><DT
+>3. <A
+HREF="c987.html"
+>Debugger</A
+></DT
+><DD
+><DL
+><DT
+>3.1. <A
+HREF="c987.html#AEN989"
+>compile with debugger support</A
+></DT
+><DT
+>3.2. <A
+HREF="x993.html"
+>get started in debugger</A
+></DT
+><DT
+>3.3. <A
+HREF="x997.html"
+>command reference</A
+></DT
+><DT
+>3.4. <A
+HREF="x1001.html"
+>techniques</A
+></DT
+></DL
+></DD
+><DT
+>4. <A
+HREF="c1005.html"
+>Coding</A
+></DT
+><DD
+><DL
+><DT
+>4.1. <A
+HREF="c1005.html#AEN1007"
+>Coding guidelines</A
+></DT
+><DT
+>4.2. <A
+HREF="x1042.html"
+>patches:</A
+></DT
+><DT
+>4.3. <A
+HREF="x1046.html"
+>Building a Bochs release</A
+></DT
+><DD
+><DL
+><DT
+>4.3.1. <A
+HREF="x1046.html#AEN1048"
+>Preparing source files and CVS</A
+></DT
+><DT
+>4.3.2. <A
+HREF="x1046.html#AEN1057"
+>Building the release on win32</A
+></DT
+><DT
+>4.3.3. <A
+HREF="x1046.html#AEN1078"
+>Building the release on Linux</A
+></DT
+><DT
+>4.3.4. <A
+HREF="x1046.html#AEN1085"
+>Uploading files and creating a file release on SF</A
+></DT
+></DL
+></DD
+></DL
+></DD
+><DT
+>5. <A
+HREF="c1092.html"
+>Webmastering</A
+></DT
+><DD
+><DL
+><DT
+>5.1. <A
+HREF="c1092.html#WEBSITES"
+>websites</A
+></DT
+><DT
+>5.2. <A
+HREF="x1098.html"
+>shell access to the website</A
+></DT
+><DT
+>5.3. <A
+HREF="x1102.html"
+>website html repository</A
+></DT
+><DT
+>5.4. <A
+HREF="x1106.html"
+>automatic site update</A
+></DT
+><DT
+>5.5. <A
+HREF="x1110.html"
+>other content</A
+></DT
+><DT
+>5.6. <A
+HREF="x1114.html"
+>available tools</A
+></DT
+></DL
+></DD
+></DL
+></DIV
+><DIV
+CLASS="LOT"
+><DL
+CLASS="LOT"
+><DT
+><B
+>List of Tables</B
+></DT
+><DT
+>2-1. <A
+HREF="x96.html#AEN99"
+>Directory structure</A
+></DT
+><DT
+>2-2. <A
+HREF="x208.html#AEN437"
+>format bits</A
+></DT
+><DT
+>2-3. <A
+HREF="x208.html#AEN461"
+>codecs</A
+></DT
+><DT
+>2-4. <A
+HREF="x208.html#AEN519"
+>wave output types</A
+></DT
+><DT
+>2-5. <A
+HREF="x558.html#AEN592"
+>Generic header description</A
+></DT
+><DT
+>2-6. <A
+HREF="x558.html#AEN633"
+>Redolog specific header description</A
+></DT
+><DT
+>2-7. <A
+HREF="x558.html#AEN674"
+>How number of entries in the catalog and number of blocks by extents are computed</A
+></DT
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="NAVFOOTER"
+><HR
+ALIGN="LEFT"
+WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
+WIDTH="100%"
+BORDER="0"
+CELLPADDING="0"
+CELLSPACING="0"
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+>&nbsp;</TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+>&nbsp;</TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+><A
+HREF="c17.html"
+ACCESSKEY="N"
+>Next</A
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="left"
+VALIGN="top"
+>&nbsp;</TD
+><TD
+WIDTH="34%"
+ALIGN="center"
+VALIGN="top"
+>&nbsp;</TD
+><TD
+WIDTH="33%"
+ALIGN="right"
+VALIGN="top"
+>Resources for developers</TD
+></TR
+></TABLE
+></DIV
+></BODY
+></HTML
+>

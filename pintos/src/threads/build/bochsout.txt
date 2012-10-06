@@ -1,0 +1,1893 @@
+00000000000i[     ] Bochs x86 Emulator 2.2.6
+00000000000i[     ]   Build from CVS snapshot on January 29, 2006
+00000000000i[     ] System configuration
+00000000000i[     ]   processors: 1
+00000000000i[     ]   A20 line support: yes
+00000000000i[     ]   APIC support: no
+00000000000i[     ] CPU configuration
+00000000000i[     ]   level: 5
+00000000000i[     ]   fpu support: yes
+00000000000i[     ]   paging support: yes, tlb enabled: yes
+00000000000i[     ]   mmx support: yes
+00000000000i[     ]   sse support: no
+00000000000i[     ]   v8086 mode support: yes
+00000000000i[     ]   VME support: yes
+00000000000i[     ]   3dnow! support: no
+00000000000i[     ]   PAE support: no
+00000000000i[     ]   PGE support: no
+00000000000i[     ]   PSE support: yes
+00000000000i[     ]   x86-64 support: no
+00000000000i[     ]   SEP support: no
+00000000000i[     ] Optimization configuration
+00000000000i[     ]   Guest2HostTLB support: no
+00000000000i[     ]   RepeatSpeedups support: no
+00000000000i[     ]   Icache support: no
+00000000000i[     ]   Host Asm support: yes
+00000000000i[     ]   Fast function calls: no
+00000000000i[     ] Devices configuration
+00000000000i[     ]   NE2000 support: no
+00000000000i[     ]   PCI support: no
+00000000000i[     ]   SB16 support: no
+00000000000i[     ]   USB support: no
+00000000000i[     ]   VGA extension support:  
+00000000000i[MEM0 ] allocated memory at 0x7fafe723c010. after alignment, vector=0x7fafe723d000
+00000000000i[MEM0 ] 4.00MB
+00000000000i[MEM0 ] rom at 0xffff0000/65536 ('/home/seanhogan/Hollow_Moose/pintos/src/utils/share/bochs/BIOS-bochs-latest')
+00000000000i[MEM0 ] rom at 0xc0000/32768 ('/home/seanhogan/Hollow_Moose/pintos/src/utils/share/bochs/VGABIOS-lgpl-latest')
+00000000000i[CMOS ] Using specified time for initial clock
+00000000000i[CMOS ] Setting initial clock to: Wed Dec 31 18:00:00 1969 (time0=0)
+00000000000i[DMA  ] channel 4 used by cascade
+00000000000i[DMA  ] channel 2 used by Floppy Drive
+00000000000i[VGA  ] interval=40000
+00000000000i[     ] init_mem of 'harddrv' plugin device by virtual method
+00000000000i[     ] init_mem of 'keyboard' plugin device by virtual method
+00000000000i[     ] init_mem of 'serial' plugin device by virtual method
+00000000000i[     ] init_mem of 'parallel' plugin device by virtual method
+00000000000i[     ] init_mem of 'extfpuirq' plugin device by virtual method
+00000000000i[     ] init_mem of 'speaker' plugin device by virtual method
+00000000000i[     ] init_dev of 'harddrv' plugin device by virtual method
+00000000000i[HD   ] HD on ata0-0: '/tmp/eGbplY0G9J.dsk' 'flat' mode 
+00000000000i[HD   ] Using boot sequence disk, none, none
+00000000000i[HD   ] Floppy boot signature check is enabled
+00000000000i[     ] init_dev of 'keyboard' plugin device by virtual method
+00000000000i[KBD  ] will paste characters every 1000 keyboard ticks
+00000000000i[     ] init_dev of 'serial' plugin device by virtual method
+00000000000i[SER  ] com1 at 0x03f8 irq 4
+00000000000i[     ] init_dev of 'parallel' plugin device by virtual method
+00000000000i[PAR  ] parallel port 1 at 0x0378 irq 7
+00000000000i[     ] init_dev of 'extfpuirq' plugin device by virtual method
+00000000000i[     ] init_dev of 'speaker' plugin device by virtual method
+00000000000i[SPEAK] Failed to open /dev/console: Permission denied
+00000000000i[SPEAK] Deactivating beep on console
+00000000000i[     ] reset of 'harddrv' plugin device by virtual method
+00000000000i[     ] reset of 'keyboard' plugin device by virtual method
+00000000000i[     ] reset of 'serial' plugin device by virtual method
+00000000000i[     ] reset of 'parallel' plugin device by virtual method
+00000000000i[     ] reset of 'extfpuirq' plugin device by virtual method
+00000000000i[     ] reset of 'speaker' plugin device by virtual method
+00000003740i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00000317563i[KBD  ] reset-disable command received
+00000425250i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00000428257i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00000737822i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00000786523e[HD   ] ata0: device set to 1 which does not exist
+00000786815e[HD   ] ata1: device set to 0 which does not exist
+00000787108e[HD   ] ata1: device set to 1 which does not exist
+00001191267i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00001191267e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00001191267i[CPU  ] protected mode
+00001191267i[CPU  ] CS.d_b = 32 bit
+00001191267i[CPU  ] SS.d_b = 32 bit
+00001191267i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00001191267i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00001191267i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00001191267i[CPU  ] | SEG selector     base    limit G D
+00001191267i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00001191267i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00001191267i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00001191267i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00001191267i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00001191267i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00001191267i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00001191267i[CPU  ] | EIP=c002b315 (c002b315)
+00001191267i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00001191267i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00001191267i[CPU  ] >> 0f
+00001191267i[CPU  ] >> 44
+00001191267i[CPU  ] >> e8
+00001191267i[CPU  ] >> : cmovz ebp, eax
+00001191267i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00001195007i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00001508792i[KBD  ] reset-disable command received
+00001616479i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00001619486i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00001929051i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00001977752e[HD   ] ata0: device set to 1 which does not exist
+00001978044e[HD   ] ata1: device set to 0 which does not exist
+00001978337e[HD   ] ata1: device set to 1 which does not exist
+00002382496i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00002382496e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00002382496i[CPU  ] protected mode
+00002382496i[CPU  ] CS.d_b = 32 bit
+00002382496i[CPU  ] SS.d_b = 32 bit
+00002382496i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00002382496i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00002382496i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00002382496i[CPU  ] | SEG selector     base    limit G D
+00002382496i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00002382496i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00002382496i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00002382496i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00002382496i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00002382496i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00002382496i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00002382496i[CPU  ] | EIP=c002b315 (c002b315)
+00002382496i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00002382496i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00002382496i[CPU  ] >> 0f
+00002382496i[CPU  ] >> 44
+00002382496i[CPU  ] >> e8
+00002382496i[CPU  ] >> : cmovz ebp, eax
+00002382496i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00002386236i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00002700059i[KBD  ] reset-disable command received
+00002807746i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00002810753i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00003120318i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00003169019e[HD   ] ata0: device set to 1 which does not exist
+00003169311e[HD   ] ata1: device set to 0 which does not exist
+00003169604e[HD   ] ata1: device set to 1 which does not exist
+00003573763i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00003573763e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00003573763i[CPU  ] protected mode
+00003573763i[CPU  ] CS.d_b = 32 bit
+00003573763i[CPU  ] SS.d_b = 32 bit
+00003573763i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00003573763i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00003573763i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00003573763i[CPU  ] | SEG selector     base    limit G D
+00003573763i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00003573763i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00003573763i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00003573763i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00003573763i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00003573763i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00003573763i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00003573763i[CPU  ] | EIP=c002b315 (c002b315)
+00003573763i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00003573763i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00003573763i[CPU  ] >> 0f
+00003573763i[CPU  ] >> 44
+00003573763i[CPU  ] >> e8
+00003573763i[CPU  ] >> : cmovz ebp, eax
+00003573763i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00003577503i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00003891288i[KBD  ] reset-disable command received
+00003999013i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00004002020i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00004311585i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00004360286e[HD   ] ata0: device set to 1 which does not exist
+00004360578e[HD   ] ata1: device set to 0 which does not exist
+00004360871e[HD   ] ata1: device set to 1 which does not exist
+00004765030i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00004765030e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00004765030i[CPU  ] protected mode
+00004765030i[CPU  ] CS.d_b = 32 bit
+00004765030i[CPU  ] SS.d_b = 32 bit
+00004765030i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00004765030i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00004765030i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00004765030i[CPU  ] | SEG selector     base    limit G D
+00004765030i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00004765030i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00004765030i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00004765030i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00004765030i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00004765030i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00004765030i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00004765030i[CPU  ] | EIP=c002b315 (c002b315)
+00004765030i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00004765030i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00004765030i[CPU  ] >> 0f
+00004765030i[CPU  ] >> 44
+00004765030i[CPU  ] >> e8
+00004765030i[CPU  ] >> : cmovz ebp, eax
+00004765030i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00004768770i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00005082555i[KBD  ] reset-disable command received
+00005190242i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00005193249i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00005502814i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00005551515e[HD   ] ata0: device set to 1 which does not exist
+00005551807e[HD   ] ata1: device set to 0 which does not exist
+00005552100e[HD   ] ata1: device set to 1 which does not exist
+00005956259i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00005956259e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00005956259i[CPU  ] protected mode
+00005956259i[CPU  ] CS.d_b = 32 bit
+00005956259i[CPU  ] SS.d_b = 32 bit
+00005956259i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00005956259i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00005956259i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00005956259i[CPU  ] | SEG selector     base    limit G D
+00005956259i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00005956259i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00005956259i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00005956259i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00005956259i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00005956259i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00005956259i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00005956259i[CPU  ] | EIP=c002b315 (c002b315)
+00005956259i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00005956259i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00005956259i[CPU  ] >> 0f
+00005956259i[CPU  ] >> 44
+00005956259i[CPU  ] >> e8
+00005956259i[CPU  ] >> : cmovz ebp, eax
+00005956259i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00005959999i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00006273822i[KBD  ] reset-disable command received
+00006381509i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00006384516i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00006694081i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00006742782e[HD   ] ata0: device set to 1 which does not exist
+00006743074e[HD   ] ata1: device set to 0 which does not exist
+00006743367e[HD   ] ata1: device set to 1 which does not exist
+00007147526i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00007147526e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00007147526i[CPU  ] protected mode
+00007147526i[CPU  ] CS.d_b = 32 bit
+00007147526i[CPU  ] SS.d_b = 32 bit
+00007147526i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00007147526i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00007147526i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00007147526i[CPU  ] | SEG selector     base    limit G D
+00007147526i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00007147526i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00007147526i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00007147526i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00007147526i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00007147526i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00007147526i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00007147526i[CPU  ] | EIP=c002b315 (c002b315)
+00007147526i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00007147526i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00007147526i[CPU  ] >> 0f
+00007147526i[CPU  ] >> 44
+00007147526i[CPU  ] >> e8
+00007147526i[CPU  ] >> : cmovz ebp, eax
+00007147526i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00007151266i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00007465051i[KBD  ] reset-disable command received
+00007572738i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00007575745i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00007885310i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00007934011e[HD   ] ata0: device set to 1 which does not exist
+00007934303e[HD   ] ata1: device set to 0 which does not exist
+00007934596e[HD   ] ata1: device set to 1 which does not exist
+00008338755i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00008338755e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00008338755i[CPU  ] protected mode
+00008338755i[CPU  ] CS.d_b = 32 bit
+00008338755i[CPU  ] SS.d_b = 32 bit
+00008338755i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00008338755i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00008338755i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00008338755i[CPU  ] | SEG selector     base    limit G D
+00008338755i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00008338755i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00008338755i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00008338755i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00008338755i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00008338755i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00008338755i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00008338755i[CPU  ] | EIP=c002b315 (c002b315)
+00008338755i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00008338755i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00008338755i[CPU  ] >> 0f
+00008338755i[CPU  ] >> 44
+00008338755i[CPU  ] >> e8
+00008338755i[CPU  ] >> : cmovz ebp, eax
+00008338755i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00008342495i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00008656318i[KBD  ] reset-disable command received
+00008764005i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00008767012i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00009076577i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00009125278e[HD   ] ata0: device set to 1 which does not exist
+00009125570e[HD   ] ata1: device set to 0 which does not exist
+00009125863e[HD   ] ata1: device set to 1 which does not exist
+00009530022i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00009530022e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00009530022i[CPU  ] protected mode
+00009530022i[CPU  ] CS.d_b = 32 bit
+00009530022i[CPU  ] SS.d_b = 32 bit
+00009530022i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00009530022i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00009530022i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00009530022i[CPU  ] | SEG selector     base    limit G D
+00009530022i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00009530022i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00009530022i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00009530022i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00009530022i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00009530022i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00009530022i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00009530022i[CPU  ] | EIP=c002b315 (c002b315)
+00009530022i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00009530022i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00009530022i[CPU  ] >> 0f
+00009530022i[CPU  ] >> 44
+00009530022i[CPU  ] >> e8
+00009530022i[CPU  ] >> : cmovz ebp, eax
+00009530022i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00009533762i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00009847547i[KBD  ] reset-disable command received
+00009955234i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00009958241i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00010267806i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00010316507e[HD   ] ata0: device set to 1 which does not exist
+00010316799e[HD   ] ata1: device set to 0 which does not exist
+00010317092e[HD   ] ata1: device set to 1 which does not exist
+00010721251i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00010721251e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00010721251i[CPU  ] protected mode
+00010721251i[CPU  ] CS.d_b = 32 bit
+00010721251i[CPU  ] SS.d_b = 32 bit
+00010721251i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00010721251i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00010721251i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00010721251i[CPU  ] | SEG selector     base    limit G D
+00010721251i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00010721251i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00010721251i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00010721251i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00010721251i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00010721251i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00010721251i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00010721251i[CPU  ] | EIP=c002b315 (c002b315)
+00010721251i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00010721251i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00010721251i[CPU  ] >> 0f
+00010721251i[CPU  ] >> 44
+00010721251i[CPU  ] >> e8
+00010721251i[CPU  ] >> : cmovz ebp, eax
+00010721251i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00010724991i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00011038814i[KBD  ] reset-disable command received
+00011146501i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00011149508i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00011459073i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00011507774e[HD   ] ata0: device set to 1 which does not exist
+00011508066e[HD   ] ata1: device set to 0 which does not exist
+00011508359e[HD   ] ata1: device set to 1 which does not exist
+00011912518i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00011912518e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00011912518i[CPU  ] protected mode
+00011912518i[CPU  ] CS.d_b = 32 bit
+00011912518i[CPU  ] SS.d_b = 32 bit
+00011912518i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00011912518i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00011912518i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00011912518i[CPU  ] | SEG selector     base    limit G D
+00011912518i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00011912518i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00011912518i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00011912518i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00011912518i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00011912518i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00011912518i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00011912518i[CPU  ] | EIP=c002b315 (c002b315)
+00011912518i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00011912518i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00011912518i[CPU  ] >> 0f
+00011912518i[CPU  ] >> 44
+00011912518i[CPU  ] >> e8
+00011912518i[CPU  ] >> : cmovz ebp, eax
+00011912518i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00011916258i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00012230043i[KBD  ] reset-disable command received
+00012337730i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00012340737i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00012650302i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00012699003e[HD   ] ata0: device set to 1 which does not exist
+00012699295e[HD   ] ata1: device set to 0 which does not exist
+00012699588e[HD   ] ata1: device set to 1 which does not exist
+00013103747i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00013103747e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00013103747i[CPU  ] protected mode
+00013103747i[CPU  ] CS.d_b = 32 bit
+00013103747i[CPU  ] SS.d_b = 32 bit
+00013103747i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00013103747i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00013103747i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00013103747i[CPU  ] | SEG selector     base    limit G D
+00013103747i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00013103747i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00013103747i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00013103747i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00013103747i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00013103747i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00013103747i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00013103747i[CPU  ] | EIP=c002b315 (c002b315)
+00013103747i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00013103747i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00013103747i[CPU  ] >> 0f
+00013103747i[CPU  ] >> 44
+00013103747i[CPU  ] >> e8
+00013103747i[CPU  ] >> : cmovz ebp, eax
+00013103747i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00013107487i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00013421310i[KBD  ] reset-disable command received
+00013528997i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00013532004i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00013841569i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00013890270e[HD   ] ata0: device set to 1 which does not exist
+00013890562e[HD   ] ata1: device set to 0 which does not exist
+00013890855e[HD   ] ata1: device set to 1 which does not exist
+00014295014i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00014295014e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00014295014i[CPU  ] protected mode
+00014295014i[CPU  ] CS.d_b = 32 bit
+00014295014i[CPU  ] SS.d_b = 32 bit
+00014295014i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00014295014i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00014295014i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00014295014i[CPU  ] | SEG selector     base    limit G D
+00014295014i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00014295014i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00014295014i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00014295014i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00014295014i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00014295014i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00014295014i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00014295014i[CPU  ] | EIP=c002b315 (c002b315)
+00014295014i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00014295014i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00014295014i[CPU  ] >> 0f
+00014295014i[CPU  ] >> 44
+00014295014i[CPU  ] >> e8
+00014295014i[CPU  ] >> : cmovz ebp, eax
+00014295014i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00014298754i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00014612539i[KBD  ] reset-disable command received
+00014720264i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00014723271i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00015032836i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00015081537e[HD   ] ata0: device set to 1 which does not exist
+00015081829e[HD   ] ata1: device set to 0 which does not exist
+00015082122e[HD   ] ata1: device set to 1 which does not exist
+00015486281i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00015486281e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00015486281i[CPU  ] protected mode
+00015486281i[CPU  ] CS.d_b = 32 bit
+00015486281i[CPU  ] SS.d_b = 32 bit
+00015486281i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00015486281i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00015486281i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00015486281i[CPU  ] | SEG selector     base    limit G D
+00015486281i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00015486281i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00015486281i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00015486281i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00015486281i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00015486281i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00015486281i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00015486281i[CPU  ] | EIP=c002b315 (c002b315)
+00015486281i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00015486281i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00015486281i[CPU  ] >> 0f
+00015486281i[CPU  ] >> 44
+00015486281i[CPU  ] >> e8
+00015486281i[CPU  ] >> : cmovz ebp, eax
+00015486281i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00015490021i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00015803806i[KBD  ] reset-disable command received
+00015911493i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00015914500i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00016224065i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00016272766e[HD   ] ata0: device set to 1 which does not exist
+00016273058e[HD   ] ata1: device set to 0 which does not exist
+00016273351e[HD   ] ata1: device set to 1 which does not exist
+00016677510i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00016677510e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00016677510i[CPU  ] protected mode
+00016677510i[CPU  ] CS.d_b = 32 bit
+00016677510i[CPU  ] SS.d_b = 32 bit
+00016677510i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00016677510i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00016677510i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00016677510i[CPU  ] | SEG selector     base    limit G D
+00016677510i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00016677510i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00016677510i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00016677510i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00016677510i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00016677510i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00016677510i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00016677510i[CPU  ] | EIP=c002b315 (c002b315)
+00016677510i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00016677510i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00016677510i[CPU  ] >> 0f
+00016677510i[CPU  ] >> 44
+00016677510i[CPU  ] >> e8
+00016677510i[CPU  ] >> : cmovz ebp, eax
+00016677510i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00016681250i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00016995073i[KBD  ] reset-disable command received
+00017102760i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00017105767i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00017415332i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00017464033e[HD   ] ata0: device set to 1 which does not exist
+00017464325e[HD   ] ata1: device set to 0 which does not exist
+00017464618e[HD   ] ata1: device set to 1 which does not exist
+00017868777i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00017868777e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00017868777i[CPU  ] protected mode
+00017868777i[CPU  ] CS.d_b = 32 bit
+00017868777i[CPU  ] SS.d_b = 32 bit
+00017868777i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00017868777i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00017868777i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00017868777i[CPU  ] | SEG selector     base    limit G D
+00017868777i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00017868777i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00017868777i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00017868777i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00017868777i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00017868777i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00017868777i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00017868777i[CPU  ] | EIP=c002b315 (c002b315)
+00017868777i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00017868777i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00017868777i[CPU  ] >> 0f
+00017868777i[CPU  ] >> 44
+00017868777i[CPU  ] >> e8
+00017868777i[CPU  ] >> : cmovz ebp, eax
+00017868777i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00017872517i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00018186302i[KBD  ] reset-disable command received
+00018293989i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00018296996i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00018606561i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00018655262e[HD   ] ata0: device set to 1 which does not exist
+00018655554e[HD   ] ata1: device set to 0 which does not exist
+00018655847e[HD   ] ata1: device set to 1 which does not exist
+00019060006i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00019060006e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00019060006i[CPU  ] protected mode
+00019060006i[CPU  ] CS.d_b = 32 bit
+00019060006i[CPU  ] SS.d_b = 32 bit
+00019060006i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00019060006i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00019060006i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00019060006i[CPU  ] | SEG selector     base    limit G D
+00019060006i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00019060006i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00019060006i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00019060006i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00019060006i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00019060006i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00019060006i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00019060006i[CPU  ] | EIP=c002b315 (c002b315)
+00019060006i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00019060006i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00019060006i[CPU  ] >> 0f
+00019060006i[CPU  ] >> 44
+00019060006i[CPU  ] >> e8
+00019060006i[CPU  ] >> : cmovz ebp, eax
+00019060006i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00019063746i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00019377569i[KBD  ] reset-disable command received
+00019485256i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00019488263i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00019797828i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00019846529e[HD   ] ata0: device set to 1 which does not exist
+00019846821e[HD   ] ata1: device set to 0 which does not exist
+00019847114e[HD   ] ata1: device set to 1 which does not exist
+00020251273i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00020251273e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00020251273i[CPU  ] protected mode
+00020251273i[CPU  ] CS.d_b = 32 bit
+00020251273i[CPU  ] SS.d_b = 32 bit
+00020251273i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00020251273i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00020251273i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00020251273i[CPU  ] | SEG selector     base    limit G D
+00020251273i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00020251273i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00020251273i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00020251273i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00020251273i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00020251273i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00020251273i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00020251273i[CPU  ] | EIP=c002b315 (c002b315)
+00020251273i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00020251273i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00020251273i[CPU  ] >> 0f
+00020251273i[CPU  ] >> 44
+00020251273i[CPU  ] >> e8
+00020251273i[CPU  ] >> : cmovz ebp, eax
+00020251273i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00020255013i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00020568798i[KBD  ] reset-disable command received
+00020676485i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00020679492i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00020989057i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00021037758e[HD   ] ata0: device set to 1 which does not exist
+00021038050e[HD   ] ata1: device set to 0 which does not exist
+00021038343e[HD   ] ata1: device set to 1 which does not exist
+00021442502i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00021442502e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00021442502i[CPU  ] protected mode
+00021442502i[CPU  ] CS.d_b = 32 bit
+00021442502i[CPU  ] SS.d_b = 32 bit
+00021442502i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00021442502i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00021442502i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00021442502i[CPU  ] | SEG selector     base    limit G D
+00021442502i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00021442502i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00021442502i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00021442502i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00021442502i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00021442502i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00021442502i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00021442502i[CPU  ] | EIP=c002b315 (c002b315)
+00021442502i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00021442502i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00021442502i[CPU  ] >> 0f
+00021442502i[CPU  ] >> 44
+00021442502i[CPU  ] >> e8
+00021442502i[CPU  ] >> : cmovz ebp, eax
+00021442502i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00021446242i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00021760065i[KBD  ] reset-disable command received
+00021867752i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00021870759i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00022180324i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00022229025e[HD   ] ata0: device set to 1 which does not exist
+00022229317e[HD   ] ata1: device set to 0 which does not exist
+00022229610e[HD   ] ata1: device set to 1 which does not exist
+00022633769i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00022633769e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00022633769i[CPU  ] protected mode
+00022633769i[CPU  ] CS.d_b = 32 bit
+00022633769i[CPU  ] SS.d_b = 32 bit
+00022633769i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00022633769i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00022633769i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00022633769i[CPU  ] | SEG selector     base    limit G D
+00022633769i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00022633769i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00022633769i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00022633769i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00022633769i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00022633769i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00022633769i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00022633769i[CPU  ] | EIP=c002b315 (c002b315)
+00022633769i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00022633769i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00022633769i[CPU  ] >> 0f
+00022633769i[CPU  ] >> 44
+00022633769i[CPU  ] >> e8
+00022633769i[CPU  ] >> : cmovz ebp, eax
+00022633769i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00022637509i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00022951294i[KBD  ] reset-disable command received
+00023058981i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00023061988i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00023371553i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00023420254e[HD   ] ata0: device set to 1 which does not exist
+00023420546e[HD   ] ata1: device set to 0 which does not exist
+00023420839e[HD   ] ata1: device set to 1 which does not exist
+00023824998i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00023824998e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00023824998i[CPU  ] protected mode
+00023824998i[CPU  ] CS.d_b = 32 bit
+00023824998i[CPU  ] SS.d_b = 32 bit
+00023824998i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00023824998i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00023824998i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00023824998i[CPU  ] | SEG selector     base    limit G D
+00023824998i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00023824998i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00023824998i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00023824998i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00023824998i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00023824998i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00023824998i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00023824998i[CPU  ] | EIP=c002b315 (c002b315)
+00023824998i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00023824998i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00023824998i[CPU  ] >> 0f
+00023824998i[CPU  ] >> 44
+00023824998i[CPU  ] >> e8
+00023824998i[CPU  ] >> : cmovz ebp, eax
+00023824998i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00023828738i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00024142561i[KBD  ] reset-disable command received
+00024250248i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00024253255i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00024562820i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00024611521e[HD   ] ata0: device set to 1 which does not exist
+00024611813e[HD   ] ata1: device set to 0 which does not exist
+00024612106e[HD   ] ata1: device set to 1 which does not exist
+00025016265i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00025016265e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00025016265i[CPU  ] protected mode
+00025016265i[CPU  ] CS.d_b = 32 bit
+00025016265i[CPU  ] SS.d_b = 32 bit
+00025016265i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00025016265i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00025016265i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00025016265i[CPU  ] | SEG selector     base    limit G D
+00025016265i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00025016265i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00025016265i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00025016265i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00025016265i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00025016265i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00025016265i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00025016265i[CPU  ] | EIP=c002b315 (c002b315)
+00025016265i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00025016265i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00025016265i[CPU  ] >> 0f
+00025016265i[CPU  ] >> 44
+00025016265i[CPU  ] >> e8
+00025016265i[CPU  ] >> : cmovz ebp, eax
+00025016265i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00025020005i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00025333790i[KBD  ] reset-disable command received
+00025441515i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00025444522i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00025754087i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00025802788e[HD   ] ata0: device set to 1 which does not exist
+00025803080e[HD   ] ata1: device set to 0 which does not exist
+00025803373e[HD   ] ata1: device set to 1 which does not exist
+00026207532i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00026207532e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00026207532i[CPU  ] protected mode
+00026207532i[CPU  ] CS.d_b = 32 bit
+00026207532i[CPU  ] SS.d_b = 32 bit
+00026207532i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00026207532i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00026207532i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00026207532i[CPU  ] | SEG selector     base    limit G D
+00026207532i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00026207532i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00026207532i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00026207532i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00026207532i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00026207532i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00026207532i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00026207532i[CPU  ] | EIP=c002b315 (c002b315)
+00026207532i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00026207532i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00026207532i[CPU  ] >> 0f
+00026207532i[CPU  ] >> 44
+00026207532i[CPU  ] >> e8
+00026207532i[CPU  ] >> : cmovz ebp, eax
+00026207532i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00026211272i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00026525057i[KBD  ] reset-disable command received
+00026632744i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00026635751i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00026945316i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00026994017e[HD   ] ata0: device set to 1 which does not exist
+00026994309e[HD   ] ata1: device set to 0 which does not exist
+00026994602e[HD   ] ata1: device set to 1 which does not exist
+00027398761i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00027398761e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00027398761i[CPU  ] protected mode
+00027398761i[CPU  ] CS.d_b = 32 bit
+00027398761i[CPU  ] SS.d_b = 32 bit
+00027398761i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00027398761i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00027398761i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00027398761i[CPU  ] | SEG selector     base    limit G D
+00027398761i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00027398761i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00027398761i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00027398761i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00027398761i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00027398761i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00027398761i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00027398761i[CPU  ] | EIP=c002b315 (c002b315)
+00027398761i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00027398761i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00027398761i[CPU  ] >> 0f
+00027398761i[CPU  ] >> 44
+00027398761i[CPU  ] >> e8
+00027398761i[CPU  ] >> : cmovz ebp, eax
+00027398761i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00027402501i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00027716324i[KBD  ] reset-disable command received
+00027824011i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00027827018i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00028136583i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00028185284e[HD   ] ata0: device set to 1 which does not exist
+00028185576e[HD   ] ata1: device set to 0 which does not exist
+00028185869e[HD   ] ata1: device set to 1 which does not exist
+00028590028i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00028590028e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00028590028i[CPU  ] protected mode
+00028590028i[CPU  ] CS.d_b = 32 bit
+00028590028i[CPU  ] SS.d_b = 32 bit
+00028590028i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00028590028i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00028590028i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00028590028i[CPU  ] | SEG selector     base    limit G D
+00028590028i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00028590028i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00028590028i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00028590028i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00028590028i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00028590028i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00028590028i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00028590028i[CPU  ] | EIP=c002b315 (c002b315)
+00028590028i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00028590028i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00028590028i[CPU  ] >> 0f
+00028590028i[CPU  ] >> 44
+00028590028i[CPU  ] >> e8
+00028590028i[CPU  ] >> : cmovz ebp, eax
+00028590028i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00028593768i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00028907553i[KBD  ] reset-disable command received
+00029015240i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00029018247i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00029327812i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00029376513e[HD   ] ata0: device set to 1 which does not exist
+00029376805e[HD   ] ata1: device set to 0 which does not exist
+00029377098e[HD   ] ata1: device set to 1 which does not exist
+00029781257i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00029781257e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00029781257i[CPU  ] protected mode
+00029781257i[CPU  ] CS.d_b = 32 bit
+00029781257i[CPU  ] SS.d_b = 32 bit
+00029781257i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00029781257i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00029781257i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00029781257i[CPU  ] | SEG selector     base    limit G D
+00029781257i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00029781257i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00029781257i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00029781257i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00029781257i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00029781257i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00029781257i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00029781257i[CPU  ] | EIP=c002b315 (c002b315)
+00029781257i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00029781257i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00029781257i[CPU  ] >> 0f
+00029781257i[CPU  ] >> 44
+00029781257i[CPU  ] >> e8
+00029781257i[CPU  ] >> : cmovz ebp, eax
+00029781257i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00029784997i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00030098820i[KBD  ] reset-disable command received
+00030206507i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00030209514i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00030519079i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00030567780e[HD   ] ata0: device set to 1 which does not exist
+00030568072e[HD   ] ata1: device set to 0 which does not exist
+00030568365e[HD   ] ata1: device set to 1 which does not exist
+00030972524i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00030972524e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00030972524i[CPU  ] protected mode
+00030972524i[CPU  ] CS.d_b = 32 bit
+00030972524i[CPU  ] SS.d_b = 32 bit
+00030972524i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00030972524i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00030972524i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00030972524i[CPU  ] | SEG selector     base    limit G D
+00030972524i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00030972524i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00030972524i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00030972524i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00030972524i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00030972524i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00030972524i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00030972524i[CPU  ] | EIP=c002b315 (c002b315)
+00030972524i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00030972524i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00030972524i[CPU  ] >> 0f
+00030972524i[CPU  ] >> 44
+00030972524i[CPU  ] >> e8
+00030972524i[CPU  ] >> : cmovz ebp, eax
+00030972524i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00030976264i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00031290049i[KBD  ] reset-disable command received
+00031397736i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00031400743i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00031710308i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00031759009e[HD   ] ata0: device set to 1 which does not exist
+00031759301e[HD   ] ata1: device set to 0 which does not exist
+00031759594e[HD   ] ata1: device set to 1 which does not exist
+00032163753i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00032163753e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00032163753i[CPU  ] protected mode
+00032163753i[CPU  ] CS.d_b = 32 bit
+00032163753i[CPU  ] SS.d_b = 32 bit
+00032163753i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00032163753i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00032163753i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00032163753i[CPU  ] | SEG selector     base    limit G D
+00032163753i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00032163753i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00032163753i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00032163753i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00032163753i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00032163753i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00032163753i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00032163753i[CPU  ] | EIP=c002b315 (c002b315)
+00032163753i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00032163753i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00032163753i[CPU  ] >> 0f
+00032163753i[CPU  ] >> 44
+00032163753i[CPU  ] >> e8
+00032163753i[CPU  ] >> : cmovz ebp, eax
+00032163753i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00032167493i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00032481316i[KBD  ] reset-disable command received
+00032589003i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00032592010i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00032901575i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00032950276e[HD   ] ata0: device set to 1 which does not exist
+00032950568e[HD   ] ata1: device set to 0 which does not exist
+00032950861e[HD   ] ata1: device set to 1 which does not exist
+00033355020i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00033355020e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00033355020i[CPU  ] protected mode
+00033355020i[CPU  ] CS.d_b = 32 bit
+00033355020i[CPU  ] SS.d_b = 32 bit
+00033355020i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00033355020i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00033355020i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00033355020i[CPU  ] | SEG selector     base    limit G D
+00033355020i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00033355020i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00033355020i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00033355020i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00033355020i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00033355020i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00033355020i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00033355020i[CPU  ] | EIP=c002b315 (c002b315)
+00033355020i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00033355020i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00033355020i[CPU  ] >> 0f
+00033355020i[CPU  ] >> 44
+00033355020i[CPU  ] >> e8
+00033355020i[CPU  ] >> : cmovz ebp, eax
+00033355020i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00033358760i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00033672545i[KBD  ] reset-disable command received
+00033780232i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00033783239i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00034092804i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00034141505e[HD   ] ata0: device set to 1 which does not exist
+00034141797e[HD   ] ata1: device set to 0 which does not exist
+00034142090e[HD   ] ata1: device set to 1 which does not exist
+00034546249i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00034546249e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00034546249i[CPU  ] protected mode
+00034546249i[CPU  ] CS.d_b = 32 bit
+00034546249i[CPU  ] SS.d_b = 32 bit
+00034546249i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00034546249i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00034546249i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00034546249i[CPU  ] | SEG selector     base    limit G D
+00034546249i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00034546249i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00034546249i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00034546249i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00034546249i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00034546249i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00034546249i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00034546249i[CPU  ] | EIP=c002b315 (c002b315)
+00034546249i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00034546249i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00034546249i[CPU  ] >> 0f
+00034546249i[CPU  ] >> 44
+00034546249i[CPU  ] >> e8
+00034546249i[CPU  ] >> : cmovz ebp, eax
+00034546249i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00034549989i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00034863812i[KBD  ] reset-disable command received
+00034971499i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00034974506i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00035284071i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00035332772e[HD   ] ata0: device set to 1 which does not exist
+00035333064e[HD   ] ata1: device set to 0 which does not exist
+00035333357e[HD   ] ata1: device set to 1 which does not exist
+00035737516i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00035737516e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00035737516i[CPU  ] protected mode
+00035737516i[CPU  ] CS.d_b = 32 bit
+00035737516i[CPU  ] SS.d_b = 32 bit
+00035737516i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00035737516i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00035737516i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00035737516i[CPU  ] | SEG selector     base    limit G D
+00035737516i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00035737516i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00035737516i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00035737516i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00035737516i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00035737516i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00035737516i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00035737516i[CPU  ] | EIP=c002b315 (c002b315)
+00035737516i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00035737516i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00035737516i[CPU  ] >> 0f
+00035737516i[CPU  ] >> 44
+00035737516i[CPU  ] >> e8
+00035737516i[CPU  ] >> : cmovz ebp, eax
+00035737516i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00035741256i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00036055041i[KBD  ] reset-disable command received
+00036162766i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00036165773i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00036475338i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00036524039e[HD   ] ata0: device set to 1 which does not exist
+00036524331e[HD   ] ata1: device set to 0 which does not exist
+00036524624e[HD   ] ata1: device set to 1 which does not exist
+00036928783i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00036928783e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00036928783i[CPU  ] protected mode
+00036928783i[CPU  ] CS.d_b = 32 bit
+00036928783i[CPU  ] SS.d_b = 32 bit
+00036928783i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00036928783i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00036928783i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00036928783i[CPU  ] | SEG selector     base    limit G D
+00036928783i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00036928783i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00036928783i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00036928783i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00036928783i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00036928783i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00036928783i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00036928783i[CPU  ] | EIP=c002b315 (c002b315)
+00036928783i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00036928783i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00036928783i[CPU  ] >> 0f
+00036928783i[CPU  ] >> 44
+00036928783i[CPU  ] >> e8
+00036928783i[CPU  ] >> : cmovz ebp, eax
+00036928783i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00036932523i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00037246308i[KBD  ] reset-disable command received
+00037353995i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00037357002i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00037666567i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00037715268e[HD   ] ata0: device set to 1 which does not exist
+00037715560e[HD   ] ata1: device set to 0 which does not exist
+00037715853e[HD   ] ata1: device set to 1 which does not exist
+00038120012i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00038120012e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00038120012i[CPU  ] protected mode
+00038120012i[CPU  ] CS.d_b = 32 bit
+00038120012i[CPU  ] SS.d_b = 32 bit
+00038120012i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00038120012i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00038120012i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00038120012i[CPU  ] | SEG selector     base    limit G D
+00038120012i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00038120012i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00038120012i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00038120012i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00038120012i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00038120012i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00038120012i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00038120012i[CPU  ] | EIP=c002b315 (c002b315)
+00038120012i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00038120012i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00038120012i[CPU  ] >> 0f
+00038120012i[CPU  ] >> 44
+00038120012i[CPU  ] >> e8
+00038120012i[CPU  ] >> : cmovz ebp, eax
+00038120012i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00038123752i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00038437575i[KBD  ] reset-disable command received
+00038545262i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00038548269i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00038857834i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00038906535e[HD   ] ata0: device set to 1 which does not exist
+00038906827e[HD   ] ata1: device set to 0 which does not exist
+00038907120e[HD   ] ata1: device set to 1 which does not exist
+00039311279i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00039311279e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00039311279i[CPU  ] protected mode
+00039311279i[CPU  ] CS.d_b = 32 bit
+00039311279i[CPU  ] SS.d_b = 32 bit
+00039311279i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00039311279i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00039311279i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00039311279i[CPU  ] | SEG selector     base    limit G D
+00039311279i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00039311279i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00039311279i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00039311279i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00039311279i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00039311279i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00039311279i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00039311279i[CPU  ] | EIP=c002b315 (c002b315)
+00039311279i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00039311279i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00039311279i[CPU  ] >> 0f
+00039311279i[CPU  ] >> 44
+00039311279i[CPU  ] >> e8
+00039311279i[CPU  ] >> : cmovz ebp, eax
+00039311279i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00039315019i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00039628804i[KBD  ] reset-disable command received
+00039736491i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00039739498i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00040049063i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00040097764e[HD   ] ata0: device set to 1 which does not exist
+00040098056e[HD   ] ata1: device set to 0 which does not exist
+00040098349e[HD   ] ata1: device set to 1 which does not exist
+00040502508i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00040502508e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00040502508i[CPU  ] protected mode
+00040502508i[CPU  ] CS.d_b = 32 bit
+00040502508i[CPU  ] SS.d_b = 32 bit
+00040502508i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00040502508i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00040502508i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00040502508i[CPU  ] | SEG selector     base    limit G D
+00040502508i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00040502508i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00040502508i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00040502508i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00040502508i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00040502508i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00040502508i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00040502508i[CPU  ] | EIP=c002b315 (c002b315)
+00040502508i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00040502508i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00040502508i[CPU  ] >> 0f
+00040502508i[CPU  ] >> 44
+00040502508i[CPU  ] >> e8
+00040502508i[CPU  ] >> : cmovz ebp, eax
+00040502508i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00040506248i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00040820071i[KBD  ] reset-disable command received
+00040927758i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00040930765i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00041240330i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00041289031e[HD   ] ata0: device set to 1 which does not exist
+00041289323e[HD   ] ata1: device set to 0 which does not exist
+00041289616e[HD   ] ata1: device set to 1 which does not exist
+00041693775i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00041693775e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00041693775i[CPU  ] protected mode
+00041693775i[CPU  ] CS.d_b = 32 bit
+00041693775i[CPU  ] SS.d_b = 32 bit
+00041693775i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00041693775i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00041693775i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00041693775i[CPU  ] | SEG selector     base    limit G D
+00041693775i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00041693775i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00041693775i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00041693775i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00041693775i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00041693775i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00041693775i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00041693775i[CPU  ] | EIP=c002b315 (c002b315)
+00041693775i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00041693775i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00041693775i[CPU  ] >> 0f
+00041693775i[CPU  ] >> 44
+00041693775i[CPU  ] >> e8
+00041693775i[CPU  ] >> : cmovz ebp, eax
+00041693775i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00041697515i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00042011300i[KBD  ] reset-disable command received
+00042118987i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00042121994i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00042431559i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00042480260e[HD   ] ata0: device set to 1 which does not exist
+00042480552e[HD   ] ata1: device set to 0 which does not exist
+00042480845e[HD   ] ata1: device set to 1 which does not exist
+00042885004i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00042885004e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00042885004i[CPU  ] protected mode
+00042885004i[CPU  ] CS.d_b = 32 bit
+00042885004i[CPU  ] SS.d_b = 32 bit
+00042885004i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00042885004i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00042885004i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00042885004i[CPU  ] | SEG selector     base    limit G D
+00042885004i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00042885004i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00042885004i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00042885004i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00042885004i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00042885004i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00042885004i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00042885004i[CPU  ] | EIP=c002b315 (c002b315)
+00042885004i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00042885004i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00042885004i[CPU  ] >> 0f
+00042885004i[CPU  ] >> 44
+00042885004i[CPU  ] >> e8
+00042885004i[CPU  ] >> : cmovz ebp, eax
+00042885004i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00042888744i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00043202567i[KBD  ] reset-disable command received
+00043310254i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00043313261i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00043622826i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00043671527e[HD   ] ata0: device set to 1 which does not exist
+00043671819e[HD   ] ata1: device set to 0 which does not exist
+00043672112e[HD   ] ata1: device set to 1 which does not exist
+00044076271i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00044076271e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00044076271i[CPU  ] protected mode
+00044076271i[CPU  ] CS.d_b = 32 bit
+00044076271i[CPU  ] SS.d_b = 32 bit
+00044076271i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00044076271i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00044076271i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00044076271i[CPU  ] | SEG selector     base    limit G D
+00044076271i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00044076271i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00044076271i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00044076271i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00044076271i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00044076271i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00044076271i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00044076271i[CPU  ] | EIP=c002b315 (c002b315)
+00044076271i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00044076271i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00044076271i[CPU  ] >> 0f
+00044076271i[CPU  ] >> 44
+00044076271i[CPU  ] >> e8
+00044076271i[CPU  ] >> : cmovz ebp, eax
+00044076271i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00044080011i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00044393796i[KBD  ] reset-disable command received
+00044501483i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00044504490i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00044814055i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00044862756e[HD   ] ata0: device set to 1 which does not exist
+00044863048e[HD   ] ata1: device set to 0 which does not exist
+00044863341e[HD   ] ata1: device set to 1 which does not exist
+00045267500i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00045267500e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00045267500i[CPU  ] protected mode
+00045267500i[CPU  ] CS.d_b = 32 bit
+00045267500i[CPU  ] SS.d_b = 32 bit
+00045267500i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00045267500i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00045267500i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00045267500i[CPU  ] | SEG selector     base    limit G D
+00045267500i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00045267500i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00045267500i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00045267500i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00045267500i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00045267500i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00045267500i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00045267500i[CPU  ] | EIP=c002b315 (c002b315)
+00045267500i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00045267500i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00045267500i[CPU  ] >> 0f
+00045267500i[CPU  ] >> 44
+00045267500i[CPU  ] >> e8
+00045267500i[CPU  ] >> : cmovz ebp, eax
+00045267500i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00045271240i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00045585063i[KBD  ] reset-disable command received
+00045692750i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00045695757i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00046005322i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00046054023e[HD   ] ata0: device set to 1 which does not exist
+00046054315e[HD   ] ata1: device set to 0 which does not exist
+00046054608e[HD   ] ata1: device set to 1 which does not exist
+00046458767i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00046458767e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00046458767i[CPU  ] protected mode
+00046458767i[CPU  ] CS.d_b = 32 bit
+00046458767i[CPU  ] SS.d_b = 32 bit
+00046458767i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00046458767i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00046458767i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00046458767i[CPU  ] | SEG selector     base    limit G D
+00046458767i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00046458767i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00046458767i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00046458767i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00046458767i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00046458767i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00046458767i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00046458767i[CPU  ] | EIP=c002b315 (c002b315)
+00046458767i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00046458767i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00046458767i[CPU  ] >> 0f
+00046458767i[CPU  ] >> 44
+00046458767i[CPU  ] >> e8
+00046458767i[CPU  ] >> : cmovz ebp, eax
+00046458767i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00046462507i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00046776292i[KBD  ] reset-disable command received
+00046883979i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00046886986i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00047196551i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00047245252e[HD   ] ata0: device set to 1 which does not exist
+00047245544e[HD   ] ata1: device set to 0 which does not exist
+00047245837e[HD   ] ata1: device set to 1 which does not exist
+00047649996i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00047649996e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00047649996i[CPU  ] protected mode
+00047649996i[CPU  ] CS.d_b = 32 bit
+00047649996i[CPU  ] SS.d_b = 32 bit
+00047649996i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00047649996i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00047649996i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00047649996i[CPU  ] | SEG selector     base    limit G D
+00047649996i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00047649996i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00047649996i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00047649996i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00047649996i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00047649996i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00047649996i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00047649996i[CPU  ] | EIP=c002b315 (c002b315)
+00047649996i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00047649996i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00047649996i[CPU  ] >> 0f
+00047649996i[CPU  ] >> 44
+00047649996i[CPU  ] >> e8
+00047649996i[CPU  ] >> : cmovz ebp, eax
+00047649996i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00047653736i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00047967559i[KBD  ] reset-disable command received
+00048075246i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00048078253i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00048387818i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00048436519e[HD   ] ata0: device set to 1 which does not exist
+00048436811e[HD   ] ata1: device set to 0 which does not exist
+00048437104e[HD   ] ata1: device set to 1 which does not exist
+00048841263i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00048841263e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00048841263i[CPU  ] protected mode
+00048841263i[CPU  ] CS.d_b = 32 bit
+00048841263i[CPU  ] SS.d_b = 32 bit
+00048841263i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00048841263i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00048841263i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00048841263i[CPU  ] | SEG selector     base    limit G D
+00048841263i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00048841263i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00048841263i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00048841263i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00048841263i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00048841263i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00048841263i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00048841263i[CPU  ] | EIP=c002b315 (c002b315)
+00048841263i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00048841263i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00048841263i[CPU  ] >> 0f
+00048841263i[CPU  ] >> 44
+00048841263i[CPU  ] >> e8
+00048841263i[CPU  ] >> : cmovz ebp, eax
+00048841263i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00048845003i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00049158788i[KBD  ] reset-disable command received
+00049266513i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00049269520i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00049579085i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00049627786e[HD   ] ata0: device set to 1 which does not exist
+00049628078e[HD   ] ata1: device set to 0 which does not exist
+00049628371e[HD   ] ata1: device set to 1 which does not exist
+00050032530i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00050032530e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00050032530i[CPU  ] protected mode
+00050032530i[CPU  ] CS.d_b = 32 bit
+00050032530i[CPU  ] SS.d_b = 32 bit
+00050032530i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00050032530i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00050032530i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00050032530i[CPU  ] | SEG selector     base    limit G D
+00050032530i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00050032530i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00050032530i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00050032530i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00050032530i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00050032530i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00050032530i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00050032530i[CPU  ] | EIP=c002b315 (c002b315)
+00050032530i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00050032530i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00050032530i[CPU  ] >> 0f
+00050032530i[CPU  ] >> 44
+00050032530i[CPU  ] >> e8
+00050032530i[CPU  ] >> : cmovz ebp, eax
+00050032530i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00050036270i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00050350055i[KBD  ] reset-disable command received
+00050457742i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00050460749i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00050770314i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00050819015e[HD   ] ata0: device set to 1 which does not exist
+00050819307e[HD   ] ata1: device set to 0 which does not exist
+00050819600e[HD   ] ata1: device set to 1 which does not exist
+00051223759i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00051223759e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00051223759i[CPU  ] protected mode
+00051223759i[CPU  ] CS.d_b = 32 bit
+00051223759i[CPU  ] SS.d_b = 32 bit
+00051223759i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00051223759i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00051223759i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00051223759i[CPU  ] | SEG selector     base    limit G D
+00051223759i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00051223759i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00051223759i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00051223759i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00051223759i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00051223759i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00051223759i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00051223759i[CPU  ] | EIP=c002b315 (c002b315)
+00051223759i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00051223759i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00051223759i[CPU  ] >> 0f
+00051223759i[CPU  ] >> 44
+00051223759i[CPU  ] >> e8
+00051223759i[CPU  ] >> : cmovz ebp, eax
+00051223759i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00051227499i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00051541322i[KBD  ] reset-disable command received
+00051649009i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00051652016i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00051961581i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00052010282e[HD   ] ata0: device set to 1 which does not exist
+00052010574e[HD   ] ata1: device set to 0 which does not exist
+00052010867e[HD   ] ata1: device set to 1 which does not exist
+00052415026i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00052415026e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00052415026i[CPU  ] protected mode
+00052415026i[CPU  ] CS.d_b = 32 bit
+00052415026i[CPU  ] SS.d_b = 32 bit
+00052415026i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00052415026i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00052415026i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00052415026i[CPU  ] | SEG selector     base    limit G D
+00052415026i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00052415026i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00052415026i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00052415026i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00052415026i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00052415026i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00052415026i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00052415026i[CPU  ] | EIP=c002b315 (c002b315)
+00052415026i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00052415026i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00052415026i[CPU  ] >> 0f
+00052415026i[CPU  ] >> 44
+00052415026i[CPU  ] >> e8
+00052415026i[CPU  ] >> : cmovz ebp, eax
+00052415026i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00052418766i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00052732551i[KBD  ] reset-disable command received
+00052840238i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00052843245i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00053152810i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00053201511e[HD   ] ata0: device set to 1 which does not exist
+00053201803e[HD   ] ata1: device set to 0 which does not exist
+00053202096e[HD   ] ata1: device set to 1 which does not exist
+00053606255i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00053606255e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00053606255i[CPU  ] protected mode
+00053606255i[CPU  ] CS.d_b = 32 bit
+00053606255i[CPU  ] SS.d_b = 32 bit
+00053606255i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00053606255i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00053606255i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00053606255i[CPU  ] | SEG selector     base    limit G D
+00053606255i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00053606255i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00053606255i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00053606255i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00053606255i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00053606255i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00053606255i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00053606255i[CPU  ] | EIP=c002b315 (c002b315)
+00053606255i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00053606255i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00053606255i[CPU  ] >> 0f
+00053606255i[CPU  ] >> 44
+00053606255i[CPU  ] >> e8
+00053606255i[CPU  ] >> : cmovz ebp, eax
+00053606255i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00053609995i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00053923818i[KBD  ] reset-disable command received
+00054031505i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00054034512i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00054344077i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00054392778e[HD   ] ata0: device set to 1 which does not exist
+00054393070e[HD   ] ata1: device set to 0 which does not exist
+00054393363e[HD   ] ata1: device set to 1 which does not exist
+00054797522i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00054797522e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00054797522i[CPU  ] protected mode
+00054797522i[CPU  ] CS.d_b = 32 bit
+00054797522i[CPU  ] SS.d_b = 32 bit
+00054797522i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00054797522i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00054797522i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00054797522i[CPU  ] | SEG selector     base    limit G D
+00054797522i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00054797522i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00054797522i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00054797522i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00054797522i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00054797522i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00054797522i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00054797522i[CPU  ] | EIP=c002b315 (c002b315)
+00054797522i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00054797522i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00054797522i[CPU  ] >> 0f
+00054797522i[CPU  ] >> 44
+00054797522i[CPU  ] >> e8
+00054797522i[CPU  ] >> : cmovz ebp, eax
+00054797522i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00054801262i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00055115047i[KBD  ] reset-disable command received
+00055222734i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00055225741i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00055535306i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00055584007e[HD   ] ata0: device set to 1 which does not exist
+00055584299e[HD   ] ata1: device set to 0 which does not exist
+00055584592e[HD   ] ata1: device set to 1 which does not exist
+00055988751i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00055988751e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00055988751i[CPU  ] protected mode
+00055988751i[CPU  ] CS.d_b = 32 bit
+00055988751i[CPU  ] SS.d_b = 32 bit
+00055988751i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00055988751i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00055988751i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00055988751i[CPU  ] | SEG selector     base    limit G D
+00055988751i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00055988751i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00055988751i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00055988751i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00055988751i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00055988751i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00055988751i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00055988751i[CPU  ] | EIP=c002b315 (c002b315)
+00055988751i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00055988751i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00055988751i[CPU  ] >> 0f
+00055988751i[CPU  ] >> 44
+00055988751i[CPU  ] >> e8
+00055988751i[CPU  ] >> : cmovz ebp, eax
+00055988751i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00055992491i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00056306314i[KBD  ] reset-disable command received
+00056414001i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00056417008i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00056726573i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00056775274e[HD   ] ata0: device set to 1 which does not exist
+00056775566e[HD   ] ata1: device set to 0 which does not exist
+00056775859e[HD   ] ata1: device set to 1 which does not exist
+00057180018i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00057180018e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00057180018i[CPU  ] protected mode
+00057180018i[CPU  ] CS.d_b = 32 bit
+00057180018i[CPU  ] SS.d_b = 32 bit
+00057180018i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00057180018i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00057180018i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00057180018i[CPU  ] | SEG selector     base    limit G D
+00057180018i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00057180018i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00057180018i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00057180018i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00057180018i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00057180018i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00057180018i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00057180018i[CPU  ] | EIP=c002b315 (c002b315)
+00057180018i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00057180018i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00057180018i[CPU  ] >> 0f
+00057180018i[CPU  ] >> 44
+00057180018i[CPU  ] >> e8
+00057180018i[CPU  ] >> : cmovz ebp, eax
+00057180018i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00057183758i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00057497543i[KBD  ] reset-disable command received
+00057605230i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00057608237i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00057917802i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00057966503e[HD   ] ata0: device set to 1 which does not exist
+00057966795e[HD   ] ata1: device set to 0 which does not exist
+00057967088e[HD   ] ata1: device set to 1 which does not exist
+00058371247i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00058371247e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00058371247i[CPU  ] protected mode
+00058371247i[CPU  ] CS.d_b = 32 bit
+00058371247i[CPU  ] SS.d_b = 32 bit
+00058371247i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00058371247i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00058371247i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00058371247i[CPU  ] | SEG selector     base    limit G D
+00058371247i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00058371247i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00058371247i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00058371247i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00058371247i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00058371247i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00058371247i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00058371247i[CPU  ] | EIP=c002b315 (c002b315)
+00058371247i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00058371247i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00058371247i[CPU  ] >> 0f
+00058371247i[CPU  ] >> 44
+00058371247i[CPU  ] >> e8
+00058371247i[CPU  ] >> : cmovz ebp, eax
+00058371247i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00058374987i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00058688810i[KBD  ] reset-disable command received
+00058796497i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00058799504i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00059109069i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00059157770e[HD   ] ata0: device set to 1 which does not exist
+00059158062e[HD   ] ata1: device set to 0 which does not exist
+00059158355e[HD   ] ata1: device set to 1 which does not exist
+00059562514i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00059562514e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00059562514i[CPU  ] protected mode
+00059562514i[CPU  ] CS.d_b = 32 bit
+00059562514i[CPU  ] SS.d_b = 32 bit
+00059562514i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00059562514i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00059562514i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00059562514i[CPU  ] | SEG selector     base    limit G D
+00059562514i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00059562514i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00059562514i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00059562514i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00059562514i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00059562514i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00059562514i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00059562514i[CPU  ] | EIP=c002b315 (c002b315)
+00059562514i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00059562514i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00059562514i[CPU  ] >> 0f
+00059562514i[CPU  ] >> 44
+00059562514i[CPU  ] >> e8
+00059562514i[CPU  ] >> : cmovz ebp, eax
+00059562514i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00059566254i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00059880039i[KBD  ] reset-disable command received
+00059987764i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00059990771i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00060300336i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00060349037e[HD   ] ata0: device set to 1 which does not exist
+00060349329e[HD   ] ata1: device set to 0 which does not exist
+00060349622e[HD   ] ata1: device set to 1 which does not exist
+00060753781i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00060753781e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00060753781i[CPU  ] protected mode
+00060753781i[CPU  ] CS.d_b = 32 bit
+00060753781i[CPU  ] SS.d_b = 32 bit
+00060753781i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00060753781i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00060753781i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00060753781i[CPU  ] | SEG selector     base    limit G D
+00060753781i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00060753781i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00060753781i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00060753781i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00060753781i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00060753781i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00060753781i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00060753781i[CPU  ] | EIP=c002b315 (c002b315)
+00060753781i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00060753781i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00060753781i[CPU  ] >> 0f
+00060753781i[CPU  ] >> 44
+00060753781i[CPU  ] >> e8
+00060753781i[CPU  ] >> : cmovz ebp, eax
+00060753781i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00060757521i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00061071306i[KBD  ] reset-disable command received
+00061178993i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00061182000i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00061491565i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00061540266e[HD   ] ata0: device set to 1 which does not exist
+00061540558e[HD   ] ata1: device set to 0 which does not exist
+00061540851e[HD   ] ata1: device set to 1 which does not exist
+00061945010i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00061945010e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00061945010i[CPU  ] protected mode
+00061945010i[CPU  ] CS.d_b = 32 bit
+00061945010i[CPU  ] SS.d_b = 32 bit
+00061945010i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00061945010i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00061945010i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00061945010i[CPU  ] | SEG selector     base    limit G D
+00061945010i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00061945010i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00061945010i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00061945010i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00061945010i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00061945010i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00061945010i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00061945010i[CPU  ] | EIP=c002b315 (c002b315)
+00061945010i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00061945010i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00061945010i[CPU  ] >> 0f
+00061945010i[CPU  ] >> 44
+00061945010i[CPU  ] >> e8
+00061945010i[CPU  ] >> : cmovz ebp, eax
+00061945010i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00061948750i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00062262573i[KBD  ] reset-disable command received
+00062370260i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00062373267i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00062682832i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00062731533e[HD   ] ata0: device set to 1 which does not exist
+00062731825e[HD   ] ata1: device set to 0 which does not exist
+00062732118e[HD   ] ata1: device set to 1 which does not exist
+00063136277i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00063136277e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00063136277i[CPU  ] protected mode
+00063136277i[CPU  ] CS.d_b = 32 bit
+00063136277i[CPU  ] SS.d_b = 32 bit
+00063136277i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00063136277i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00063136277i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00063136277i[CPU  ] | SEG selector     base    limit G D
+00063136277i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00063136277i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00063136277i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00063136277i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00063136277i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00063136277i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00063136277i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00063136277i[CPU  ] | EIP=c002b315 (c002b315)
+00063136277i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00063136277i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00063136277i[CPU  ] >> 0f
+00063136277i[CPU  ] >> 44
+00063136277i[CPU  ] >> e8
+00063136277i[CPU  ] >> : cmovz ebp, eax
+00063136277i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00063140017i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00063453802i[KBD  ] reset-disable command received
+00063561489i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00063564496i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00063874061i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00063922762e[HD   ] ata0: device set to 1 which does not exist
+00063923054e[HD   ] ata1: device set to 0 which does not exist
+00063923347e[HD   ] ata1: device set to 1 which does not exist
+00064327506i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00064327506e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00064327506i[CPU  ] protected mode
+00064327506i[CPU  ] CS.d_b = 32 bit
+00064327506i[CPU  ] SS.d_b = 32 bit
+00064327506i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00064327506i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00064327506i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00064327506i[CPU  ] | SEG selector     base    limit G D
+00064327506i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00064327506i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00064327506i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00064327506i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00064327506i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00064327506i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00064327506i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00064327506i[CPU  ] | EIP=c002b315 (c002b315)
+00064327506i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00064327506i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00064327506i[CPU  ] >> 0f
+00064327506i[CPU  ] >> 44
+00064327506i[CPU  ] >> e8
+00064327506i[CPU  ] >> : cmovz ebp, eax
+00064327506i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00064331246i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00064645069i[KBD  ] reset-disable command received
+00064752756i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00064755763i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00065065328i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00065114029e[HD   ] ata0: device set to 1 which does not exist
+00065114321e[HD   ] ata1: device set to 0 which does not exist
+00065114614e[HD   ] ata1: device set to 1 which does not exist
+00065518773i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00065518773e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00065518773i[CPU  ] protected mode
+00065518773i[CPU  ] CS.d_b = 32 bit
+00065518773i[CPU  ] SS.d_b = 32 bit
+00065518773i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00065518773i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00065518773i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00065518773i[CPU  ] | SEG selector     base    limit G D
+00065518773i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00065518773i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00065518773i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00065518773i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00065518773i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00065518773i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00065518773i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00065518773i[CPU  ] | EIP=c002b315 (c002b315)
+00065518773i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00065518773i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00065518773i[CPU  ] >> 0f
+00065518773i[CPU  ] >> 44
+00065518773i[CPU  ] >> e8
+00065518773i[CPU  ] >> : cmovz ebp, eax
+00065518773i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00065522513i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00065836298i[KBD  ] reset-disable command received
+00065943985i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00065946992i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00066256557i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00066305258e[HD   ] ata0: device set to 1 which does not exist
+00066305550e[HD   ] ata1: device set to 0 which does not exist
+00066305843e[HD   ] ata1: device set to 1 which does not exist
+00066710002i[CPU  ] CMOV_GdEd: -enable-cpu-level=6 required
+00066710002e[CPU  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00066710002i[CPU  ] protected mode
+00066710002i[CPU  ] CS.d_b = 32 bit
+00066710002i[CPU  ] SS.d_b = 32 bit
+00066710002i[CPU  ] | EAX=c003488e  EBX=c000efa8  ECX=00000043  EDX=00000073
+00066710002i[CPU  ] | ESP=c000eed0  EBP=c0007d3e  ESI=00000000  EDI=00000002
+00066710002i[CPU  ] | IOPL=0 id vip vif ac vm RF nt of df if tf SF zf af pf cf
+00066710002i[CPU  ] | SEG selector     base    limit G D
+00066710002i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00066710002i[CPU  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 1 1
+00066710002i[CPU  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00066710002i[CPU  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00066710002i[CPU  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00066710002i[CPU  ] |  FS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00066710002i[CPU  ] |  GS:0010( 0002| 0|  0) 00000000 000fffff 1 1
+00066710002i[CPU  ] | EIP=c002b315 (c002b315)
+00066710002i[CPU  ] | CR0=0x80010015 CR1=0 CR2=0x00000000
+00066710002i[CPU  ] | CR3=0x0000f000 CR4=0x00000000
+00066710002i[CPU  ] >> 0f
+00066710002i[CPU  ] >> 44
+00066710002i[CPU  ] >> e8
+00066710002i[CPU  ] >> : cmovz ebp, eax
+00066710002i[SYS  ] bx_pc_system_c::Reset(SOFTWARE) called
+00066713742i[BIOS ] $Revision: 1.160 $ $Date: 2006/01/25 17:51:49 $
+00067027565i[KBD  ] reset-disable command received
+00067135252i[VBIOS] VGABios $Id: vgabios.c,v 1.63 2005/12/26 19:50:26 vruppert Exp $
+00067138259i[VBIOS] VBE Bios $Id: vbe.c,v 1.48 2005/12/26 19:50:26 vruppert Exp $
+00067447824i[BIOS ] ata0-0: PCHS=1/16/63 translation=none LCHS=1/16/63
+00067496525e[HD   ] ata0: device set to 1 which does not exist
+00067496817e[HD   ] ata1: device set to 0 which does not exist
+00067497110e[HD   ] ata1: device set to 1 which does not exist
+00067649607p[     ] >>PANIC<< SIGNAL 2 caught
+00067649607i[SYS  ] Last time is 67
+00067649607i[NGUI ] bx_nogui_gui_c::exit() not implemented yet.
+00067649607i[CPU  ] real mode
+00067649607i[CPU  ] CS.d_b = 16 bit
+00067649607i[CPU  ] SS.d_b = 16 bit
+00067649607i[CPU  ] | EAX=00000234  EBX=00000000  ECX=0000001a  EDX=00000000
+00067649607i[CPU  ] | ESP=0000ef5a  EBP=0000ef60  ESI=0000efde  EDI=0000ef88
+00067649607i[CPU  ] | IOPL=0 id vip vif ac vm rf nt of df if tf sf ZF af PF cf
+00067649607i[CPU  ] | SEG selector     base    limit G D
+00067649607i[CPU  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00067649607i[CPU  ] |  CS:f000( 0000| 0|  0) 000f0000 0000ffff 0 0
+00067649607i[CPU  ] |  DS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
+00067649607i[CPU  ] |  SS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
+00067649607i[CPU  ] |  ES:2c20( 0000| 0|  0) 0002c200 0000ffff 0 0
+00067649607i[CPU  ] |  FS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
+00067649607i[CPU  ] |  GS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
+00067649607i[CPU  ] | EIP=000005d8 (000005d8)
+00067649607i[CPU  ] | CR0=0x00000010 CR1=0 CR2=0x00000000
+00067649607i[CPU  ] | CR3=0x00000000 CR4=0x00000000
+00067649607i[CPU  ] >> 8b
+00067649607i[CPU  ] >> 46
+00067649607i[CPU  ] >> 04
+00067649607i[CPU  ] >> : mov ax, word ptr ss:[bp+0x4]
+00067649607i[     ] restoring default signal behavior
+00067649607i[CTRL ] quit_sim called with exit code 1
