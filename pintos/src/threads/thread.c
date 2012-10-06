@@ -11,6 +11,7 @@
 #include "threads/switch.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
+#include "devices/timer.h" /* Is this the right way to do this? */
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -137,6 +138,10 @@ thread_tick (void)
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return ();
+
+  /* Added for sleeping */
+  //all_list
+
 }
 
 /* Prints thread statistics. */
@@ -322,6 +327,34 @@ thread_yield (void)
   intr_set_level (old_level);
 }
 
+/* Added for sleeping */
+void 
+thread_setup_sleep (int64_t start, int64_t duration) 
+{
+  struct thread *cur = thread_current ();
+
+  ASSERT(start >= 0);
+  ASSERT(duration >= 0);
+
+  cur->thread_sleeping = true;
+  cur->sleep_ticks = duration;
+  cur->started_sleeping = start;
+}
+
+void 
+thread_unsleeper (struct thread *t, void *aux)
+{
+  int64_t ticks = timer_ticks ();
+  if (t->thread_sleeping) 
+  {
+    if (ticks - t->started_sleeping >= t->sleep_ticks) {
+      t->thread_sleeping = false;
+      thread_unblock(t);
+    }
+  }
+}
+
+
 /* Invoke function 'func' on all threads, passing along 'aux'.
    This function must be called with interrupts off. */
 void
@@ -470,6 +503,11 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
   list_push_back (&all_list, &t->allelem);
+
+  /* Code added for thread sleeping */
+  t->thread_sleeping = false;
+  t->sleep_ticks = 0;
+  t->started_sleeping = 0;
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and

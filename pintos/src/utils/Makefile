@@ -1,4 +1,5 @@
-all: setitimer-helper squish-pty squish-unix
+# all: setitimer-helper squish-pty squish-unix
+ all: squish-pty squish-unix
 
 CC = gcc
 CFLAGS = -Wall -W

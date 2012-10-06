@@ -1,5 +1,6 @@
 *.o
 *.d
+*.bin
 pintos/src/utils/bin
 *~
 *.svn
