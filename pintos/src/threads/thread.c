@@ -141,6 +141,11 @@ thread_tick (void)
 
   /* Added for sleeping */
   //all_list
+  
+  enum intr_level old_level;
+  old_level = intr_disable();
+  thread_foreach (thread_unsleeper,NULL);
+  intr_set_level (old_level);
 
 }
 

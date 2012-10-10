@@ -145,5 +145,6 @@ int thread_get_load_avg (void);
 
 /* Added for sleeping */
 void thread_setup_sleep(int64_t, int64_t); 
+void thread_unsleeper(struct thread *,void *);
 
 #endif /* threads/thread.h */
