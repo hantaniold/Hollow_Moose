@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include "threads/synch.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -91,9 +92,10 @@ struct thread
     struct list_elem allelem;           /* List element for all threads list. */
     
     /* Stuff for Sleeping*/
-    bool thread_sleeping;
-    int64_t sleep_ticks;
-    int64_t started_sleeping;
+   
+    struct list_elem waitelem;         /* List element for wait threads list . */
+    struct semaphore timer_semaphore;
+    int64_t wakeup_time; /* When the thread should wake up */
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
@@ -144,7 +146,10 @@ int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
 /* Added for sleeping */
-void thread_setup_sleep(int64_t, int64_t); 
-void thread_unsleeper(struct thread *,void *);
+void thread_sleep (int64_t);
+void thread_wake_routine (void);
+void thread_wake_routine_helper (struct thread *, void *);
+void thread_foreach_wait (thread_action_func *, void *);
+bool wake_time_compare (const struct list_elem *, const struct list_elem *, void *);
 
 #endif /* threads/thread.h */

@@ -29,6 +29,9 @@ static struct list ready_list;
    when they are first scheduled and removed when they exit. */
 static struct list all_list;
 
+/* ADDED List of sleeping threads */
+static struct list wait_list;
+
 /* Idle thread. */
 static struct thread *idle_thread;
 
@@ -93,12 +96,24 @@ thread_init (void)
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
-
+  list_init (&wait_list);
+  
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
+}
+
+bool
+wake_time_compare ( const struct list_elem *a, const struct list_elem *b, void *aux)
+{
+      struct thread *ta = list_entry (a, struct thread, waitelem);
+      struct thread *tb = list_entry (b, struct thread, waitelem); // waitelem????
+      if (ta->wakeup_time < tb->wakeup_time) {
+        return true;
+      }
+      return false;
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -138,14 +153,6 @@ thread_tick (void)
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return ();
-
-  /* Added for sleeping */
-  //all_list
-  
-  enum intr_level old_level;
-  old_level = intr_disable();
-  thread_foreach (thread_unsleeper,NULL);
-  intr_set_level (old_level);
 
 }
 
@@ -333,32 +340,63 @@ thread_yield (void)
 }
 
 /* Added for sleeping */
-void 
-thread_setup_sleep (int64_t start, int64_t duration) 
+void
+thread_sleep (int64_t ticks)
 {
-  struct thread *cur = thread_current ();
+    struct thread *cur = thread_current ();
 
-  ASSERT(start >= 0);
-  ASSERT(duration >= 0);
+    cur->wakeup_time = timer_ticks () + ticks;
+   
 
-  cur->thread_sleeping = true;
-  cur->sleep_ticks = duration;
-  cur->started_sleeping = start;
+    enum intr_level old_level;
+    old_level = intr_disable ();
+    list_insert_ordered (&wait_list,&(cur->waitelem),&wake_time_compare,NULL);
+    intr_set_level (old_level);
+
+    sema_init (&(cur->timer_semaphore),0);
+    sema_down (&(cur->timer_semaphore));
+
 }
 
-void 
-thread_unsleeper (struct thread *t, void *aux)
+
+void
+thread_wake_routine ()
 {
-  int64_t ticks = timer_ticks ();
-  if (t->thread_sleeping) 
-  {
-    if (ticks - t->started_sleeping >= t->sleep_ticks) {
-      t->thread_sleeping = false;
-      thread_unblock(t);
+    enum intr_level old_level;
+    old_level = intr_disable ();
+    thread_foreach_wait(&thread_wake_routine_helper,NULL);
+    intr_set_level (old_level);
+}
+
+void
+thread_wake_routine_helper (struct thread * t, void * aux)
+{
+    if (timer_ticks () > t->wakeup_time) {
+        enum intr_level old_level;
+        old_level = intr_disable ();
+        list_remove (&(t->waitelem));
+        intr_set_level (old_level);
+        sema_up(&(t->timer_semaphore));
+        //remove from list
+        //up the semaphore
     }
-  }
 }
 
+/* Same as thread_foreach but called on the wait_list */
+void 
+thread_foreach_wait (thread_action_func *func, void *aux)
+{ 
+  struct list_elem *e;
+
+  ASSERT (intr_get_level () == INTR_OFF);
+
+  for (e = list_begin (&wait_list); e != list_end (&wait_list);
+       e = list_next (e))
+    {
+      struct thread *t = list_entry (e, struct thread, waitelem);
+      func (t, aux);
+    }
+}
 
 /* Invoke function 'func' on all threads, passing along 'aux'.
    This function must be called with interrupts off. */
@@ -509,10 +547,6 @@ init_thread (struct thread *t, const char *name, int priority)
   t->magic = THREAD_MAGIC;
   list_push_back (&all_list, &t->allelem);
 
-  /* Code added for thread sleeping */
-  t->thread_sleeping = false;
-  t->sleep_ticks = 0;
-  t->started_sleeping = 0;
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
