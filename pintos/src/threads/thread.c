@@ -371,11 +371,11 @@ thread_wake_routine ()
 void
 thread_wake_routine_helper (struct thread * t, void * aux)
 {
-    if (timer_ticks () > t->wakeup_time) {
-        enum intr_level old_level;
-        old_level = intr_disable ();
+    if (timer_ticks () >= t->wakeup_time) {
+        //enum intr_level old_level;
+        //old_level = intr_disable ();
         list_remove (&(t->waitelem));
-        intr_set_level (old_level);
+        //intr_set_level (old_level);
         sema_up(&(t->timer_semaphore));
         //remove from list
         //up the semaphore
