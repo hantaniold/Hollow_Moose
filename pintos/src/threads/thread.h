@@ -91,6 +91,9 @@ struct thread
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
     
+    /* Stuff for Priority Donation */
+    int donated_priority;
+    
     /* Stuff for Sleeping*/
    
     struct list_elem waitelem;         /* List element for wait threads list . */
@@ -151,5 +154,8 @@ void thread_wake_routine (void);
 void thread_wake_routine_helper (struct thread *, void *);
 void thread_foreach_wait (thread_action_func *, void *);
 bool wake_time_compare (const struct list_elem *, const struct list_elem *, void *);
+
+/* Added for Priority Scheduling */
+bool thread_priority_compare (const struct list_elem *a, const struct list_elem *b, void *aux); 
 
 #endif /* threads/thread.h */

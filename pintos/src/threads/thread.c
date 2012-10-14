@@ -122,7 +122,11 @@ thread_priority_compare (const struct list_elem *a, const struct list_elem *b, v
 {
   struct thread *ta = list_entry (a, struct thread, elem);
   struct thread *tb = list_entry (b, struct thread, elem); 
-  if (ta-> priority > tb->priority) 
+  
+  int priority_a = ta->priority > ta->donated_priority ? ta->priority : ta->donated_priority;
+  int priority_b = tb->priority > tb->donated_priority ? tb->priority : tb->donated_priority;
+    
+  if (priority_a > priority_b) 
   {
     return true;
   }
@@ -458,7 +462,8 @@ thread_set_priority (int new_priority)
 int
 thread_get_priority (void) 
 {
-  return thread_current ()->priority;
+  struct thread *curr = thread_current ();
+  return curr->priority;
 }
 
 /* Sets the current thread's nice value to NICE. */
@@ -576,6 +581,7 @@ init_thread (struct thread *t, const char *name, int priority)
   strlcpy (t->name, name, sizeof t->name);
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
+  t->donated_priority = 0;
   t->magic = THREAD_MAGIC;
   list_push_back (&all_list, &t->allelem);
 
