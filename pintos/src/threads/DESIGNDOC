@@ -26,7 +26,20 @@ Charles Cary <cioc@uchicago.edu>
 thread.c
 --------
 
+/* The list of sleeping threads */
 static struct list wait_list;
+
+thread.h
+--------
+
+/* Used for allowing a thread to be in the wait_list */
+struct list_elem waitelem;
+
+/* A semaphore that a thread uses to put itself to sleep */
+struct semaphore timer_semaphore;
+
+/* When a thread sleeps, it should wake up at this time relative to the kernel starting. */
+int64_t wakeup_time;
 
 >> A1: Copy here the declaration of each new or changed `struct' or
 >> `struct' member, global or static variable, `typedef', or
@@ -37,21 +50,31 @@ static struct list wait_list;
 >> A2: Briefly describe what happens in a call to timer_sleep(),
 >> including the effects of the timer interrupt handler.
 
+We tell the current running thread to sleep for TICKS ticks. This just changes the running thread's wakeup time to be the current time + TICKS. The running thread is inserted into "wait_list" which is sorted in ascending order by wakeup time. Then, the thread is put to sleep and blocks, via sema_init and sema_down.
+
 >> A3: What steps are taken to minimize the amount of time spent in
 >> the timer interrupt handler?
+
+We added a call to "thread.c::thread_wake_routine" , which just iterates through the sleeping threads and sees if any of them need to be woken up. This is fast and does not block.
 
 ---- SYNCHRONIZATION ----
 
 >> A4: How are race conditions avoided when multiple threads call
 >> timer_sleep() simultaneously?
 
+The only issue is if we are interrupted when getting the return value of timer_ticks. So, we turn off interrupts as we query for the number of ticks since the kernel started, and then turn them off right after.
+
 >> A5: How are race conditions avoided when a timer interrupt occurs
 >> during a call to timer_sleep()?
+
+We block critical sections of code by disabling interrupts. The critical sections are inside of timer_ticks() where we read the value of ticks. Since timer_sleep() also calls thread_sleep(), we also make sure to turn off interrupts when inserting the current thread into the wait_list.
 
 ---- RATIONALE ----
 
 >> A6: Why did you choose this design?  In what ways is it superior to
 >> another design you considered?
+
+We chose this design because it may be important in the future to be able to keep track of all sleeping threads based on their wake-up time. We initially considered not having a list of current sleeping threads and just looping through all threads of all states and updating the sleep metadata that way. That design is worse as it's both inefficient and doesn't allow an easy way to keep track of the order of threads to be woken up.
 
 			 PRIORITY SCHEDULING
 			 ===================
