@@ -93,7 +93,8 @@ struct thread
     
     /* Stuff for Priority Donation */
     int donated_priority;
-    
+    struct list lock_list;
+
     /* Stuff for Sleeping*/
    
     struct list_elem waitelem;         /* List element for wait threads list . */
