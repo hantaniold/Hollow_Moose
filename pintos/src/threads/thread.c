@@ -603,6 +603,12 @@ alloc_frame (struct thread *t, size_t size)
   return t->stack;
 }
 
+void
+perform_priority_donation(uint8_t levels)
+{
+  return;
+}
+
 /* Chooses and returns the next thread to be scheduled.  Should
    return a thread from the run queue, unless the run queue is
    empty.  (If the running thread can continue running, then it
@@ -612,9 +618,15 @@ static struct thread *
 next_thread_to_run (void) 
 {
   if (list_empty (&ready_list))
+  {
     return idle_thread;
+  }
   else
+  {
+    perform_priority_donation(8);
+    list_sort(&ready_list, &thread_priority_compare ,NULL);
     return list_entry (list_pop_front (&ready_list), struct thread, elem);
+  }
 }
 
 /* Completes a thread switch by activating the new thread's page
