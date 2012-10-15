@@ -463,7 +463,10 @@ int
 thread_get_priority (void) 
 {
   struct thread *curr = thread_current ();
-  return curr->priority;
+  if (curr->priority > curr->donated_priority) {
+    return curr->priority;
+  } 
+  return curr->donated_priority;
 }
 
 /* Sets the current thread's nice value to NICE. */

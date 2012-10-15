@@ -41,6 +41,14 @@
 
    - up or "V": increment the value (and wake up one waiting
      thread, if any). */
+
+static struct list sema_list;
+static bool sema_list_init = false;
+
+int determine_donation (struct semaphore *sema);
+void perform_priority_donation (uint8_t levels);
+void priority_donation_iteration ();
+
 void
 sema_init (struct semaphore *sema, unsigned value) 
 {
@@ -48,6 +56,70 @@ sema_init (struct semaphore *sema, unsigned value)
 
   sema->value = value;
   list_init (&sema->waiters);
+  enum intr_level old_level;
+  old_level = intr_disable();
+  if (!sema_list_init)
+  {
+    //NOTE: no print statement in here...
+    sema_list_init = true;
+    list_init(&sema_list);
+  }
+  sema->holder = NULL;
+  //list_push_back (&sema_list,&sema->elem);
+  intr_set_level(old_level);
+}
+
+/* performs priority donation up to X levels*/
+/* NOTE: turns interupts off while percolating */
+void 
+perform_priority_donation (uint8_t levels) 
+{
+  enum intr_level old_level;
+  uint8_t counter;
+  old_level = intr_disable();
+  for (counter = 0; counter < levels; ++counter)
+  {
+    priority_donation_iteration();
+  }
+  if (!intr_context ()) {
+    thread_yield ();
+  }
+  intr_set_level(old_level);
+}
+
+void
+priority_donation_iteration () 
+{
+  struct list_elem *e;
+  for (e = list_begin (&sema_list); e != list_end(&sema_list); e = list_next(e))
+  {
+    struct semaphore *sema = list_entry(e, struct semaphore, elem);
+    if (sema->holder != NULL)
+    {
+      int donation = determine_donation(sema);
+      if (donation > sema->holder->donated_priority) 
+      {
+      	sema->holder->donated_priority = donation;
+      }
+    }
+  }
+}
+
+int 
+determine_donation (struct semaphore *sema)
+{
+  struct list_elem *e;
+  int output = 0;
+  for (e = list_begin (&sema->waiters); e != list_end(&sema->waiters); e = list_next(e))
+  {
+    struct thread *t = list_entry(e, struct thread, elem);
+    int test = t->priority > t->donated_priority ? t->priority : t->donated_priority;
+    if (test > output)
+    {
+      output = test;
+    }
+  }
+  return output;
 }
 
 /* Down or "P" operation on a semaphore.  Waits for SEMA's value
@@ -71,9 +143,12 @@ sema_down (struct semaphore *sema)
       //TODO --> priority list
       //list_push_back (&sema->waiters, &thread_current ()->elem);
       list_insert_ordered (&sema->waiters,&thread_current ()->elem,&thread_priority_compare,NULL);
+      //perform_priority_donation (8);
+      //list_sort(&sema->waiters, &thread_priority_compare, NULL);
       thread_block ();
     }
   sema->value--;
+  sema->holder = thread_current ();
   intr_set_level (old_level);
 }
 
@@ -186,6 +261,7 @@ lock_init (struct lock *lock)
   ASSERT (lock != NULL);
 
   lock->holder = NULL;
+  lock->highest_pri = -1;
   sema_init (&lock->semaphore, 1);
 }
 
@@ -203,10 +279,45 @@ lock_acquire (struct lock *lock)
   ASSERT (lock != NULL);
   ASSERT (!intr_context ());
   ASSERT (!lock_held_by_current_thread (lock));
-
+  
+  //int current_pri = thread_get_priority();
+  
+  //TODO AHAHAHAHA
+  /*
+  enum intr_level old_level;
+  old_level = intr_disable ();
+  if (current_pri > lock->highest_pri) {
+    lock->highest_pri = current_pri;
+    struct list_elem *e;
+    for (e = list_begin(&lock->semaphore.waiters); e != list_end(&lock->semaphore.waiters); e = list_next(e)) 
+    {
+      struct thread *t = list_entry(e, struct thread, elem);
+      t->donated_priority = lock->highest_pri;
+      printf("donated: %i\n", t->donated_priority);
+    }
+  }
+  intr_set_level (old_level);
+  */
   sema_down (&lock->semaphore);
+  
   lock->holder = thread_current ();
 }
+
+/*
+thread_foreach_wait (thread_action_func *func, void *aux)
+{ 
+  struct list_elem *e;
+
+  ASSERT (intr_get_level () == INTR_OFF);
+
+  for (e = list_begin (&wait_list); e != list_end (&wait_list);
+       e = list_next (e))
+    {
+      struct thread *t = list_entry (e, struct thread, waitelem);
+      func (t, aux);
+    }
+}
+*/
 
 /* Tries to acquires LOCK and returns true if successful or false
    on failure.  The lock must not already be held by the current
