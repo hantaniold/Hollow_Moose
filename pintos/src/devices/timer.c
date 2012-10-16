@@ -177,6 +177,13 @@ timer_print_stats (void)
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
+  // A second = timer.h::TIMER_FREQ (100) ticks.
+  // Do these in order since some rely on each other
+  // 1. once/s ,  update load average
+  // 2. Update recent cpu of running thread by ONE unless it is the idle thread
+  // 3. Also update of all threads once per second
+  // 4. Once every thread.c::TIME_SLICE ticks (4)  recalculate
+  //    the priorities of ALL threads
   ticks++;
   thread_tick ();
   thread_wake_routine ();

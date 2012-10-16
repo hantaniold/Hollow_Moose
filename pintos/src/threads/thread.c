@@ -1,4 +1,5 @@
 #include "threads/thread.h"
+#include "threads/fixed-point.h"
 #include <debug.h>
 #include <stddef.h>
 #include <random.h>
@@ -56,6 +57,11 @@ static long long user_ticks;    /* # of timer ticks in user programs. */
 /* Scheduling. */
 #define TIME_SLICE 4            /* # of timer ticks to give each thread. */
 static unsigned thread_ticks;   /* # of timer ticks since last yield. */
+static fp_t load_avg;           /* Load average. Updated whenever 
+                                   timer_ticks () % TIMER_FREQ == 0 . */
+
+/* Added for MLFQS */
+
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
@@ -549,19 +555,21 @@ thread_get_priority (void)
   return curr->donated_priority;
 }
 
-/* Sets the current thread's nice value to NICE. */
+/* Sets the current thread's nice value to NICE.
+ * ALSO RECALCULATES THE PRIORITY AND IF NO LONGER
+ * IS THE MAX THEN YIELDS */
 void
 thread_set_nice (int nice UNUSED) 
 {
-  /* Not yet implemented. */
+    
 }
 
 /* Returns the current thread's nice value. */
 int
 thread_get_nice (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  struct thread *curr = thread_current ();
+  return curr->nice;
 }
 
 /* Returns 100 times the system load average. */
@@ -579,6 +587,14 @@ thread_get_recent_cpu (void)
   /* Not yet implemented. */
   return 0;
 }
+
+/* Updates this threads priority for the MLFQS based on its nice value
+ * and recent cpu value */
+void
+update_MLFQS_priority(struct thread * t)
+{
+}
+
 
 /* Idle thread.  Executes when no other thread is ready to run.
 
@@ -759,6 +775,8 @@ thread_schedule_tail (struct thread *prev)
 static void
 schedule (void) 
 {
+  // If MLFQS is on, check the queue with highest-priority threads. Also
+  // re-sort everything by priority
   struct thread *cur = running_thread ();
   struct thread *next = next_thread_to_run ();
   struct thread *prev = NULL;
