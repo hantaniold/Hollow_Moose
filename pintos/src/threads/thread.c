@@ -75,6 +75,10 @@ static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 
+/* Added for priority donation */
+static int determine_donation(struct lock *lock); 
+static void perform_priority_donation(uint8_t levels);
+
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
    general and it is possible in this case only because loader.S
@@ -587,7 +591,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->donated_priority = 0;
   t->magic = THREAD_MAGIC;
   list_push_back (&all_list, &t->allelem);
-  list_init(&t->lock_list);
+  t->wait_lock = NULL;
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
@@ -603,13 +607,9 @@ alloc_frame (struct thread *t, size_t size)
   return t->stack;
 }
 
-void
-perform_priority_donation(uint8_t levels)
-{
-  return;
-}
 
-/* Chooses and returns the next thread to be scheduled.  Should
+
+/*
    return a thread from the run queue, unless the run queue is
    empty.  (If the running thread can continue running, then it
    will be in the run queue.)  If the run queue is empty, return
@@ -623,8 +623,13 @@ next_thread_to_run (void)
   }
   else
   {
-    perform_priority_donation(8);
-    list_sort(&ready_list, &thread_priority_compare ,NULL);
+    //TODO --> use levels
+  
+  return list_entry (list_pop_front (&ready_list), struct thread, elem);
+}   
+
+
+    //list_sort(&ready_list, &thread_priority_compare ,NULL);
     return list_entry (list_pop_front (&ready_list), struct thread, elem);
   }
 }
