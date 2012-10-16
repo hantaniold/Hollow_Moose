@@ -137,6 +137,43 @@ thread_priority_compare (const struct list_elem *a, const struct list_elem *b, v
   return false;
 }
 
+void
+donate_priority(struct thread *source, struct thread *target)
+{
+  struct donor_elem *de = (struct donor_elem *)malloc(sizeof(struct donor_elem));
+  de->t = source;
+  de->donation = source->priority > source->donated_priority ? source->priority : source->donated_priority;
+  list_push_back(&target->donor_list, &de->elem);
+}
+
+void
+revoke_priority(struct thread *source, struct thread *target) 
+{
+  struct list_elem *e;
+  struct list_elem *found = NULL; 
+  for (e = list_begin(&target->donor_list); e != list_end(&target->donor_list); e = list_next(e))
+  {
+    struct donor_elem *de = list_entry(e, struct donor_elem, elem);
+    if (de->t == source) {
+      found = &de->elem;
+    }
+  }
+  if (found != NULL)
+  {
+    list_remove(found);
+  }
+}
+
+void
+empty_donated_priority(struct thread *t) {
+  while (!list_empty(&t->donor_list))
+  {
+    struct list_elem *e = list_pop_front(&t->donor_list);
+    struct donor_elem *de = list_entry(e, struct donor_elem, elem);
+    free(de);
+  }
+}
+
 /* Starts preemptive thread scheduling by enabling interrupts.
    Also creates the idle thread. */
 void
@@ -592,6 +629,8 @@ init_thread (struct thread *t, const char *name, int priority)
   t->magic = THREAD_MAGIC;
   list_push_back (&all_list, &t->allelem);
   t->wait_lock = NULL;
+  //list_init(&t->lock_list);
+  list_init(&t->donor_list);
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
@@ -618,21 +657,10 @@ static struct thread *
 next_thread_to_run (void) 
 {
   if (list_empty (&ready_list))
-  {
     return idle_thread;
-  }
   else
-  {
-    //TODO --> use levels
-  
-  return list_entry (list_pop_front (&ready_list), struct thread, elem);
-}   
-
-
-    //list_sort(&ready_list, &thread_priority_compare ,NULL);
     return list_entry (list_pop_front (&ready_list), struct thread, elem);
-  }
-}
+}   
 
 /* Completes a thread switch by activating the new thread's page
    tables, and, if the previous thread is dying, destroying it.

@@ -81,6 +81,16 @@ typedef int tid_t;
    only because they are mutually exclusive: only a thread in the
    ready state is on the run queue, whereas only a thread in the
    blocked state is on a semaphore wait list. */
+
+struct thread; //forward declartion 
+
+struct donor_elem {
+    struct thread *t;
+    int donation;
+    struct list_elem elem;
+};
+
+
 struct thread
   {
     /* Owned by thread.c. */
@@ -93,9 +103,12 @@ struct thread
     
     /* Stuff for Priority Donation */
     int donated_priority;
-    struct list lock_list;
+    struct list donor_list;
+    //deprecated
+    struct list *lock_list;
+    struct lock *wait_lock;
 
-    /* Stuff for Sleeping*/
+    /* Stuff for Sleeping */
    
     struct list_elem waitelem;         /* List element for wait threads list . */
     struct semaphore timer_semaphore;
@@ -112,6 +125,7 @@ struct thread
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
   };
+
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
@@ -158,5 +172,10 @@ bool wake_time_compare (const struct list_elem *, const struct list_elem *, void
 
 /* Added for Priority Scheduling */
 bool thread_priority_compare (const struct list_elem *a, const struct list_elem *b, void *aux); 
+void donate_priority(struct thread *source, struct thread *target);
+void revoke_priority(struct thread *source, struct thread *target);
+void empty_donated_priority(struct thread *t);
+int determine_priority(struct thread *t);
+
 
 #endif /* threads/thread.h */

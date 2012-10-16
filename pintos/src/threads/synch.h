@@ -23,9 +23,8 @@ struct lock
     struct thread *holder;      /* Thread holding lock (for debugging). */
     struct semaphore semaphore; /* Binary semaphore controlling access. */
     int highest_pri;
-    //Added for lock_list in thread
     struct list_elem elem;
-  };
+};
 
 void lock_system_init (void);
 void lock_init (struct lock *);
