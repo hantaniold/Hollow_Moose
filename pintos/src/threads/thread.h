@@ -104,6 +104,8 @@ struct thread
     /* Stuff for Priority Donation */
     int donated_priority;
     struct list donor_list;
+    struct thread *donee; //who we have donated to
+    struct lock *waiting_on_lock;
     //deprecated
     struct list *lock_list;
     struct lock *wait_lock;
@@ -174,8 +176,7 @@ bool wake_time_compare (const struct list_elem *, const struct list_elem *, void
 bool thread_priority_compare (const struct list_elem *a, const struct list_elem *b, void *aux); 
 void donate_priority(struct thread *source, struct thread *target);
 void revoke_priority(struct thread *source, struct thread *target);
-void empty_donated_priority(struct thread *t);
-int determine_priority(struct thread *t);
+void empty_donated_priority(struct thread *t, struct lock *lock);
 
 
 #endif /* threads/thread.h */

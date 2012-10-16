@@ -48,7 +48,6 @@ struct kernel_thread_frame
     thread_func *function;      /* Function to call. */
     void *aux;                  /* Auxiliary data for function. */
   };
-
 /* Statistics. */
 static long long idle_ticks;    /* # of timer ticks spent idle. */
 static long long kernel_ticks;  /* # of timer ticks in kernel threads. */
@@ -144,34 +143,74 @@ donate_priority(struct thread *source, struct thread *target)
   de->t = source;
   de->donation = source->priority > source->donated_priority ? source->priority : source->donated_priority;
   list_push_back(&target->donor_list, &de->elem);
+  if (de->donation > target->donated_priority) 
+  {
+    target->donated_priority = de->donation;
+  }
 }
 
 void
 revoke_priority(struct thread *source, struct thread *target) 
 {
+  printf("entered revoke_priority\n");
   struct list_elem *e;
   struct list_elem *found = NULL; 
+  struct donor_elem *de;
+  struct donor_elem *removal;
+  int new_donation = 0;
   for (e = list_begin(&target->donor_list); e != list_end(&target->donor_list); e = list_next(e))
   {
-    struct donor_elem *de = list_entry(e, struct donor_elem, elem);
+    printf("in loop\n");
+    de = list_entry(e, struct donor_elem, elem);
     if (de->t == source) {
       found = &de->elem;
+      removal = de;
+    } else {
+      if (de->donation > new_donation) {
+        new_donation = de->donation;
+      }
     }
   }
   if (found != NULL)
   {
+    printf("revoking\n");
     list_remove(found);
+    free(removal);
+    target->donated_priority = new_donation; 
   }
 }
 
 void
-empty_donated_priority(struct thread *t) {
+empty_donated_priority(struct thread *t, struct lock *lock) {
+  int new_donation = 0;
+
+  struct list_elem *e;
+  e = list_begin(&t->donor_list);
+  while (e != list_end(&t->donor_list)) 
+  {
+    struct donor_elem *de = list_entry(e, struct donor_elem, elem);
+    if (de->t->waiting_on_lock == lock) {
+      e = list_remove(&de->elem);
+      free(de);
+    } else {
+      if (de->donation > new_donation)
+      {
+        new_donation = de->donation;
+      }
+      e = list_next(e);
+    }
+  }
+  t->donated_priority = new_donation;
+  /*
+  t->donated_priority = 0;
+  
   while (!list_empty(&t->donor_list))
   {
     struct list_elem *e = list_pop_front(&t->donor_list);
     struct donor_elem *de = list_entry(e, struct donor_elem, elem);
     free(de);
   }
+  */
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -631,6 +670,8 @@ init_thread (struct thread *t, const char *name, int priority)
   t->wait_lock = NULL;
   //list_init(&t->lock_list);
   list_init(&t->donor_list);
+  t->donee = NULL;
+  t->waiting_on_lock = NULL;
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and

@@ -271,20 +271,24 @@ lock_acquire (struct lock *lock)
   struct thread * t = thread_current ();
   if (lock->holder != NULL)
   {
-    int donation =  t->priority > t->donated_priority ? t->priority : t->donated_priority;
-    if (lock->holder->donated_priority < donation) {
-      lock->holder->donated_priority = donation;
-      donate_priority(t, lock->holder);
-    }
+    //int donation =  t->priority > t->donated_priority ? t->priority : t->donated_priority;
+    //if (lock->holder->donated_priority < donation) {
+      //lock->holder->donated_priority = donation;
+    donate_priority(t, lock->holder);
+    t->donee = lock->holder;
+    t->waiting_on_lock = lock;
+    //}
   }
   intr_set_level(old_level);
-  //thread_current()->wait_lock = lock;
   sema_down (&lock->semaphore);
   lock->holder = thread_current ();
   /*
-  old_level = intr_disable();
-  list_push_back(&thread_current()->lock_list, &lock->elem);   
-  intr_set_level(old_level);
+  if (t->donee != NULL) {
+    old_level = intr_disable();
+    revoke_priority(t, t->donee);  
+    t->donee = NULL;
+    intr_set_level(old_level);
+  }
   */
   return;
 }
@@ -321,8 +325,8 @@ lock_release (struct lock *lock)
   ASSERT (lock_held_by_current_thread (lock));
 
   // Remove all donations associated with this lock.
-  lock->holder->donated_priority = 0;
-  empty_donated_priority(lock->holder);
+  //lock->holder->donated_priority = 0;
+  empty_donated_priority(thread_current(), lock);
   //list_remove(&lock->elem);
   lock->holder = NULL;
   sema_up (&lock->semaphore);
