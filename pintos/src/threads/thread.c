@@ -129,6 +129,7 @@ thread_priority_compare (const struct list_elem *a, const struct list_elem *b, v
   int priority_a = ta->priority > ta->donated_priority ? ta->priority : ta->donated_priority;
   int priority_b = tb->priority > tb->donated_priority ? tb->priority : tb->donated_priority;
     
+  //MADNESS!!!  
   if (priority_a > priority_b) 
   {
     return true;
@@ -136,9 +137,15 @@ thread_priority_compare (const struct list_elem *a, const struct list_elem *b, v
   return false;
 }
 
+//prevents recursion from continuining forever
+uint8_t rec_depth = 8;
+
+
+
 void
-donate_priority(struct thread *source, struct thread *target)
+donate_priority_helper(struct thread *source, struct thread *target, uint8_t rec_curr)
 {
+  ASSERT(rec_curr < rec_depth);
   struct donor_elem *de = (struct donor_elem *)malloc(sizeof(struct donor_elem));
   de->t = source;
   de->donation = source->priority > source->donated_priority ? source->priority : source->donated_priority;
@@ -146,7 +153,17 @@ donate_priority(struct thread *source, struct thread *target)
   if (de->donation > target->donated_priority) 
   {
     target->donated_priority = de->donation;
+    if (target->donee != NULL) {
+     donate_priority_helper(target, target->donee, ++rec_curr);
+    }
   }
+  list_sort(&ready_list, &thread_priority_compare, NULL);
+}
+
+void
+donate_priority(struct thread *source, struct thread *target)
+{
+  donate_priority_helper(source, target, 0);
 }
 
 void
@@ -201,6 +218,7 @@ empty_donated_priority(struct thread *t, struct lock *lock) {
     }
   }
   t->donated_priority = new_donation;
+  list_sort(&ready_list, &thread_priority_compare, NULL);
   /*
   t->donated_priority = 0;
   
@@ -361,7 +379,9 @@ thread_unblock (struct thread *t)
   ASSERT (is_thread (t));
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  list_insert_ordered (&ready_list,&t->elem,&thread_priority_compare,NULL);
+  list_push_back(&ready_list, &t->elem);
+  list_sort(&ready_list, &thread_priority_compare, NULL);
+  //list_insert_ordered (&ready_list,&t->elem,&thread_priority_compare,NULL);
   t->status = THREAD_READY;
   intr_set_level (old_level);
 }
@@ -433,6 +453,8 @@ thread_yield (void)
   old_level = intr_disable ();
   if (cur != idle_thread) 
   {
+    //list_push_back(&ready_list, &cur->elem);
+    //list_sort(&ready_list, &thread_priority_compare, NULL);
     list_insert_ordered (&ready_list,&cur->elem,&thread_priority_compare,NULL);
   }
   cur->status = THREAD_READY;
@@ -698,9 +720,14 @@ static struct thread *
 next_thread_to_run (void) 
 {
   if (list_empty (&ready_list))
+  {
     return idle_thread;
+  }
   else
+  {
+    //TODO --> REMOVE THIS
     return list_entry (list_pop_front (&ready_list), struct thread, elem);
+  }
 }   
 
 /* Completes a thread switch by activating the new thread's page
