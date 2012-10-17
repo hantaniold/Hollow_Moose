@@ -5,6 +5,7 @@
 #include <list.h>
 #include <stdint.h>
 #include "threads/synch.h"
+#include "threads/fixed-point.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -98,7 +99,8 @@ struct thread
     enum thread_status status;          /* Thread state. */
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
-    int priority;                       /* Priority. */
+    int priority;                       /* Priority. Updated once every four
+                                           ticks for the MLFQS */
     struct list_elem allelem;           /* List element for all threads list. */
     
     /* Stuff for Priority Donation */
@@ -109,6 +111,13 @@ struct thread
     //deprecated
     struct list *lock_list;
     struct lock *wait_lock;
+
+    /* Stuff for MLFQS */
+    int nice;                           /* Niceness of this thread. */
+    fp_t recent_cpu;                    /* Recent_cpu value. Incremented by
+                                           one during a timer interrupt if
+                                           this is the running thread. 
+                                           Also recalculated once per second.*/
 
     /* Stuff for Sleeping */
    
@@ -179,4 +188,7 @@ void revoke_priority(struct thread *source, struct thread *target);
 void empty_donated_priority(struct thread *t, struct lock *lock);
 
 
+/* Added for MLFQS */
+
+void update_MLFQS_priority(struct thread * t);
 #endif /* threads/thread.h */

@@ -1,4 +1,5 @@
 #include "threads/thread.h"
+#include "threads/fixed-point.h"
 #include <debug.h>
 #include <stddef.h>
 #include <random.h>
@@ -56,6 +57,11 @@ static long long user_ticks;    /* # of timer ticks in user programs. */
 /* Scheduling. */
 #define TIME_SLICE 4            /* # of timer ticks to give each thread. */
 static unsigned thread_ticks;   /* # of timer ticks since last yield. */
+static fp_t load_avg;           /* Load average. Updated whenever 
+                                   timer_ticks () % TIMER_FREQ == 0 . */
+
+/* Added for MLFQS */
+
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
@@ -583,36 +589,58 @@ thread_get_priority (void)
   return curr->donated_priority;
 }
 
-/* Sets the current thread's nice value to NICE. */
+// NOT DONE
+/* Sets the current thread's nice value to NICE.
+ * ALSO RECALCULATES THE PRIORITY AND IF NO LONGER
+ * IS THE MAX THEN YIELDS */
 void
-thread_set_nice (int nice UNUSED) 
+thread_set_nice (int nice) 
 {
-  /* Not yet implemented. */
+    struct thread *curr = thread_current ();
+    curr->nice = nice;
+    update_MLFQS_priority(curr);
+
+    // If not the max, yield.
 }
 
 /* Returns the current thread's nice value. */
 int
 thread_get_nice (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  struct thread *curr = thread_current ();
+  return curr->nice;
 }
 
 /* Returns 100 times the system load average. */
 int
 thread_get_load_avg (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  return f_round (f_scale (load_avg,100));
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
 int
 thread_get_recent_cpu (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  struct thread *curr = thread_current ();
+  return f_round (f_scale (curr->recent_cpu,100));
 }
+
+/* Updates this threads priority for the MLFQS based on its nice value
+ * and recent cpu value */
+void
+update_MLFQS_priority(struct thread * t)
+{
+    // use FP stufff
+    // this is currently fucked
+    //t->priority = PRI_MAX - (recent_cpu / 4) - (t->nice / 2);
+    if (t->priority > PRI_MAX) {
+        t->priority = PRI_MAX;
+    } else if (t->priority < PRI_MIN) {
+        t->priority = PRI_MIN;
+    }   
+}
+
 
 /* Idle thread.  Executes when no other thread is ready to run.
 
@@ -797,6 +825,8 @@ thread_schedule_tail (struct thread *prev)
 static void
 schedule (void) 
 {
+  // If MLFQS is on, check the queue with highest-priority threads. Also
+  // re-sort everything by priority
   struct thread *cur = running_thread ();
   struct thread *next = next_thread_to_run ();
   struct thread *prev = NULL;
