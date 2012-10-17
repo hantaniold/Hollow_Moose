@@ -577,13 +577,18 @@ thread_get_priority (void)
   return curr->donated_priority;
 }
 
+// NOT DONE
 /* Sets the current thread's nice value to NICE.
  * ALSO RECALCULATES THE PRIORITY AND IF NO LONGER
  * IS THE MAX THEN YIELDS */
 void
-thread_set_nice (int nice UNUSED) 
+thread_set_nice (int nice) 
 {
-    
+    struct thread *curr = thread_current ();
+    curr->nice = nice;
+    update_MLFQS_priority(curr);
+
+    // If not the max, yield.
 }
 
 /* Returns the current thread's nice value. */
@@ -598,16 +603,15 @@ thread_get_nice (void)
 int
 thread_get_load_avg (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  return f_round (f_scale (load_avg,100));
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
 int
 thread_get_recent_cpu (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  struct thread *curr = thread_current ();
+  return f_round (f_scale (curr->recent_cpu,100));
 }
 
 /* Updates this threads priority for the MLFQS based on its nice value
@@ -615,6 +619,14 @@ thread_get_recent_cpu (void)
 void
 update_MLFQS_priority(struct thread * t)
 {
+    // use FP stufff
+    // this is currently fucked
+    //t->priority = PRI_MAX - (recent_cpu / 4) - (t->nice / 2);
+    if (t->priority > PRI_MAX) {
+        t->priority = PRI_MAX;
+    } else if (t->priority < PRI_MIN) {
+        t->priority = PRI_MIN;
+    }   
 }
 
 
