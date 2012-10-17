@@ -367,6 +367,7 @@ struct semaphore_elem
   {
     struct list_elem elem;              /* List element. */
     struct semaphore semaphore;         /* This semaphore. */
+    struct thread *owner;
   };
 
 /* Initializes condition variable COND.  A condition variable
@@ -400,6 +401,23 @@ cond_init (struct condition *cond)
    interrupt handler.  This function may be called with
    interrupts disabled, but interrupts will be turned back on if
    we need to sleep. */
+
+bool
+sema_priority_compare (const struct list_elem *a, const struct list_elem *b, void *aux)
+{
+  struct semaphore_elem *elema = list_entry(a, struct semaphore_elem, elem);
+  struct semaphore_elem *elemb = list_entry(b, struct semaphore_elem, elem);
+
+  int pri_a = elema->owner->priority > elema->owner->donated_priority ? elema->owner->priority : elema->owner->donated_priority;
+  int pri_b = elemb->owner->priority > elemb->owner->donated_priority ? elemb->owner->priority : elemb->owner->donated_priority;
+
+  if (pri_a > pri_b) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 void
 cond_wait (struct condition *cond, struct lock *lock) 
 {
@@ -411,7 +429,8 @@ cond_wait (struct condition *cond, struct lock *lock)
   ASSERT (lock_held_by_current_thread (lock));
   
   sema_init (&waiter.semaphore, 0);
-  list_insert_ordered (&cond->waiters,&waiter.elem,&thread_priority_compare,NULL);
+  waiter.owner = thread_current();
+  list_insert_ordered (&cond->waiters,&waiter.elem,&sema_priority_compare,NULL);
   //list_push_back (&cond->waiters, &waiter.elem);
   lock_release (lock);
   sema_down (&waiter.semaphore);
