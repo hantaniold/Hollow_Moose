@@ -153,11 +153,18 @@ donate_priority_helper(struct thread *source, struct thread *target, uint8_t rec
   if (de->donation > target->donated_priority) 
   {
     target->donated_priority = de->donation;
+    int target_pri = target->priority > target->donated_priority ? target->priority : target->donated_priority;
+    struct thread *running = thread_current();
+    int running_pri = running->priority > running->donated_priority ? running->priority : running->donated_priority;
+    if (target_pri > running_pri) {
+    	thread_yield();
+    }
     if (target->donee != NULL) {
      donate_priority_helper(target, target->donee, ++rec_curr);
+    } else {
+       list_sort(&ready_list, &thread_priority_compare, NULL);
     }
   }
-  list_sort(&ready_list, &thread_priority_compare, NULL);
 }
 
 void
@@ -340,11 +347,16 @@ thread_create (const char *name, int priority,
 
   /* Add to run queue. */
   thread_unblock (t);
+  old_level = intr_disable();
   struct thread *curr_thread = thread_current ();
-  if (curr_thread != NULL && curr_thread->priority < priority) {
+  
+  int curr_pri = curr_thread->priority > curr_thread->donated_priority ? curr_thread->priority : curr_thread->donated_priority;
+  int my_pri = priority > t->donated_priority ? priority : t->donated_priority;
+
+  if (curr_pri < my_pri) {
     thread_yield();
   }
-
+  intr_set_level(old_level);
   return tid;
 }
 
@@ -725,7 +737,6 @@ next_thread_to_run (void)
   }
   else
   {
-    //TODO --> REMOVE THIS
     return list_entry (list_pop_front (&ready_list), struct thread, elem);
   }
 }   
