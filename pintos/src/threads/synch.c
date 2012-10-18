@@ -54,58 +54,6 @@ sema_init (struct semaphore *sema, unsigned value)
   list_init (&sema->waiters);
 }
 
-/* performs priority donation up to X levels*/
-/* NOTE: turns interupts off while percolating */
-/*
-void 
-perform_priority_donation (uint8_t levels) 
-{
-  enum intr_level old_level;
-  uint8_t counter;
-  old_level = intr_disable();
-  for (counter = 0; counter < levels; ++counter)
-  {
-    priority_donation_iteration();
-  }
-  if (!intr_context ()) {
-    thread_yield ();
-  }
-  intr_set_level(old_level);
-}
-
-priority_donation_iteration () 
-{
-  struct list_elem *e;
-  for (e = list_begin (&sema_list); e != list_end(&sema_list); e = list_next(e))
-  {
-    struct semaphore *sema = list_entry(e, struct semaphore, elem);
-    if (sema->holder != NULL)
-    {
-      int donation = determine_donation(sema);
-      if (donation > sema->holder->donated_priority) 
-      {
-      	sema->holder->donated_priority = donation;
-      }
-    }}
-}
-
-int 
-determine_donation (struct semaphore *sema)
-{
-  struct list_elem *e;
-  int output = 0;
-  for (e = list_begin (&sema->waiters); e != list_end(&sema->waiters); e = list_next(e))
-  {
-    struct thread *t = list_entry(e, struct thread, elem);
-    int test = t->priority > t->donated_priority ? t->priority : t->donated_priority;
-    if (test > output)
-    {
-      output = test;
-    }
-  }
-  return output;
-}
-*/
 /* Down or "P" operation on a semaphore.  Waits for SEMA's value
    to become positive and then atomically decrements it.
 

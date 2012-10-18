@@ -179,6 +179,7 @@ donate_priority(struct thread *source, struct thread *target)
   donate_priority_helper(source, target, 0);
 }
 
+/*
 void
 revoke_priority(struct thread *source, struct thread *target) 
 {
@@ -209,6 +210,7 @@ revoke_priority(struct thread *source, struct thread *target)
     target->donated_priority = new_donation; 
   }
 }
+*/
 
 void
 empty_donated_priority(struct thread *t, struct lock *lock) {
@@ -578,15 +580,35 @@ thread_set_priority (int new_priority)
   intr_set_level (old_level);
 }
 
+int
+get_priority(struct thread *t) 
+{
+  if(thread_mlfqs)
+  {
+    return t->priority;
+  }
+  else
+  {
+    //use the default priority scheduler
+    if (t->priority > t->donated_priority) {
+      return t->priority;
+    }
+    return t->donated_priority;
+  }
+}
+
 /* Returns the current thread's priority. */
 int
 thread_get_priority (void) 
 {
-  struct thread *curr = thread_current ();
+  return get_priority(thread_current());
+/*
+struct thread *curr = thread_current ();
   if (curr->priority > curr->donated_priority) {
     return curr->priority;
   } 
   return curr->donated_priority;
+*/
 }
 
 // NOT DONE

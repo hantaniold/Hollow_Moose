@@ -181,10 +181,12 @@ void thread_wake_routine_helper (struct thread *, void *);
 void thread_foreach_wait (thread_action_func *, void *);
 bool wake_time_compare (const struct list_elem *, const struct list_elem *, void *);
 
+/* Helper method for both priority scheduler and MLFQS */
+int get_priority(struct thread *t);
+
 /* Added for Priority Scheduling */
 bool thread_priority_compare (const struct list_elem *a, const struct list_elem *b, void *aux); 
 void donate_priority(struct thread *source, struct thread *target);
-void revoke_priority(struct thread *source, struct thread *target);
 void empty_donated_priority(struct thread *t, struct lock *lock);
 
 
