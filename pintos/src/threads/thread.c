@@ -254,7 +254,11 @@ thread_tick (void)
   else
     kernel_ticks++;
 
+  if (++thread_ticks >= TIME_SLICE)
+    intr_yield_on_return ();
+
   /* Code added for mlfqs */
+  
   if(thread_mlfqs)
   {
     int64_t ticks = timer_ticks();
@@ -284,10 +288,10 @@ thread_tick (void)
 
     }
   }
-
+  
   /* Enforce preemption. */
-  if (++thread_ticks >= TIME_SLICE)
-    intr_yield_on_return ();
+  //if (++thread_ticks >= TIME_SLICE)
+  //  intr_yield_on_return ();
 
 }
 
@@ -501,11 +505,9 @@ thread_sleep (int64_t ticks)
     enum intr_level old_level;
     old_level = intr_disable ();
     list_insert_ordered (&wait_list,&(cur->waitelem),&wake_time_compare,NULL);
-    intr_set_level (old_level);
-
     sema_init (&(cur->timer_semaphore),0);
     sema_down (&(cur->timer_semaphore));
-
+    intr_set_level(old_level);
 }
 
 
@@ -522,10 +524,10 @@ void
 thread_wake_routine_helper (struct thread * t, void * aux)
 {
     if (timer_ticks () >= t->wakeup_time) {
-        //enum intr_level old_level;
-        //old_level = intr_disable ();
+        enum intr_level old_level;
+        old_level = intr_disable ();
         list_remove (&(t->waitelem));
-        //intr_set_level (old_level);
+        intr_set_level (old_level);
         sema_up(&(t->timer_semaphore));
         //remove from list
         //up the semaphore
