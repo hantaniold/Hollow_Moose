@@ -22,6 +22,8 @@
    of thread.h for details. */
 #define THREAD_MAGIC 0xcd6abf4b
 
+static fp_t load_avg; //System load average for mlfqs
+
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
 static struct list ready_list;
@@ -154,7 +156,7 @@ donate_priority_helper(struct thread *source, struct thread *target, uint8_t rec
 {
   if (rec_curr < DONATE_DEPTH)
   {
-    struct donor_elem *de = (struct donor_elem *)malloc(sizeof(struct donor_elem));
+struct donor_elem *de = (struct donor_elem *)malloc(sizeof(struct donor_elem));
     de->t = source;
     de->donation = get_priority(source);
     list_push_back(&target->donor_list, &de->elem);
@@ -249,6 +251,24 @@ thread_tick (void)
 #endif
   else
     kernel_ticks++;
+
+  /* Code added for mlfqs */
+  if(thread_mlfqs)
+  {
+    int64_t ticks = timer_ticks();
+    
+    //every 4 ticks recalculate priorities
+    if (ticks % 4  == 0)
+    {
+    }
+
+    //every second recalculate load_avg
+    if (ticks % TIMER_FREQ == 0)
+    {
+    
+    }
+  }
+
 
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
