@@ -659,7 +659,6 @@ struct thread *curr = thread_current ();
 */
 }
 
-// NOT DONE
 /* Sets the current thread's nice value to NICE.
  * ALSO RECALCULATES THE PRIORITY AND IF NO LONGER
  * IS THE MAX THEN YIELDS */
@@ -667,10 +666,33 @@ void
 thread_set_nice (int nice) 
 {
     struct thread *curr = thread_current ();
+    struct list_elem *e;
+    struct thread *t;
+    if (nice > 20) nice = 20;
+    if (nice < -20) nice = -20;
     curr->nice = nice;
-    update_MLFQS_priority(curr);
+    printf("Nice value! %d\n",nice);
 
-    // If not the max, yield.
+    enum intr_level old_level;
+
+    old_level = intr_disable ();
+
+    update_MLFQS_priority (curr);
+    // Check ready threads to see if max still otherwise yield
+    for (e = list_begin (&ready_list); e != list_end (&ready_list);
+       e = list_next (e))
+    {
+        t = list_entry(e, struct thread, elem);
+        // if (t != curr) ??
+        if (t->priority > curr->priority)
+        {
+          printf("found bigger priority:  %d vs %d\n",t->priority,curr->priority);
+          thread_yield ();
+          break;
+        }
+    }
+   
+    intr_set_level (old_level);
 }
 
 /* Returns the current thread's nice value. */
@@ -701,18 +723,15 @@ thread_get_recent_cpu (void)
 void
 update_MLFQS_priority(struct thread * t)
 {
-    // use FP stufff
-    // this is currently fucked
-    // //fix
     fp_t s1;
     fp_t nice_factor;
     fp_t recent_factor;
 
+   //priority = PRI_MAX - (recent_cpu / 4) - (nice / 2);
     nice_factor = f_int(t->nice * 2);
     recent_factor = f_div(t->recent_cpu,f_int(4));
     s1 = f_sub(recent_factor,nice_factor);
     t->priority = f_round(f_sub(f_int(PRI_MAX),s1));
-   //t->priority = PRI_MAX - (recent_cpu / 4) - (t->nice / 2);
     if (t->priority > PRI_MAX) {
         t->priority = PRI_MAX;
     } else if (t->priority < PRI_MIN) {
@@ -844,6 +863,7 @@ next_thread_to_run (void)
   }
   else
   {
+    // MLFQS: Round-robin witht he front priorities
     ready_list_length -= 1;
     return list_entry (list_pop_front (&ready_list), struct thread, elem);
   }
