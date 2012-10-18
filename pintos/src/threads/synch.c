@@ -224,26 +224,14 @@ lock_acquire (struct lock *lock)
   struct thread * t = thread_current ();
   if (lock->holder != NULL)
   {
-    //int donation =  t->priority > t->donated_priority ? t->priority : t->donated_priority;
-    //if (lock->holder->donated_priority < donation) {
-      //lock->holder->donated_priority = donation;
     donate_priority(t, lock->holder);
     t->donee = lock->holder;
     t->waiting_on_lock = lock;
-    //}
   }
   intr_set_level(old_level);
   sema_down (&lock->semaphore);
   lock->holder = thread_current ();
   
-  /*
-  if (t->donee != NULL) {
-    old_level = intr_disable();
-    revoke_priority(t, t->donee);  
-    t->donee = NULL;
-    intr_set_level(old_level);
-  }
-  */
   return;
 }
 
@@ -345,8 +333,8 @@ sema_priority_compare (const struct list_elem *a, const struct list_elem *b, voi
   struct semaphore_elem *elema = list_entry(a, struct semaphore_elem, elem);
   struct semaphore_elem *elemb = list_entry(b, struct semaphore_elem, elem);
 
-  int pri_a = elema->owner->priority > elema->owner->donated_priority ? elema->owner->priority : elema->owner->donated_priority;
-  int pri_b = elemb->owner->priority > elemb->owner->donated_priority ? elemb->owner->priority : elemb->owner->donated_priority;
+  int pri_a = get_priority(elema->owner);
+  int pri_b = get_priority(elemb->owner);
 
   if (pri_a > pri_b) {
     return true;

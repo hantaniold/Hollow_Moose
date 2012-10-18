@@ -132,9 +132,9 @@ thread_priority_compare (const struct list_elem *a, const struct list_elem *b, v
   struct thread *ta = list_entry (a, struct thread, elem);
   struct thread *tb = list_entry (b, struct thread, elem); 
   
-  int priority_a = ta->priority > ta->donated_priority ? ta->priority : ta->donated_priority;
-  int priority_b = tb->priority > tb->donated_priority ? tb->priority : tb->donated_priority;
-    
+  int priority_a = get_priority(ta);
+  int priority_b = get_priority(tb);
+  
   //MADNESS!!!  
   if (priority_a > priority_b) 
   {
@@ -143,6 +143,7 @@ thread_priority_compare (const struct list_elem *a, const struct list_elem *b, v
   return false;
 }
 
+//TODO : move to thread.h
 //prevents recursion from continuining forever
 uint8_t rec_depth = 8;
 
@@ -151,24 +152,26 @@ uint8_t rec_depth = 8;
 void
 donate_priority_helper(struct thread *source, struct thread *target, uint8_t rec_curr)
 {
-  ASSERT(rec_curr < rec_depth);
-  struct donor_elem *de = (struct donor_elem *)malloc(sizeof(struct donor_elem));
-  de->t = source;
-  de->donation = source->priority > source->donated_priority ? source->priority : source->donated_priority;
-  list_push_back(&target->donor_list, &de->elem);
-  if (de->donation > target->donated_priority) 
+  if (rec_curr < DONATE_DEPTH)
   {
-    target->donated_priority = de->donation;
-    int target_pri = target->priority > target->donated_priority ? target->priority : target->donated_priority;
-    struct thread *running = thread_current();
-    int running_pri = running->priority > running->donated_priority ? running->priority : running->donated_priority;
-    if (target_pri > running_pri) {
-    	thread_yield();
-    }
-    if (target->donee != NULL) {
-     donate_priority_helper(target, target->donee, ++rec_curr);
-    } else {
-       list_sort(&ready_list, &thread_priority_compare, NULL);
+    struct donor_elem *de = (struct donor_elem *)malloc(sizeof(struct donor_elem));
+    de->t = source;
+    de->donation = get_priority(source);
+    list_push_back(&target->donor_list, &de->elem);
+    if (de->donation > target->donated_priority) 
+    {
+      target->donated_priority = de->donation;
+      int target_pri = get_priority(target);
+      struct thread *running = thread_current();
+      int running_pri = get_priority(running);
+      if (target_pri > running_pri) {
+      	thread_yield();
+      }
+      if (target->donee != NULL) {
+       donate_priority_helper(target, target->donee, ++rec_curr);
+      } else {
+         list_sort(&ready_list, &thread_priority_compare, NULL);
+      }
     }
   }
 }
@@ -178,39 +181,6 @@ donate_priority(struct thread *source, struct thread *target)
 {
   donate_priority_helper(source, target, 0);
 }
-
-/*
-void
-revoke_priority(struct thread *source, struct thread *target) 
-{
-  printf("entered revoke_priority\n");
-  struct list_elem *e;
-  struct list_elem *found = NULL; 
-  struct donor_elem *de;
-  struct donor_elem *removal;
-  int new_donation = 0;
-  for (e = list_begin(&target->donor_list); e != list_end(&target->donor_list); e = list_next(e))
-  {
-    printf("in loop\n");
-    de = list_entry(e, struct donor_elem, elem);
-    if (de->t == source) {
-      found = &de->elem;
-      removal = de;
-    } else {
-      if (de->donation > new_donation) {
-        new_donation = de->donation;
-      }
-    }
-  }
-  if (found != NULL)
-  {
-    printf("revoking\n");
-    list_remove(found);
-    free(removal);
-    target->donated_priority = new_donation; 
-  }
-}
-*/
 
 void
 empty_donated_priority(struct thread *t, struct lock *lock) {
@@ -357,9 +327,9 @@ thread_create (const char *name, int priority,
   thread_unblock (t);
   old_level = intr_disable();
   struct thread *curr_thread = thread_current ();
-  
-  int curr_pri = curr_thread->priority > curr_thread->donated_priority ? curr_thread->priority : curr_thread->donated_priority;
-  int my_pri = priority > t->donated_priority ? priority : t->donated_priority;
+ 
+  int curr_pri = get_priority(curr_thread);
+  int my_pri = get_priority(t);
 
   if (curr_pri < my_pri) {
     thread_yield();
