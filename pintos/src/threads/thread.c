@@ -329,6 +329,8 @@ thread_tick (void)
             update_MLFQS_priority(t);
         }
       }
+      list_sort(&ready_list, &thread_priority_compare, NULL);
+      intr_yield_on_return ();
     }
   }
   
@@ -728,7 +730,7 @@ update_MLFQS_priority(struct thread * t)
     fp_t recent_factor;
 
    //priority = PRI_MAX - (recent_cpu / 4) - (nice / 2);
-    nice_factor = f_int(t->nice * 2);
+    nice_factor = f_int(t->nice * -2);
     recent_factor = f_div(t->recent_cpu,f_int(4));
     s1 = f_sub(recent_factor,nice_factor);
     t->priority = f_round(f_sub(f_int(PRI_MAX),s1));
