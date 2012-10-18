@@ -311,6 +311,16 @@ Our current implemention does not have either of these problems.
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
+in thread.c
+
+static int ready_list_length; //Length of the ready list - for convenient use in the timer interrupt.
+static fp_t load_avg; // load average
+
+in thread.h::thread
+
+int nice; // Niceness of a thread.
+fp_t recent_cpu; // Recent_cpu value
+
 ---- ALGORITHMS ----
 
 >> C2: Suppose threads A, B, and C have nice values 0, 1, and 2.  Each
@@ -318,26 +328,37 @@ Our current implemention does not have either of these problems.
 >> scheduling decision and the priority and recent_cpu values for each
 >> thread after each given number of timer ticks:
 
+load avg and recent cpu dont change via the formula
+
+
+priority = 63 - (recent/4) - nice*2
+recent up by 1 for running
 timer  recent_cpu    priority   thread
 ticks   A   B   C   A   B   C   to run
 -----  --  --  --  --  --  --   ------
- 0
- 4
- 8
-12
-16
-20
-24
-28
-32
-36
+ 0      0   0   0  31  31  31  A
+ 4      4   0   0  62  61  59  A
+ 8      8   0   0  61  61  59  B
+12      8   4   0  61  60  59  A
+16      12  4   0  60  60  59  B
+20      12  8   0  60  59  59  A
+24      16  8   0  59  59  59  C
+28      16  8   4  59  59  58  B
+32      16  12  4  59  58  58  A
+36      20  12  4  58  58  58  C
 
 >> C3: Did any ambiguities in the scheduler specification make values
 >> in the table uncertain?  If so, what rule did you use to resolve
 >> them?  Does this match the behavior of your scheduler?
-u
+
+- If priorities are the same to begin, which thread starts? We just use the thread at the beginning of the queue, and it does the same as ours.
+
+- How do we deal with round-robin when dealing with the number of threads having priority X increasing from interrupt to interrupt? We just made sure that when a thread is re-inserted to the ready list, it is pushed to the back of its subset of priorities (so if A, B have PRI 30 and C just went to ready from running, then the queue will be A,B,C, so A runs next (assuming no other threads have PRI > 30)). This matches the behavior of our scheduler.
+
 >> C4: How is the way you divided the cost of scheduling between code
 >> inside and outside interrupt context likely to affect performance?
+
+- The code to update all of the parameters for MLFQS happen in external interrupt context (during the timer interrupt) so that means they are called every timer interrupt. All other schedule code (donating, etc.) is called from an internal interrupt context so we switch off when needed. By keeping only the logic for updating MLFQS data within the timer interrupt, we increase our performance by not having extra code that isn't as necessary every interrupt.
 
 ---- RATIONALE ----
 
@@ -346,12 +367,16 @@ u
 >> time to work on this part of the project, how might you choose to
 >> refine or improve your design?
 
+A nice advantage is that the design is fairly clean from the priority to MLFQS. We only need to add in the metadata with cpu load, recent cpu, niceness and the structure of our queue and list insert implies things work as desired. A disadvantage is that if we wanted to scale, things wouldn't be as nice because we'd have one gigantic queue - it might be good at that point ot split the giant queue into a few queues with ranges of priority lvels.
+
 >> C6: The assignment explains arithmetic for fixed-point math in
 >> detail, but it leaves it open to you to implement it.  Why did you
 >> decide to implement it the way you did?  If you created an
 >> abstraction layer for fixed-point math, that is, an abstract data
 >> type and/or a set of functions or macros to manipulate fixed-point
 >> numbers, why did you do so?  If not, why not?
+
+We used the library provided. In any case we'd probably have done it in a similar fashion because abstracting out the fixed point math makes life easier when storing data that is persistent through the program (cpu load, recent cpu). Moreover it makes things more readable when you know what is exactly happening with data flow.
 
 			   SURVEY QUESTIONS
 			   ================
@@ -365,14 +390,22 @@ the quarter.
 >> In your opinion, was this assignment, or any one of the three problems
 >> in it, too easy or too hard?  Did it take too long or too little time?
 
+I wouldn't say anything was too easy. The priority donation was a little tedious because of all the list manipulation with C, in addition we overflowed the stack at some points and in other spots placing some code at some points could cause page faults. A bit of mysterious things...took a while to settle on the design. Luckily finishing this made MLFQS pretty straightforward.
+
 >> Did you find that working on a particular part of the assignment gave
 >> you greater insight into some aspect of OS design?
+
+Respect for people who write the schedulers, awareness of the issues with multithreading.
 
 >> Is there some particular fact or hint we should give students in
 >> future quarters to help them solve the problems?  Conversely, did you
 >> find any of our guidance to be misleading?
 
+Tips to avoid stack overflow, more highlighting of dangerous places to put code.
+
 >> Do you have any suggestions for the TAs to more effectively assist
 >> students, either for future quarters or the remaining projects?
+
+Not really, good guidance on this one.
 
 >> Any other comments?
