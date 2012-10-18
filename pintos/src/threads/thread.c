@@ -22,10 +22,9 @@
    of thread.h for details. */
 #define THREAD_MAGIC 0xcd6abf4b
 
-static fp_t load_avg; //System load average for mlfqs
-
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
+static int ready_list_length; //Added for mlfqs
 static struct list ready_list;
 
 /* List of all processes.  Processes are added to this list
@@ -56,13 +55,12 @@ static long long idle_ticks;    /* # of timer ticks spent idle. */
 static long long kernel_ticks;  /* # of timer ticks in kernel threads. */
 static long long user_ticks;    /* # of timer ticks in user programs. */
 
-/* Scheduling. */
+/* mlfqs Scheduling. */
 #define TIME_SLICE 4            /* # of timer ticks to give each thread. */
 static unsigned thread_ticks;   /* # of timer ticks since last yield. */
 static fp_t load_avg;           /* Load average. Updated whenever 
-                                   timer_ticks () % TIMER_FREQ == 0 . */
+                                timer_ticks () % TIMER_FREQ == 0 . */
 
-/* Added for MLFQS */
 
 
 /* If false (default), use round-robin scheduler.
@@ -108,7 +106,11 @@ thread_init (void)
   list_init (&ready_list);
   list_init (&all_list);
   list_init (&wait_list);
-  
+ 
+  //Initial load average
+  load_avg = f_int(0);
+  ready_list_length = 0;
+
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
   init_thread (initial_thread, "main", PRI_DEFAULT);
@@ -265,10 +267,23 @@ thread_tick (void)
     //every second recalculate load_avg
     if (ticks % TIMER_FREQ == 0)
     {
-    
+      //load_avg = (59/60)*load_avg + (1/60)*ready_threads. 
+      fp_t coeff1 = f_frac(59,60);
+      fp_t coeff2 = f_frac(1, 60);
+      fp_t ready_count;
+      if (t != idle_thread)
+      {
+        ready_count = f_int(ready_list_length + 1);
+      }
+      else
+      {
+        ready_count = f_int(ready_list_length);
+      }
+      //load_avg = f_int(1);
+      load_avg = f_add(f_mul(coeff1, load_avg), f_mul(coeff2, ready_count)); 
+
     }
   }
-
 
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
@@ -390,6 +405,7 @@ thread_unblock (struct thread *t)
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
   list_push_back(&ready_list, &t->elem);
+  ready_list_length += 1;
   list_sort(&ready_list, &thread_priority_compare, NULL);
   //list_insert_ordered (&ready_list,&t->elem,&thread_priority_compare,NULL);
   t->status = THREAD_READY;
@@ -466,6 +482,7 @@ thread_yield (void)
     //list_push_back(&ready_list, &cur->elem);
     //list_sort(&ready_list, &thread_priority_compare, NULL);
     list_insert_ordered (&ready_list,&cur->elem,&thread_priority_compare,NULL);
+    ready_list_length += 1;
   }
   cur->status = THREAD_READY;
   schedule ();
@@ -777,6 +794,7 @@ next_thread_to_run (void)
   }
   else
   {
+    ready_list_length -= 1;
     return list_entry (list_pop_front (&ready_list), struct thread, elem);
   }
 }   
