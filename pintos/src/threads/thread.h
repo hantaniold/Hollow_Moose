@@ -111,9 +111,6 @@ struct thread
     struct list donor_list;
     struct thread *donee; //who we have donated to
     struct lock *waiting_on_lock;
-    //deprecated
-    struct list *lock_list;
-    struct lock *wait_lock;
 
     /* Stuff for MLFQS */
     int nice;                           /* Niceness of this thread. */

@@ -829,7 +829,6 @@ init_thread (struct thread *t, const char *name, int priority)
   t->donated_priority = 0;
   t->magic = THREAD_MAGIC;
   list_push_back (&all_list, &t->allelem);
-  t->wait_lock = NULL;
   //list_init(&t->lock_list);
   list_init(&t->donor_list);
   t->donee = NULL;
