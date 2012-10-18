@@ -259,13 +259,10 @@ thread_tick (void)
   {
     int64_t ticks = timer_ticks();
     
-    //every 4 ticks recalculate priorities
-    if (ticks % 4  == 0)
-    {
-    }
+    bool do_recalculations = (ticks % TIMER_FREQ == 0) ? true : false;
 
     //every second recalculate load_avg
-    if (ticks % TIMER_FREQ == 0)
+    if (do_recalculations)
     {
       //load_avg = (59/60)*load_avg + (1/60)*ready_threads. 
       fp_t coeff1 = f_frac(59,60);
@@ -273,22 +270,65 @@ thread_tick (void)
       fp_t ready_count;
       if (t != idle_thread)
       {
+        // # ready + 1 running
         ready_count = f_int(ready_list_length + 1);
       }
       else
       {
+        // Ignore idle
         ready_count = f_int(ready_list_length);
       }
-      //load_avg = f_int(1);
       load_avg = f_add(f_mul(coeff1, load_avg), f_mul(coeff2, ready_count)); 
 
     }
-  }
 
+    // Increment recent_cpu by 1 if not idle thread
+    if (t != idle_thread) 
+    {
+      t->recent_cpu = f_add(t->recent_cpu,f_int(1));
+    }
+
+    struct list_elem *e;
+    struct thread *other_t;
+
+  // 3. Also update of all threads once per second according to formula
+  // recent_cpu = (2*load_avg)/(2_loadavg+1) * recent_cpu + nice
+    if (do_recalculations) 
+    {
+      fp_t d1;
+      fp_t d2;
+      fp_t d;
+      fp_t m;
+
+      for (e = list_begin (&all_list); e != list_end (&all_list);
+         e = list_next (e))
+      {
+        other_t = list_entry (e, struct thread, allelem);
+        if (other_t != idle_thread) {
+          d1 = f_mul(f_int(2),load_avg);
+          d2 = f_add(f_int(1),d1);
+          d = f_div(d1,d2);
+          m = f_mul(d,other_t->recent_cpu);
+          other_t->recent_cpu = f_add(m,f_int(other_t->nice));
+        }
+      }
+    }
+
+    //every 4 ticks recalculate priorities of ALL threads
+    if (ticks % 4  == 0)
+    {
+    for (e = list_begin (&all_list); e != list_end (&all_list);
+       e = list_next (e))
+    {
+      t = list_entry (e, struct thread, allelem);
+      if (t != idle_thread) {
+          update_MLFQS_priority(t);
+      }
+    }
+  }
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return ();
-
 }
 
 /* Prints thread statistics. */
@@ -662,7 +702,16 @@ update_MLFQS_priority(struct thread * t)
 {
     // use FP stufff
     // this is currently fucked
-    //t->priority = PRI_MAX - (recent_cpu / 4) - (t->nice / 2);
+    // //fix
+    fp_t s1;
+    fp_t nice_factor;
+    fp_t recent_factor;
+
+    nice_factor = f_int(t->nice * 2);
+    recent_factor = f_div(t->recent_cpu,f_int(4));
+    s1 = f_sub(recent_factor,nice_factor);
+    t->priority = f_round(f_sub(f_int(PRI_MAX),s1));
+   //t->priority = PRI_MAX - (recent_cpu / 4) - (t->nice / 2);
     if (t->priority > PRI_MAX) {
         t->priority = PRI_MAX;
     } else if (t->priority < PRI_MIN) {
