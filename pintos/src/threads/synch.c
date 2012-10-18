@@ -224,7 +224,10 @@ lock_acquire (struct lock *lock)
   struct thread * t = thread_current ();
   if (lock->holder != NULL)
   {
-    donate_priority(t, lock->holder);
+    if (!thread_mlfqs)
+    {
+      donate_priority(t, lock->holder);
+    }
     t->donee = lock->holder;
     t->waiting_on_lock = lock;
   }
