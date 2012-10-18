@@ -147,58 +147,57 @@ thread_priority_compare (const struct list_elem *a, const struct list_elem *b, v
   return false;
 }
 
-//TODO : move to thread.h
-//prevents recursion from continuining forever
-uint8_t rec_depth = 8;
-
-
-
 void
-donate_priority_helper(struct thread *source, struct thread *target, uint8_t rec_curr)
+donate_priority_helper (struct thread *source, struct thread *target, uint8_t rec_curr)
 {
   if (rec_curr < DONATE_DEPTH)
   {
-struct donor_elem *de = (struct donor_elem *)malloc(sizeof(struct donor_elem));
+struct donor_elem *de = (struct donor_elem *)malloc (sizeof(struct donor_elem));
     de->t = source;
-    de->donation = get_priority(source);
-    list_push_back(&target->donor_list, &de->elem);
+    de->donation = get_priority (source);
+    list_push_back (&target->donor_list, &de->elem);
     if (de->donation > target->donated_priority) 
     {
       target->donated_priority = de->donation;
-      int target_pri = get_priority(target);
-      struct thread *running = thread_current();
-      int running_pri = get_priority(running);
-      if (target_pri > running_pri) {
+      int target_pri = get_priority (target);
+      struct thread *running = thread_current ();
+      int running_pri = get_priority (running);
+      if (target_pri > running_pri)
+      {
       	thread_yield();
       }
-      if (target->donee != NULL) {
-       donate_priority_helper(target, target->donee, ++rec_curr);
-      } else {
-         list_sort(&ready_list, &thread_priority_compare, NULL);
+      if (target->donee != NULL)
+      {
+       donate_priority_helper (target, target->donee, ++rec_curr);
+      } else
+      {
+         list_sort (&ready_list, &thread_priority_compare, NULL);
       }
     }
   }
 }
 
 void
-donate_priority(struct thread *source, struct thread *target)
+donate_priority (struct thread *source, struct thread *target)
 {
-  donate_priority_helper(source, target, 0);
+  donate_priority_helper (source, target, 0);
 }
 
 void
-empty_donated_priority(struct thread *t, struct lock *lock) {
+empty_donated_priority (struct thread *t, struct lock *lock) {
   int new_donation = 0;
 
   struct list_elem *e;
-  e = list_begin(&t->donor_list);
-  while (e != list_end(&t->donor_list)) 
+  e = list_begin (&t->donor_list);
+  while (e != list_end (&t->donor_list)) 
   {
-    struct donor_elem *de = list_entry(e, struct donor_elem, elem);
-    if (de->t->waiting_on_lock == lock) {
-      e = list_remove(&de->elem);
+    struct donor_elem *de = list_entry (e, struct donor_elem, elem);
+    if (de->t->waiting_on_lock == lock)
+    {
+      e = list_remove (&de->elem);
       free(de);
-    } else {
+    } else
+    {
       if (de->donation > new_donation)
       {
         new_donation = de->donation;
@@ -207,17 +206,7 @@ empty_donated_priority(struct thread *t, struct lock *lock) {
     }
   }
   t->donated_priority = new_donation;
-  list_sort(&ready_list, &thread_priority_compare, NULL);
-  /*
-  t->donated_priority = 0;
-  
-  while (!list_empty(&t->donor_list))
-  {
-    struct list_elem *e = list_pop_front(&t->donor_list);
-    struct donor_elem *de = list_entry(e, struct donor_elem, elem);
-    free(de);
-  }
-  */
+  list_sort (&ready_list, &thread_priority_compare, NULL);
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.

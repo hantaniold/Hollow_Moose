@@ -155,18 +155,119 @@ In order to make priority donation work, every thread maintains three things:
 2) The highest priority donated to the thread (donated_priority)
 3) A list of all priority donations to the thread.
 
-An entry in the priority donation 
+An entry in the priority donation list of a thread consists of a donor_elem structure.  A donor_elem structure keeps track of which thread made the donation and what the donation was. Entries are made via the donte_priority function.  
+
+When a thread receives a priority donation, it increases it's donated_priority to the value of the donation if the donation is greater than donated_priority.
+
+To calculate a thread's donation for the sake of ordering the threads, each thread's priority = max(priority, donated_priority).
+
+When a thread acquires a lock that it has been waiting on, it may reduce its donated_priority.  This is done via the empty_donated_priority method.  This method removes all donations that come from threads that were waiting on the lock. It adjusts donated_priority to the largest remaining donation.
+
+Priority donation occurs via the donate_priority and donate_priority_helper methods.
+donate_priority starts priority donation via the donate_priority_helper method.  Donate_priority helper not only adds a donation to the target thread's donation list, it also causes the donation to cascade forward, performing the same donation to the thread which the donated-to thread is waiting on.  It does this up to 8 levels of depth.  This depth can be adjusted via the DONATE_DEPTH constant found in thread.h
+
+And now for an example of priority donation with pictures!
+
+Consider three threads of high(H), medium(M), and low(L) priorities. 
+(~ implies waiting for a lock and = implies a lock acquired.  The lists at the head of our threads represent the donation_list of each thread.)
+
+
+L and M each have acquired a lock.  
+
+-----         -----
+L   =LOCK1    M   =LOCK2
+-----         -----
+
+M begins to wait on LOCK1
+
+-----         ----- 
+L   =LOCK1    M   =LOCK2,~LOCK1
+-----         -----
+
+This causes M to donate it's priority to L
+
+-----         -----
+M,L =LOCK1    M   =LOCK2,~LOCK1
+-----         -----
+
+But H still has highest priority.  So it runs.  H tries to acquire LOCK2.  SO, it donates its priority to M.
+
+-----         -----                 -----
+M,L =LOCK1    H,M =LOCK2,~LOCK1     H   ~LOCK2
+-----         -----                 -----
+
+This donation to M triggers a cascading donation to L:
+
+-----         -----                 -----
+H,M,L=LOCK1   H,M =LOCK2,~LOCK1     H   ~LOCK2
+-----         -----                 -----
+
+L can how run since it has high priority.  It does and releases LOCK1. This causes it to empty it's donation list.
+
+-----         -----                 -----
+L   =         H,M =LOCK2,~LOCK1     H   ~LOCK2
+-----         -----                 -----
+
+This causes M to run since it to has high priority.  It now acquires LOCK1 and finishes it's computing, causing it to empty its donation list.
+
+-----         -----                 -----
+L   =         M   =                 H   ~LOCK2
+-----         -----                 -----
+
+Now only H has high priority, so it acquires LOCK2 and finally does its computing.
+
+-----         -----                 -----
+L   =         M   =                 H   =LOCK2
+-----         -----                 -----
+
+-----         -----                 -----
+L   =         M   =                 H   =
+-----         -----                 -----
 
 ---- ALGORITHMS ----
 
 >> B3: How do you ensure that the highest priority thread waiting for
 >> a lock, semaphore, or condition variable wakes up first?
 
+For semaphores, highest priority ordering is assured because the
+threads waiting on the semaphore are ordered by priority.  Instead of 
+simply putting waiting threads in a waitind list, during sema_down, 
+we add them in priority order.  Furthermore, as priority can change 
+as our system runs, due primarily to priority donation, we also 
+resort our waiting list when we unblock a thread via sema_up. 
+
+Lock ordering nearly follows from semaphore ordering expect for a few
+minor changes.  Beyond just allowing semaphores that are aware of 
+priority, our locks trigger priority donation when when a thread 
+waits while trying to acquire a lock.  
+
+As for condition variables, we use the list of internal semaphores,
+but we now sort this list according to the priority of the threads
+that add the semaphore to the list.  This ensures ordering. 
+
 >> B4: Describe the sequence of events when a call to lock_acquire()
 >> causes a priority donation.  How is nested donation handled?
 
+When lock_acquire is called and the lock is currently held by another
+process, a call to donate_priority is triggered. Thsi triggers a call 
+to donate_priority_helper.  Donate prioroty helper, adds a donation
+to the donation list of the thread that currently holds the lock. If 
+this thread is also waiting on a lock, a donation is performed on that
+lock, recursively.  This recursion is allowed to go 8 layers deep.  
+
+We then put our semaphore down and switch the lock holder to the current
+thread.
+
 >> B5: Describe the sequence of events when lock_release() is called
 >> on a lock that a higher-priority thread is waiting for.
+
+A call to lock release triggers a call to empty_donated_priority.  This
+method essentially undoes priority donation. The thread releasing the 
+lock empties its donation list of any donation that occured because of
+waiting on the released lock and it adjusts its prioroty based on
+its new donation list.  Our semaphore is then put up and the next highest
+thread waiting on the lock acquires the lock.  
+
 
 ---- SYNCHRONIZATION ----
 
@@ -174,10 +275,32 @@ An entry in the priority donation
 >> how your implementation avoids it.  Can you use a lock to avoid
 >> this race?
 
+A potential race condition occurs when we begin to set a threads priority to the highest priority of the ready threads, which should cause it run, but the call
+is preempted by the scheduler and another thread is selected to run before
+thread_set_priority returns.  We turned off interrupts to solve this problem. 
+
+Using a lock would be unnecessary overhead in this context.  We would have to 
+have a global lock of all threads.  The code is far more understandle in its 
+present manner.  
+
 ---- RATIONALE ----
 
 >> B7: Why did you choose this design?  In what ways is it superior to
 >> another design you considered?
+
+We chose this design because it reduces priority donation to a a recursive call. 
+Rather than account for priority donation all over the place, we can just have
+one method that performs priority donation.  This, with our get_priority function,
+simplifies much of the code.
+
+Our first design did most of the priority donation in the syncronizations structures 
+themselves.  This was a bad design for two reasons:
+
+1) Stack overflows
+2) separating the logic of pririty into two places
+
+Our current implemention does not have either of these problems.  
+
 
 			  ADVANCED SCHEDULER
 			  ==================
@@ -212,7 +335,7 @@ ticks   A   B   C   A   B   C   to run
 >> C3: Did any ambiguities in the scheduler specification make values
 >> in the table uncertain?  If so, what rule did you use to resolve
 >> them?  Does this match the behavior of your scheduler?
-
+u
 >> C4: How is the way you divided the cost of scheduling between code
 >> inside and outside interrupt context likely to affect performance?
 
