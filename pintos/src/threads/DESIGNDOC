@@ -120,6 +120,16 @@ We chose this design because it may be important in the future to be able to kee
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
+in thread.c
+
+static int ready_list_length; //Length of the ready list
+static fp_t load_avg; // load average
+
+in thread.h::thread
+
+int nice; // Niceness of a thread.
+fp_t recent_cpu; // Recent_cpu value
+
 ---- ALGORITHMS ----
 
 >> C2: Suppose threads A, B, and C have nice values 0, 1, and 2.  Each
@@ -130,8 +140,8 @@ We chose this design because it may be important in the future to be able to kee
 timer  recent_cpu    priority   thread
 ticks   A   B   C   A   B   C   to run
 -----  --  --  --  --  --  --   ------
- 0
- 4
+ 0     0    0   0   31  31  31  A
+ 4  
  8
 12
 16
@@ -145,8 +155,13 @@ ticks   A   B   C   A   B   C   to run
 >> in the table uncertain?  If so, what rule did you use to resolve
 >> them?  Does this match the behavior of your scheduler?
 
+- If priorities are the same to begin, which thread starts? We just use the thread at the beginning of the queue, and it does the same as ours.
+
 >> C4: How is the way you divided the cost of scheduling between code
 >> inside and outside interrupt context likely to affect performance?
+
+- The code to update all of the parameters for MLFQS happen in external interrupt context (during the timer interrupt) so that means they are called every timer interrupt. This 
+- The code to pick the next thread 
 
 ---- RATIONALE ----
 
