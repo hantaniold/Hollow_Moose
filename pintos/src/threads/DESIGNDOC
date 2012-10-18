@@ -85,9 +85,77 @@ We chose this design because it may be important in the future to be able to kee
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
+thread.c
+--------
+
+/* The following methods were declared in thread.h but defined in thread.c */
+
+/* Helper method for both priority scheduler and MLFQS */
+int get_priority(struct thread *t); /* get's the priority of the thread based on 
+                                       whatever scheduler the system is set to use */
+
+/* Added for Priority Scheduling */
+
+/* compares the priority of two threads; used for ordering */
+bool thread_priority_compare (const struct list_elem *a, const struct list_elem *b, void *aux); 
+
+/* performs a priority donation from one thread to another */
+void donate_priority(struct thread *source, struct thread *target);
+
+/* This removes priority donations from a thread with respect to a lock*/
+void empty_donated_priority(struct thread *t, struct lock *lock);
+
+
+thread.h
+--------
+
+/* This is the maxiumum depth for priority donation. */
+#define DONATE_DEPTH 8
+
+/* This represents a priority donation.  */
+struct donor_elem {
+  struct thread *t;      /* This is the thread that made the donation. */
+  int donation;          /* This is the donation that the thread made. */
+  struct list_elem elem; /* Used for keeping track of all donors to a thread.*/
+};
+
+/* The following were added to struct thread */
+
+/* Stuff for Priority Donation */
+int donated_priority;         /* Maintains the highest donated priority to the thread. */
+struct list donor_list;       /* Keeps a list of all donations to the thread. */
+struct thread *donee;         /* Which thread that this thread has donated to. */
+struct lock *waiting_on_lock; /* The lock that this thread is waiting on. */
+
+synch.h
+-------
+
+/* added to struct lock */
+struct list_elem elem; /* added so that one can maintain a list of locks*/
+
+
+synch.c
+------
+
+/* This method was declared in synch.h but implemented in synch.c */
+/* This compared two semaphores in a condvar.  It compares the priorities of the threads that are holding/waiting on the semaphore */
+bool sema_priority_compare (const struct list_elem *a, const struct list_elem *b, void *aux);
+
+/* Added to struct semaphore_elem */
+/* Needed for condvars */
+struct thread *owner; /* In a list of semaphores, this keeps track of which thread added the semaphore to the semaphore list.  This is necessary for sorting the semphores based on the priorities of their owner threads. */
+
+
 >> B2: Explain the data structure used to track priority donation.
 >> Use ASCII art to diagram a nested donation.  (Alternately, submit a
 >> .png file.)
+
+In order to make priority donation work, every thread maintains three things:
+1) Its priority (priority)
+2) The highest priority donated to the thread (donated_priority)
+3) A list of all priority donations to the thread.
+
+An entry in the priority donation 
 
 ---- ALGORITHMS ----
 

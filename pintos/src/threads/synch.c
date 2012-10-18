@@ -198,7 +198,6 @@ lock_init (struct lock *lock)
   ASSERT (lock != NULL);
 
   lock->holder = NULL;
-  lock->highest_pri = -1;
   sema_init (&lock->semaphore, 1);
 }
 
@@ -224,7 +223,10 @@ lock_acquire (struct lock *lock)
   struct thread * t = thread_current ();
   if (lock->holder != NULL)
   {
-    donate_priority(t, lock->holder);
+    if (!thread_mlfqs)
+    {
+      donate_priority(t, lock->holder);
+    }
     t->donee = lock->holder;
     t->waiting_on_lock = lock;
   }
@@ -265,12 +267,9 @@ lock_release (struct lock *lock)
 {
   ASSERT (lock != NULL);
   ASSERT (lock_held_by_current_thread (lock));
-  // Remove all donations associated with this lock.
-  //lock->holder->donated_priority = 0;
   enum intr_level old_level;
   old_level = intr_disable();
   empty_donated_priority(thread_current(), lock);
-  //list_remove(&lock->elem);
   lock->holder = NULL;
   intr_set_level(old_level);
   sema_up (&lock->semaphore);
