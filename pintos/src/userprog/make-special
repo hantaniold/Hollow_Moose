@@ -1,0 +1,5 @@
+make -j 20
+rm build/tests/userprog/*.errors
+rm build/tests/userprog/*.result
+rm build/tests/userprog/*.output
+make check VERBOSE=1
