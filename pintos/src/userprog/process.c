@@ -429,6 +429,7 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
 static bool
 setup_stack (void **esp, char * file_name)
 {
+  ASSERT (4 == 2);
   uint8_t *kpage;
   bool success = false;
 
@@ -438,8 +439,7 @@ setup_stack (void **esp, char * file_name)
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success)
       {
-        *esp = PHYS_BASE - 12;
- 
+	*esp = PHYS_BASE;
         char *saveme;
         const char * delim = ' ';
         char *token;
@@ -482,7 +482,6 @@ setup_stack (void **esp, char * file_name)
       
         *esp -= sizeof (void (*) ());
         *((uint8_t *) *esp) = 0;
-
  	
 	hex_dump((uintptr_t)esp, esp, 80, true);
       }  

@@ -4,8 +4,6 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
-#include "threads/synch.h"
-#include "threads/fixed-point.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -25,9 +23,6 @@ typedef int tid_t;
 #define PRI_MIN 0                       /* Lowest priority. */
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
-
-/* Priority donation depth */
-#define DONATE_DEPTH 8
 
 /* A kernel thread or user process.
 
@@ -85,16 +80,6 @@ typedef int tid_t;
    only because they are mutually exclusive: only a thread in the
    ready state is on the run queue, whereas only a thread in the
    blocked state is on a semaphore wait list. */
-
-struct thread; //forward declartion 
-
-struct donor_elem {
-    struct thread *t;
-    int donation;
-    struct list_elem elem;
-};
-
-
 struct thread
   {
     /* Owned by thread.c. */
@@ -102,28 +87,8 @@ struct thread
     enum thread_status status;          /* Thread state. */
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
-    int priority;                       /* Priority. Updated once every four
-                                           ticks for the MLFQS */
+    int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
-    
-    /* Stuff for Priority Donation */
-    int donated_priority;
-    struct list donor_list;
-    struct thread *donee; //who we have donated to
-    struct lock *waiting_on_lock;
-
-    /* Stuff for MLFQS */
-    int nice;                           /* Niceness of this thread. */
-    fp_t recent_cpu;                    /* Recent_cpu value. Incremented by
-                                           one during a timer interrupt if
-                                           this is the running thread. 
-                                           Also recalculated once per second.*/
-
-    /* Stuff for Sleeping */
-   
-    struct list_elem waitelem;         /* List element for wait threads list . */
-    struct semaphore timer_semaphore;
-    int64_t wakeup_time; /* When the thread should wake up */
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
@@ -136,7 +101,6 @@ struct thread
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
   };
-
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
@@ -174,23 +138,4 @@ void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
-/* Added for sleeping */
-void thread_sleep (int64_t);
-void thread_wake_routine (void);
-void thread_wake_routine_helper (struct thread *, void *);
-void thread_foreach_wait (thread_action_func *, void *);
-bool wake_time_compare (const struct list_elem *, const struct list_elem *, void *);
-
-/* Helper method for both priority scheduler and MLFQS */
-int get_priority(struct thread *t);
-
-/* Added for Priority Scheduling */
-bool thread_priority_compare (const struct list_elem *a, const struct list_elem *b, void *aux); 
-void donate_priority(struct thread *source, struct thread *target);
-void empty_donated_priority(struct thread *t, struct lock *lock);
-
-
-/* Added for MLFQS */
-
-void update_MLFQS_priority(struct thread * t);
 #endif /* threads/thread.h */

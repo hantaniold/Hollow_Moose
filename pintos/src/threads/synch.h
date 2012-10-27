@@ -6,10 +6,10 @@
 
 /* A counting semaphore. */
 struct semaphore 
-{
+  {
     unsigned value;             /* Current value. */
     struct list waiters;        /* List of waiting threads. */
-};
+  };
 
 void sema_init (struct semaphore *, unsigned value);
 void sema_down (struct semaphore *);
@@ -22,10 +22,8 @@ struct lock
   {
     struct thread *holder;      /* Thread holding lock (for debugging). */
     struct semaphore semaphore; /* Binary semaphore controlling access. */
-    struct list_elem elem;
-};
+  };
 
-void lock_system_init (void);
 void lock_init (struct lock *);
 void lock_acquire (struct lock *);
 bool lock_try_acquire (struct lock *);
@@ -43,8 +41,6 @@ void cond_wait (struct condition *, struct lock *);
 void cond_signal (struct condition *, struct lock *);
 void cond_broadcast (struct condition *, struct lock *);
 
-/* Added for conditions taking into account priorities */
-bool sema_priority_compare (const struct list_elem *a, const struct list_elem *b, void *aux);
 /* Optimization barrier.
 
    The compiler will not reorder operations across an
