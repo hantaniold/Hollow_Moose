@@ -41,7 +41,11 @@ process_execute (const char *file_name)
   /* Create a new thread to execute FILE_NAME. */
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR)
+  {
+    printf("TID_ERROR\n");
     palloc_free_page (fn_copy); 
+  }
+  printf("GOING TO RETURN FROM PROCESS_EXECUTE\n");
   return tid;
 }
 
@@ -88,6 +92,7 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 {
+  while (1 == 1){}
   return -1;
 }
 
@@ -114,6 +119,7 @@ process_exit (void)
       pagedir_activate (NULL);
       pagedir_destroy (pd);
     }
+  printf("THREAD EXIT\n");
 }
 
 /* Sets up the CPU for running user code in the current
@@ -429,7 +435,6 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
 static bool
 setup_stack (void **esp, char * file_name)
 {
-  ASSERT (4 == 2);
   uint8_t *kpage;
   bool success = false;
 
@@ -439,8 +444,9 @@ setup_stack (void **esp, char * file_name)
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success)
       {
-	*esp = PHYS_BASE;
-        char *saveme;
+	*esp = PHYS_BASE - 12;
+	
+	char *saveme;
         const char * delim = ' ';
         char *token;
         int argc;
@@ -459,7 +465,7 @@ setup_stack (void **esp, char * file_name)
           addresses[argc] = *esp;
           argc ++;
         }
-      
+      /*
         *esp -= sizeof(uint8_t);
         * (uint8_t *) *esp = 0; // word-align
         *esp -= sizeof(char *);
@@ -482,8 +488,7 @@ setup_stack (void **esp, char * file_name)
       
         *esp -= sizeof (void (*) ());
         *((uint8_t *) *esp) = 0;
- 	
-	hex_dump((uintptr_t)esp, esp, 80, true);
+      */
       }  
       else
       {
