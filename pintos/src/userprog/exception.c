@@ -142,7 +142,10 @@ page_fault (struct intr_frame *f)
   if (!user) 
   {
     f->eip = (void (*) (void)) f->eax;
-    f->eax = 0;
+
+    //f->eax = 0;
+    f->eax = 0xffffffff;
+    
     return;
   }
   intr_enable ();
