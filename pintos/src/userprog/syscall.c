@@ -11,6 +11,7 @@ static int sys_open (const char * file);
 static int sys_write (int fd, const void * buffer, unsigned size);
 
 static void copy_in (void *dst_, const void *usrc_, size_t size);
+static char * copy_in_string (const char *us);
 
 void
 syscall_init (void) 
@@ -42,14 +43,19 @@ static void syscall_handler (struct intr_frame *f UNUSED)
   f->eax = retval;
 }
 
-static int sys_open (const char * file) 
+static int 
+sys_open (const char * file UNUSED)
 {
 }
 
 // Writes SIZE bytes from BUFFER into the open file FD. Returns the number of
 // bytes actually written, possibly less than SIZE.
-static int sys_write (int fd, const void * buffer, unsigned size)
+static int 
+sys_write (int fd, const void * user_buf, unsigned size)
 {
+  printf("In write\n");
+  // Get the data to write from user memory
+  char * data =  copy_in_str(user_buf);
   int bytes_written;
   if (fd == STDIN_FILENO)
   {
@@ -59,12 +65,14 @@ static int sys_write (int fd, const void * buffer, unsigned size)
   else if (fd == STDOUT_FILENO) 
   {
     // Break up larger size things later
-    putbuf(buffer, size)
+    putbuf(data, size);
     bytes_written = size;
   }
 
-
+  // Free the page
+  palloc_free_page(data);
   return bytes_written;
+}
   
 /* Copies a byte from user address USRC to kernel address DST.  USRC must
  * be below PHYS_BASE.  Returns true if successful, false if a segfault
