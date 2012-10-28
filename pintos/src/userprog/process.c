@@ -447,103 +447,68 @@ setup_stack (void **esp, char * file_name)
       {
       	*esp = PHYS_BASE;
 
-        uint32_t cmd_len = strlen(file_name);
+        uint32_t cmd_len = strlen(file_name) + 1;
         if (cmd_len > PGSIZE) {
           return NULL;
         }
 
         char *cpy = kpage + PGSIZE - cmd_len;
         memcpy((void *)cpy, file_name, cmd_len);
+        *esp -= cmd_len;
 
-        char **saveme;
+        char *saveme;
+
         char *token;
         const char *delim = " ";
-        uint8_t argc = 0;
+        int argc = 0;
         bool first = true;
+
+        char *arg_locations[128];
 
         while (1) {
           if (first) {
-            token = strtok_r(cpy, delim ,saveme);
+            token = strtok_r(cpy, delim ,&saveme);
+            first = false;
           } else{
-            token = strtok_r(NULL, delim, saveme);
+            token = strtok_r(NULL, delim, &saveme);
           }
           if (token != NULL) {
-            void *user_arg = userpage + (token - (char *) kpage);
-            memcpy(kpage + PGSIZE - sizeof(token), user_arg, sizeof(token));
-            esp -= sizeof(token);
+            arg_locations[argc] = userpage + (token - (char *) kpage);
             argc++;
           } else{
             break;
           }
         }
-//Now you should start to parse the arguments from copied string in stack using strtok_r function and " " delimiter. 
-//
-////Calculate the mapped address of each parsed argument in user page like this:
-//
-// void *user_arg = userpage + (parsed_arg - (char *) kpage);
-//
-// //And push the user_arg's address to kpage stack:
-//
-// memcpy(kpage + PGSIZE- size of (&parsed_arg))
-//
-//
-// // After pushing all arguments, you need to reverse the order of arguments, because they have been pushed in reversed order. (Use a simple reverse function to reverse bytes' places in kpage stack.)
-//
-// //Again you should push the result of reverse function to the kpage:
-//
-// memcpy(kpage+PGSIZE-size of (result of reverse))
-//
-// //Finally you should push the address of user page( PHYSBASE) and also number of arguments to the kpage stack.
-/*	
-	char *saveme;
-        const char * delim = ' ';
-        char *token;
-        int argc;
-        uint32_t addresses[128];
-        while(1) 
-        {
-          token = strtok_r(file_name, &delim, &saveme);
-          if (token == NULL) 
-          {
-            break;
+        
+        //TODO - WORD ALIGN NEEDED
+
+        uint8_t i;
+       
+        int zero = 0;
+
+        first = true;
+        for (i = 0; i <= argc; i++) {
+          *esp -= sizeof(&token);
+          if (first) {
+            memcpy(*esp, &zero, sizeof(&token));
+            first = false;
+          } else {
+            memcpy(*esp, &(arg_locations[argc - i]), sizeof(&token));
           }
-          int token_size = sizeof (char) * (strlen (token) + 1);
-          *esp -= token_size;
-          strlcpy(*esp,token,token_size);
-      
-          addresses[argc] = *esp;
-          argc ++;
         }
-*/
-/*
-        *esp -= sizeof(uint8_t);
-        * (uint8_t *) *esp = 0; // word-align
-        *esp -= sizeof(char *);
-        * (char *) *esp = NULL; // argv sentinel
-      
-        // argv values
-        int i;
-        for (i = argc - 1; i >= 0 ; i--) 
-        {
-          *esp -= sizeof (char *);
-          * (char *) *esp = addresses[i];
-        }
-      
-        char * argv = *esp;
+                
+        memcpy(*esp - sizeof(char **), esp, sizeof(char **));
         *esp -= sizeof(char **);
-        * (char *) *esp = argv;
-      
-        *esp -= sizeof (int);
-        * ((uint8_t *) *esp) = argc;
-      
-        *esp -= sizeof (void (*) ());
-        *((uint8_t *) *esp) = 0;
-      */
-      }  
-      else
-      {
-        palloc_free_page (kpage);
-      }
+        memcpy(*esp - sizeof(int), &argc, sizeof(int));
+        *esp -= sizeof(int);
+
+        memcpy(*esp - sizeof(void (*)()), &zero, sizeof(void (*)()));
+        *esp -= sizeof(void (*)());
+     }  
+     else
+     {
+       palloc_free_page (kpage);
+     }
     }
   return success;
 }
