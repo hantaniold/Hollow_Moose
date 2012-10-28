@@ -1,10 +1,13 @@
 #include "userprog/syscall.h"
 #include <stdio.h>
 #include <syscall-nr.h>
+#include "filesys/file.h"
 #include "threads/interrupt.h"
 #include "threads/thread.h"
 
 static void syscall_handler (struct intr_frame *);
+static int sys_open (const char * file);
+static int sys_write (int fd, const void * buffer, unsigned size);
 
 void
 syscall_init (void) 
@@ -26,7 +29,7 @@ static void syscall_handler (struct intr_frame *f UNUSED)
   int retval;
   switch (call_nr) {
     case SYS_WRITE:
-      retval = write(args[0],(const void *) args[1], (unsigned) args[2]);
+      retval = sys_write(args[0],(const void *) args[1], (unsigned) args[2]);
       break;
     case SYS_HALT:
       break;
@@ -34,6 +37,32 @@ static void syscall_handler (struct intr_frame *f UNUSED)
       break;
   }
   f->eax = retval;
+}
+
+static int sys_open (const char * file) 
+{
+}
+
+// Writes SIZE bytes from BUFFER into the open file FD. Returns the number of
+// bytes actually written, possibly less than SIZE.
+static int sys_write (int fd, const void * buffer, unsigned size)
+{
+  int bytes_written;
+  if (fd == STDIN_FILENO)
+  {
+
+  }
+  // Write to terminal
+  else if (fd == STDOUT_FILENO) 
+  {
+    // Break up larger size things later
+    putbuf(buffer, size)
+    bytes_written = size;
+  }
+
+
+  return bytes_written;
+  
 }
 
 
