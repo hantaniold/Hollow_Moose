@@ -138,6 +138,13 @@ page_fault (struct intr_frame *f)
 
   /* Turn interrupts back on (they were only off so that we could
      be assured of reading CR2 before it changed). */
+
+  if (!user) 
+  {
+    f->eip = (void (*) (void)) f->eax;
+    f->eax = 0;
+    return;
+  }
   intr_enable ();
 
   /* Count page faults. */
