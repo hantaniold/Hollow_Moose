@@ -20,6 +20,7 @@ static void syscall_handler (struct intr_frame *f UNUSED)
   unsigned call_nr;
   int args[3]; // 3 args max
   memset (args, 0, sizeof args);
+
   copy_in (&call_nr, f->esp, sizeof call_nr);
 
   // We know there are only 3 args max to a system call, fetch 'em later
@@ -33,6 +34,8 @@ static void syscall_handler (struct intr_frame *f UNUSED)
       break;
     case SYS_HALT:
       break;
+    case SYS_EXIT:
+      exit(args[0]);
     default:
       break;
   }
@@ -120,4 +123,10 @@ copy_in_string (const char *us)
 
   // don't forget to call palloc_free_page(..) when you're done
   // with this page, before you return to user from syscall
+}
+
+/* Exit system call. */
+void 
+exit (int status) {
+  thread_exit();
 }
