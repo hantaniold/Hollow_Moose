@@ -441,11 +441,60 @@ setup_stack (void **esp, char * file_name)
   kpage = palloc_get_page (PAL_USER | PAL_ZERO);
   if (kpage != NULL) 
     {
-      success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
+      void *userpage = ((uint8_t *) PHYS_BASE) - PGSIZE;
+      success = install_page (userpage, kpage, true);
       if (success)
       {
-	*esp = PHYS_BASE - 12;
-	
+      	*esp = PHYS_BASE;
+
+        uint32_t cmd_len = strlen(file_name);
+        if (cmd_len > PGSIZE) {
+          return NULL;
+        }
+
+        char *cpy = kpage + PGSIZE - cmd_len;
+        memcpy((void *)cpy, file_name, cmd_len);
+
+        char **saveme;
+        char *token;
+        const char *delim = " ";
+        uint8_t argc = 0;
+        bool first = true;
+
+        while (1) {
+          if (first) {
+            token = strtok_r(cpy, delim ,saveme);
+          } else{
+            token = strtok_r(NULL, delim, saveme);
+          }
+          if (token != NULL) {
+            void *user_arg = userpage + (token - (char *) kpage);
+            memcpy(kpage + PGSIZE - sizeof(token), user_arg, sizeof(token));
+            esp -= sizeof(token);
+            argc++;
+          } else{
+            break;
+          }
+        }
+//Now you should start to parse the arguments from copied string in stack using strtok_r function and " " delimiter. 
+//
+////Calculate the mapped address of each parsed argument in user page like this:
+//
+// void *user_arg = userpage + (parsed_arg - (char *) kpage);
+//
+// //And push the user_arg's address to kpage stack:
+//
+// memcpy(kpage + PGSIZE- size of (&parsed_arg))
+//
+//
+// // After pushing all arguments, you need to reverse the order of arguments, because they have been pushed in reversed order. (Use a simple reverse function to reverse bytes' places in kpage stack.)
+//
+// //Again you should push the result of reverse function to the kpage:
+//
+// memcpy(kpage+PGSIZE-size of (result of reverse))
+//
+// //Finally you should push the address of user page( PHYSBASE) and also number of arguments to the kpage stack.
+/*	
 	char *saveme;
         const char * delim = ' ';
         char *token;
@@ -465,7 +514,8 @@ setup_stack (void **esp, char * file_name)
           addresses[argc] = *esp;
           argc ++;
         }
-      /*
+*/
+/*
         *esp -= sizeof(uint8_t);
         * (uint8_t *) *esp = 0; // word-align
         *esp -= sizeof(char *);
