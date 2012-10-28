@@ -1,14 +1,18 @@
 #include "userprog/syscall.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <syscall-nr.h>
 #include "filesys/file.h"
 #include "threads/interrupt.h"
+#include "threads/palloc.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
 
 static void syscall_handler (struct intr_frame *);
 static int sys_open (const char * file);
 static int sys_write (int fd, const void * buffer, unsigned size);
+static void sys_exit (int status);
 
 static void copy_in (void *dst_, const void *usrc_, size_t size);
 static char * copy_in_string (const char *us);
@@ -31,7 +35,7 @@ static void syscall_handler (struct intr_frame *f UNUSED)
   // If they're pointers we'll just deference them later
   copy_in (args, (uint32_t *) f->esp + 1, 3);
 
-  int retval;
+  int retval = 0;
   switch (call_nr) {
     case SYS_WRITE:
       retval = sys_write(args[0],(const void *) args[1], (unsigned) args[2]);
@@ -39,7 +43,7 @@ static void syscall_handler (struct intr_frame *f UNUSED)
     case SYS_HALT:
       break;
     case SYS_EXIT:
-      exit(args[0]);
+      sys_exit(args[0]);
     default:
       break;
   }
@@ -56,9 +60,12 @@ sys_open (const char * file UNUSED)
 static int 
 sys_write (int fd, const void * user_buf, unsigned size)
 {
-  printf("In write\n");
+  printf("In write, fd is %d\n",fd);
+  printf("STDOUT: %d, STDIN: %d\n",STDOUT_FILENO,STDIN_FILENO);
   // Get the data to write from user memory
-  char * data =  copy_in_str(user_buf);
+ 
+  char * data =  copy_in_string(user_buf);
+  printf("Got dat data\n");
   int bytes_written;
   if (fd == STDIN_FILENO)
   {
@@ -68,6 +75,8 @@ sys_write (int fd, const void * user_buf, unsigned size)
   else if (fd == STDOUT_FILENO) 
   {
     // Break up larger size things later
+    printf("Hummus\n");
+    printf("Supposedly printing: %s\n",data);
     putbuf(data, size);
     bytes_written = size;
   }
@@ -161,7 +170,7 @@ copy_in_string (const char *us)
 }
 
 /* Exit system call. */
-void 
-exit (int status) {
+static void 
+sys_exit (int status) {
   thread_exit();
 }
