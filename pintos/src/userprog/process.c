@@ -45,7 +45,6 @@ process_execute (const char *file_name)
     printf("TID_ERROR\n");
     palloc_free_page (fn_copy); 
   }
-  printf("GOING TO RETURN FROM PROCESS_EXECUTE\n");
   return tid;
 }
 
@@ -119,7 +118,6 @@ process_exit (void)
       pagedir_activate (NULL);
       pagedir_destroy (pd);
     }
-  printf("THREAD EXIT\n");
 }
 
 /* Sets up the CPU for running user code in the current
