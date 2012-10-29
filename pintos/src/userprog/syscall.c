@@ -151,9 +151,12 @@ copy_in_string (const char *us)
   char *char_ptr = ks;
   const char *us_ptr = us;
   while ((counter < PGSIZE) && (r_val)) {
-    r_val = get_user(char_ptr, us_ptr);   
-    char_ptr += counter;
-    us_ptr += counter;
+    r_val = get_user(char_ptr, us_ptr);    
+    if (*(char_ptr) == '\0') {
+      break;
+    }
+    char_ptr++;
+    us_ptr++; 
     counter++;
   }
 
@@ -163,9 +166,9 @@ copy_in_string (const char *us)
     thread_exit();
   }
 
-  if (*(char_ptr + counter - 1) != '\0') {
+  if (*(char_ptr) != '\0') {
     //string was longer than a page
-    *(char_ptr + counter - 1) = '\0';
+    *(char_ptr) = '\0';
   }
 
   return ks;
