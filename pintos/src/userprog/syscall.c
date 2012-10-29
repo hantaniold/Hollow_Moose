@@ -33,7 +33,7 @@ static void syscall_handler (struct intr_frame *f UNUSED)
 
   // We know there are only 3 args max to a system call, fetch 'em later
   // If they're pointers we'll just deference them later
-  copy_in (args, (uint32_t *) f->esp + 1, 3);
+  copy_in (args, (uint32_t *) f->esp + 1, 12);
 
   int retval = 0;
   switch (call_nr) {
@@ -60,12 +60,10 @@ sys_open (const char * file UNUSED)
 static int 
 sys_write (int fd, const void * user_buf, unsigned size)
 {
-  printf("In write, fd is %d\n",fd);
-  printf("STDOUT: %d, STDIN: %d\n",STDOUT_FILENO,STDIN_FILENO);
   // Get the data to write from user memory
- 
+
+
   char * data =  copy_in_string(user_buf);
-  printf("Got dat data\n");
   int bytes_written;
   if (fd == STDIN_FILENO)
   {
@@ -75,8 +73,6 @@ sys_write (int fd, const void * user_buf, unsigned size)
   else if (fd == STDOUT_FILENO) 
   {
     // Break up larger size things later
-    printf("Hummus\n");
-    printf("Supposedly printing: %s\n",data);
     putbuf(data, size);
     bytes_written = size;
   }
@@ -142,25 +138,34 @@ copy_in_string (const char *us)
   char *ks;
   size_t length;
 
-  ks = palloc_get_page (0);
+  ks = palloc_get_page (PAL_ZERO);
   if (ks == NULL)
     thread_exit ();
 
+  if (us >= (uint8_t *)PHYS_BASE) {
+    thread_exit();
+  }
+
   uint32_t counter = 0;
-  bool r_val;
-  while (counter < PGSIZE && r_val && *(ks + counter) != '\0' ) {
-    r_val = get_user((ks + counter), us);
+  bool r_val = true;
+  char *char_ptr = ks;
+  const char *us_ptr = us;
+  while ((counter < PGSIZE) && (r_val)) {
+    r_val = get_user(char_ptr, us_ptr);   
+    char_ptr += counter;
+    us_ptr += counter;
     counter++;
   }
+
 
   if (!r_val) {
     //segfault
     thread_exit();
   }
 
-  if (*(ks + counter - 1) != '\0') {
+  if (*(char_ptr + counter - 1) != '\0') {
     //string was longer than a page
-    *(ks + counter - 1) = '\0';
+    *(char_ptr + counter - 1) = '\0';
   }
 
   return ks;
