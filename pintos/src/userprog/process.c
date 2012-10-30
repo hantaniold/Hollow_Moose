@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <list.h>
 #include "userprog/gdt.h"
 #include "userprog/pagedir.h"
 #include "userprog/tss.h"
@@ -91,8 +92,11 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 {
-  while (1 == 1){}
-  return -1;
+  while (on_ready_list(child_tid)){
+    bool t_b = on_ready_list(child_tid);
+    thread_yield();
+  }
+  return 0;
 }
 
 /* Free the current process's resources. */

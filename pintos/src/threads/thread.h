@@ -138,4 +138,8 @@ void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
+/* Added for process_wait */
+/* returns true if the thread is on the ready_list, false otherwise */
+bool on_ready_list(tid_t tid);
+
 #endif /* threads/thread.h */

@@ -1,6 +1,7 @@
 #ifndef USERPROG_PROCESS_H
 #define USERPROG_PROCESS_H
 
+#include <list.h>
 #include "threads/thread.h"
 
 tid_t process_execute (const char *file_name);

@@ -11,6 +11,7 @@
 #include "threads/switch.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
+#include "userprog/process.h"
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -320,6 +321,31 @@ thread_yield (void)
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
+}
+
+/* Returns true if tid is a tid_t of a thread on the
+ * readylist.  False otherwise.
+ *
+ * */
+
+bool
+on_ready_list(tid_t tid) 
+{
+  bool output = false;
+
+  struct list_elem *e;
+
+  for (e = list_begin(&ready_list); e!= list_end(&ready_list);
+       e = list_next(e))
+  {
+    struct thread *t = list_entry(e, struct thread, elem);
+    if (t->tid == tid) 
+    {
+      output = true;
+    }  
+  }
+
+  return output;
 }
 
 /* Invoke function 'func' on all threads, passing along 'aux'.
