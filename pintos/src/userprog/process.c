@@ -46,7 +46,7 @@ process_execute (const char *file_name)
     printf("TID_ERROR\n");
     palloc_free_page (fn_copy); 
   }
-  add_child(tid);
+  //add_child(tid);
   return tid;
 }
 
@@ -115,7 +115,7 @@ process_exit (void)
   struct thread *cur = thread_current ();
   uint32_t *pd;
 
-  add_dead_list(cur->tid, cur->retval); 
+  //add_dead_list(cur->tid, cur->retval); 
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
