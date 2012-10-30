@@ -29,6 +29,10 @@ static struct list ready_list;
    when they are first scheduled and removed when they exit. */
 static struct list all_list;
 
+/* Added for process_wait */
+/* Keeps track of things that recently  died */
+static struct list dead_list;
+
 /* Idle thread. */
 static struct thread *idle_thread;
 
@@ -93,6 +97,7 @@ thread_init (void)
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
+  list_init (&dead_list);
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
@@ -496,6 +501,63 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
   list_push_back (&all_list, &t->allelem);
+
+  list_init(&t->children);
+}
+
+//TODO - NEED TO FREE MEMORY
+
+//adds a child to current_thread
+void 
+add_child(tid_t tid) {
+  struct thread *t = thread_current();
+  struct child_thread_marker *marker = (struct child_thread_marker *)malloc(sizeof(struct child_thread_marker));
+  marker->tid = tid;
+  marker->retval = -1;
+  marker->status = CHILD_ALIVE;
+  list_push_back(&t->children, &marker->elem);
+}
+
+//puts a child_thread_marker on dead_list
+void 
+add_dead_list(tid_t tid, int retval)
+{
+  struct child_thread_marker *marker = (struct child_thread_marker *)malloc(sizeof(struct child_thread_marker));
+  marker->tid = tid;
+  marker->retval = retval;
+  marker->status = CHILD_DEAD;
+  list_push_back(&dead_list, &marker->elem);
+}
+
+int
+get_retval(tid_t tid)
+{
+  int output = 0;
+  struct list_elem *e;
+  for (e = list_begin (&all_list); e != list_end (&all_list);
+       e = list_next (e))
+  {
+    struct child_thread_marker *marker = list_entry (e, struct child_thread_marker, elem);
+    if (marker->tid == tid) {
+      output = marker->retval;
+    }
+  }
+  return output;
+}
+
+bool
+in_list(struct list l, tid_t tid) {
+  bool output = false;
+  struct list_elem *e;
+  for (e = list_begin (&l); e != list_end (&l);
+       e = list_next (e))
+  {
+    struct child_thread_marker *marker = list_entry (e, struct child_thread_marker, elem);
+    if (marker->tid == tid) {
+      output = true;
+    }
+  }
+  return output;  
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and

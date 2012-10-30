@@ -180,5 +180,7 @@ copy_in_string (const char *us)
 /* Exit system call. */
 static void 
 sys_exit (int status) {
+  struct thread *t = thread_current();
+  t->retval = status; 
   thread_exit();
 }

@@ -14,6 +14,13 @@ enum thread_status
     THREAD_DYING        /* About to be destroyed. */
   };
 
+enum child_status 
+  {
+    CHILD_ALIVE, /* CHILD MAY BE STILL ALIVE */
+    CHILD_DEAD   /* CHILD IS DEAD */
+  };
+
+
 /* Thread identifier type.
    You can redefine this to whatever type you like. */
 typedef int tid_t;
@@ -90,6 +97,11 @@ struct thread
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
 
+    /* List of the thread's children */
+    struct list children;
+    /* Threads status upon exit from a user process*/
+    int retval;
+
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
@@ -101,6 +113,13 @@ struct thread
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
   };
+
+struct child_thread_marker {
+  tid_t tid;
+  int retval;
+  enum child_status status;
+  struct list_elem elem;
+};
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
@@ -141,5 +160,11 @@ int thread_get_load_avg (void);
 /* Added for process_wait */
 /* returns true if the thread is on the ready_list, false otherwise */
 bool on_ready_list(tid_t tid);
+
+
+void add_child(tid_t tid);
+void add_dead_list(tid_t tid, int retval);
+int get_retval(tid_t tid); 
+bool in_list(struct list l, tid_t tid); 
 
 #endif /* threads/thread.h */

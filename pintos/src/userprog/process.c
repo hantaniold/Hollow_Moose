@@ -46,6 +46,7 @@ process_execute (const char *file_name)
     printf("TID_ERROR\n");
     palloc_free_page (fn_copy); 
   }
+  add_child(tid);
   return tid;
 }
 
@@ -92,10 +93,18 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 {
+  /*
+  struct thread *t = thread_current();
+  if (!in_list(t->children, child_tid)) {
+    printf("INSIDE\n");
+    return -1;
+  } 
+  */
   while (on_ready_list(child_tid)){
     bool t_b = on_ready_list(child_tid);
     thread_yield();
   }
+  int retval = get_retval(child_tid);
   return 0;
 }
 
@@ -105,6 +114,8 @@ process_exit (void)
 {
   struct thread *cur = thread_current ();
   uint32_t *pd;
+
+  add_dead_list(cur->tid, cur->retval); 
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
