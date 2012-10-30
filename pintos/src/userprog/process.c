@@ -241,7 +241,12 @@ load (const char *file_name, void (**eip) (void), void **esp)
   process_activate ();
 
   /* Open executable file. */
-  file = filesys_open (file_name);
+  /* We just want the path to the executable */
+  char *saveme;
+  
+  char *token = strtok_r(file_name, " " ,&saveme);
+
+  file = filesys_open (token);
   if (file == NULL) 
     {
       printf ("load: %s: open failed\n", file_name);
