@@ -236,17 +236,21 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
   /* Allocate and activate page directory. */
   t->pagedir = pagedir_create ();
-  if (t->pagedir == NULL) 
+  if (t->pagedir == NULL)
+  {
     goto done;
+  }
   process_activate ();
 
   /* Open executable file. */
   /* We just want the path to the executable */
-  char *saveme;
   
-  char *token = strtok_r(file_name, " " ,&saveme);
+  
+  size_t len = strcspn(file_name, " ");
+  char name[16];
+  strlcpy(&name, file_name, len + 1);
 
-  file = filesys_open (token);
+  file = filesys_open (name);
   if (file == NULL) 
     {
       printf ("load: %s: open failed\n", file_name);

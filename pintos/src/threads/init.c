@@ -314,7 +314,10 @@ run_task (char **argv)
   printf ("Executing '%s':\n", task);
 #ifdef USERPROG
   int retval = process_wait (process_execute (task));
-  printf ("%s: exit(%d)\n", task, retval);
+  size_t len = strcspn(task, " ");
+  char name[16];
+  strlcpy(&name, task, len + 1); 
+  printf ("%s: exit(%d)\n", name, retval);
 #else
   run_test (task);
 #endif
