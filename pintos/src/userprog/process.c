@@ -17,10 +17,12 @@
 #include "threads/interrupt.h"
 #include "threads/palloc.h"
 #include "threads/thread.h"
+#include "threads/synch.h"
 #include "threads/vaddr.h"
 
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
+
 
 /* Starts a new thread running a user program loaded from
    FILENAME.  The new thread may be scheduled (and may even exit)
@@ -39,14 +41,21 @@ process_execute (const char *file_name)
     return TID_ERROR;
   strlcpy (fn_copy, file_name, PGSIZE);
 
+  lock_acquire(&process_lock); 
+
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
+  struct thread *t = thread_current();
+  tid = thread_create_with_parent (t->tid, file_name, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR)
   {
     printf("TID_ERROR\n");
     palloc_free_page (fn_copy); 
   }
-  //add_child(tid);
+
+  add_child(tid);
+  lock_release(&process_lock);
+
+
   return tid;
 }
 
@@ -55,6 +64,11 @@ process_execute (const char *file_name)
 static void
 start_process (void *file_name_)
 {
+  lock_acquire(&process_lock);
+  lock_release(&process_lock);
+ 
+  struct thread *t = thread_current();
+ 
   char *file_name = file_name_;
   struct intr_frame if_;
   bool success;
@@ -91,21 +105,22 @@ start_process (void *file_name_)
    This function will be implemented in problem 2-2.  For now, it
    does nothing. */
 int
-process_wait (tid_t child_tid UNUSED) 
+process_wait (tid_t child_tid) 
 {
-  /*
-  struct thread *t = thread_current();
-  if (!in_list(t->children, child_tid)) {
-    printf("INSIDE\n");
+/*  
+  if (get_child_retval(child_tid) == NULL) {
+    printf("HERE WHY GOD!!!!\n");
     return -1;
-  } 
-  */
+  }
+*/
   while (on_ready_list(child_tid)){
     bool t_b = on_ready_list(child_tid);
     thread_yield();
   }
-  int retval = get_retval(child_tid);
-  return 0;
+  
+  int retval = get_child_retval(child_tid);
+  //ASSERT(retval != NULL);
+  return retval;
 }
 
 /* Free the current process's resources. */
@@ -115,7 +130,10 @@ process_exit (void)
   struct thread *cur = thread_current ();
   uint32_t *pd;
 
-  //add_dead_list(cur->tid, cur->retval); 
+
+  struct thread *parent = get_thread_by_tid(cur->parent);
+
+  set_child_retval(parent, cur->tid, cur->retval);
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */

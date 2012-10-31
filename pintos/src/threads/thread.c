@@ -98,6 +98,7 @@ thread_init (void)
   list_init (&ready_list);
   list_init (&all_list);
   list_init (&dead_list);
+  lock_init(&process_lock);
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
@@ -217,6 +218,66 @@ thread_create (const char *name, int priority,
 
   return tid;
 }
+
+
+/* Added for setting up processes with parents */
+tid_t 
+thread_create_with_parent(tid_t parent, 
+                          const char *name, 
+                          int priority,  
+                          thread_func *function, 
+                          void *aux)
+{
+  struct thread *t;
+  struct kernel_thread_frame *kf;
+  struct switch_entry_frame *ef;
+  struct switch_threads_frame *sf;
+  tid_t tid;
+  enum intr_level old_level;
+
+  ASSERT (function != NULL);
+
+  /* Allocate thread. */
+  t = palloc_get_page (PAL_ZERO);
+  if (t == NULL)
+    return TID_ERROR;
+
+  /* Initialize thread. */
+  init_thread (t, name, priority);
+  t->parent = parent;
+
+  tid = t->tid = allocate_tid ();
+
+  /* Prepare thread for first run by initializing its stack.
+     Do this atomically so intermediate values for the 'stack' 
+     member cannot be observed. */
+  old_level = intr_disable ();
+
+  /* Stack frame for kernel_thread(). */
+  kf = alloc_frame (t, sizeof *kf);
+  kf->eip = NULL;
+  kf->function = function;
+  kf->aux = aux;
+
+  /* Stack frame for switch_entry(). */
+  ef = alloc_frame (t, sizeof *ef);
+  ef->eip = (void (*) (void)) kernel_thread;
+
+  /* Stack frame for switch_threads(). */
+  sf = alloc_frame (t, sizeof *sf);
+  sf->eip = switch_entry;
+  sf->ebp = 0;
+
+  intr_set_level (old_level);
+
+  /* Add to run queue. */
+  thread_unblock (t);
+
+  return tid;
+}
+
+
+
 
 /* Puts the current thread to sleep.  It will not be scheduled
    again until awoken by thread_unblock().
@@ -502,6 +563,8 @@ init_thread (struct thread *t, const char *name, int priority)
   t->magic = THREAD_MAGIC;
   list_push_back (&all_list, &t->allelem);
 
+  t->child_count = 0;
+
   list_init(&t->children);
 }
 
@@ -510,54 +573,84 @@ init_thread (struct thread *t, const char *name, int priority)
 //adds a child to current_thread
 void 
 add_child(tid_t tid) {
+  enum intr_level old_level;
+  old_level = intr_disable ();
   struct thread *t = thread_current();
-  struct child_thread_marker *marker = (struct child_thread_marker *)malloc(sizeof(struct child_thread_marker));
-  marker->tid = tid;
-  marker->retval = -1;
-  marker->status = CHILD_ALIVE;
-  list_push_back(&t->children, &marker->elem);
+  t->children[t->child_count].tid = tid;
+  t->children[t->child_count].retval = 0;
+  t->child_count += 1;
+  intr_set_level (old_level); 
 }
 
-//puts a child_thread_marker on dead_list
-void 
-add_dead_list(tid_t tid, int retval)
-{
-  struct child_thread_marker *marker = (struct child_thread_marker *)malloc(sizeof(struct child_thread_marker));
-  marker->tid = tid;
-  marker->retval = retval;
-  marker->status = CHILD_DEAD;
-  list_push_back(&dead_list, &marker->elem);
+void
+remove_child(tid_t tid) {
+  enum intr_level old_level;
+  old_level = intr_disable ();
+  struct thread *t = thread_current();
+  int bound = t->child_count;
+  int count = 0;
+  int i = 0;
+  for (i = 0; i < bound; i++) {
+    child_thread_marker m = t->children[i];
+    if (m.tid != tid) {
+      t->children[count].tid = t->children[i].tid;
+      t->children[count].retval = t->children[i].retval;
+      count++;
+    }
+  }
+  t->child_count = count;
+  intr_set_level (old_level);
 }
 
-int
-get_retval(tid_t tid)
-{
-  int output = 0;
+struct thread *
+get_thread_by_tid(tid_t tid) {
+  enum intr_level old_level;
+  old_level = intr_disable ();
   struct list_elem *e;
   for (e = list_begin (&all_list); e != list_end (&all_list);
        e = list_next (e))
   {
-    struct child_thread_marker *marker = list_entry (e, struct child_thread_marker, elem);
-    if (marker->tid == tid) {
-      output = marker->retval;
+    struct thread *t = list_entry (e, struct thread, allelem);
+    if (t->tid == tid) {
+      return t;
     }
   }
-  return output;
+  intr_set_level(old_level);
+  return NULL;
 }
 
-bool
-in_list(struct list l, tid_t tid) {
-  bool output = false;
-  struct list_elem *e;
-  for (e = list_begin (&l); e != list_end (&l);
-       e = list_next (e))
+void
+set_child_retval(struct thread *t, tid_t tid, int retval) 
+{
+  enum intr_level old_level;
+  old_level = intr_disable ();
+  int i;
+  for (i = 0; i < t->child_count; ++i)
   {
-    struct child_thread_marker *marker = list_entry (e, struct child_thread_marker, elem);
-    if (marker->tid == tid) {
-      output = true;
+    child_thread_marker m = t->children[i];
+    if (m.tid == tid) {
+      t->children[i].retval = retval;
     }
   }
-  return output;  
+  intr_set_level(old_level);
+}
+
+int
+get_child_retval(tid_t tid)
+{
+  enum intr_level old_level;
+  old_level = intr_disable ();
+  struct thread *t = thread_current();
+  int i;
+  for (i = 0; i < t->child_count; ++i)
+  {
+    child_thread_marker m = t->children[i];
+    if (m.tid == tid) {
+      return t->children[i].retval;
+    }
+  }
+  return NULL;
+  intr_set_level(old_level);
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and

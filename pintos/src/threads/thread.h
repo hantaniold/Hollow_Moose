@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include "threads/synch.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -87,6 +88,13 @@ typedef int tid_t;
    only because they are mutually exclusive: only a thread in the
    ready state is on the run queue, whereas only a thread in the
    blocked state is on a semaphore wait list. */
+typedef struct {
+  tid_t tid;
+  int retval;
+} child_thread_marker;
+
+
+
 struct thread
   {
     /* Owned by thread.c. */
@@ -98,7 +106,10 @@ struct thread
     struct list_elem allelem;           /* List element for all threads list. */
 
     /* List of the thread's children */
-    struct list children;
+    child_thread_marker children[16];
+    int child_count;
+    tid_t parent;
+    
     /* Threads status upon exit from a user process*/
     int retval;
 
@@ -114,13 +125,6 @@ struct thread
     unsigned magic;                     /* Detects stack overflow. */
   };
 
-struct child_thread_marker {
-  tid_t tid;
-  int retval;
-  enum child_status status;
-  struct list_elem elem;
-};
-
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
@@ -134,6 +138,13 @@ void thread_print_stats (void);
 
 typedef void thread_func (void *aux);
 tid_t thread_create (const char *name, int priority, thread_func *, void *);
+/* Added for processes*/
+tid_t thread_create_with_parent(tid_t parent,
+                                const char *name, 
+                                int priority, 
+                                thread_func *, 
+                                void *);
+
 
 void thread_block (void);
 void thread_unblock (struct thread *);
@@ -160,11 +171,10 @@ int thread_get_load_avg (void);
 /* Added for process_wait */
 /* returns true if the thread is on the ready_list, false otherwise */
 bool on_ready_list(tid_t tid);
-
-
 void add_child(tid_t tid);
-void add_dead_list(tid_t tid, int retval);
-int get_retval(tid_t tid); 
-bool in_list(struct list l, tid_t tid); 
+struct thread *get_thread_by_tid(tid_t tid);
+void remove_child(tid_t tid);
+void set_child_retval(struct thread *parent, tid_t tid, int retval);
+int  get_child_retval(tid_t tid);
 
 #endif /* threads/thread.h */
