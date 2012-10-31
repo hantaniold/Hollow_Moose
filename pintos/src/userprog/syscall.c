@@ -11,6 +11,8 @@
 #include "threads/vaddr.h"
 #include "devices/shutdown.h"
 
+
+
 static void syscall_handler (struct intr_frame *);
 static int sys_open (const char * file);
 static int sys_write (int fd, const void * buffer, unsigned size);
@@ -33,12 +35,14 @@ static void syscall_handler (struct intr_frame *f UNUSED)
   int args[3]; // 3 args max
   memset (args, 0, sizeof args);
 
-  if (f->esp <= 0x08048000) {
+
+
+  if (f->esp <= 0x08048000 || ((PHYS_BASE - 4) <= f->esp )) {
     f->eax = -1;
     sys_exit(-1);
   } else {
     copy_in (&call_nr, f->esp, sizeof call_nr);
-
+    int *t = f->esp;
     // We know there are only 3 args max to a system call, fetch 'em later
     // If they're pointers we'll just deference them later
     copy_in (args, (uint32_t *) f->esp + 1, 12);
