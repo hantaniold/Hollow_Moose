@@ -4,15 +4,19 @@
 #include <string.h>
 #include <syscall-nr.h>
 #include "filesys/file.h"
+#include "filesys/filesys.h"
 #include "threads/interrupt.h"
 #include "threads/palloc.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+#include "devices/shutdown.h"
 
 static void syscall_handler (struct intr_frame *);
 static int sys_open (const char * file);
 static int sys_write (int fd, const void * buffer, unsigned size);
 static void sys_exit (int status);
+static void sys_halt (void);
+static bool sys_create (const char *file, unsigned initial_size);
 
 static void copy_in (void *dst_, const void *usrc_, size_t size);
 static char * copy_in_string (const char *us);
@@ -41,18 +45,59 @@ static void syscall_handler (struct intr_frame *f UNUSED)
       retval = sys_write(args[0],(const void *) args[1], (unsigned) args[2]);
       break;
     case SYS_HALT:
+      sys_halt ();
       break;
     case SYS_EXIT:
       sys_exit(args[0]);
+      break;
+    case SYS_CREATE:
+      retval = sys_create((const char *) args[0], (unsigned) args[1]);
+      break;
+    case SYS_OPEN:
+      retval = sys_open ((const char *) args[0]);
+      break;
     default:
       break;
   }
   f->eax = retval;
 }
 
-static int 
-sys_open (const char * file UNUSED)
+//Creates a new file called file initially initial_size bytes in size. 
+//Returns true if successful, false otherwise. Creating a new file does 
+//not open it: opening the new file is a separate 
+//operation which would require a open system call.
+static bool
+sys_create (const char *file, unsigned initial_size) 
 {
+  bool retval = false;
+  char *new_filename =  copy_in_string (file);
+  retval = filesys_create (new_filename,initial_size);
+  return retval;
+}
+
+static void
+sys_halt (void) 
+{
+  shutdown_power_off ();
+}
+
+
+//Opens the file called file. Returns a nonnegative integer handle called a 
+//"file descriptor" (fd), or -1 if the file could not be opened.
+static int 
+sys_open (const char * file)
+{
+  
+  char * kfile = copy_in_string (file);
+
+  struct file * f;
+  f = filesys_open (kfile);
+  // Make 
+  if (f == null) return -1;
+
+  // call filesys_open 
+
+  return -1;
 }
 
 // Writes SIZE bytes from BUFFER into the open file FD. Returns the number of
@@ -136,13 +181,12 @@ static char *
 copy_in_string (const char *us)
 {
   char *ks;
-  size_t length;
 
   ks = palloc_get_page (PAL_ZERO);
   if (ks == NULL)
     thread_exit ();
 
-  if (us >= (uint8_t *)PHYS_BASE) {
+  if ((uint8_t *) us >= (uint8_t *)PHYS_BASE) {
     thread_exit();
   }
 
@@ -151,7 +195,7 @@ copy_in_string (const char *us)
   char *char_ptr = ks;
   const char *us_ptr = us;
   while ((counter < PGSIZE) && (r_val)) {
-    r_val = get_user(char_ptr, us_ptr);    
+    r_val = get_user((uint8_t *) char_ptr, (const uint8_t *) us_ptr);    
     if (*(char_ptr) == '\0') {
       break;
     }
