@@ -29,25 +29,32 @@ static void syscall_handler (struct intr_frame *f UNUSED)
   int args[3]; // 3 args max
   memset (args, 0, sizeof args);
 
-  copy_in (&call_nr, f->esp, sizeof call_nr);
+  
+  
+  if (f->esp <= 0x08048000) {
+    f->eax = -1;
+    sys_exit(-1);
+  } else {
+    copy_in (&call_nr, f->esp, sizeof call_nr);
 
-  // We know there are only 3 args max to a system call, fetch 'em later
-  // If they're pointers we'll just deference them later
-  copy_in (args, (uint32_t *) f->esp + 1, 12);
+    // We know there are only 3 args max to a system call, fetch 'em later
+    // If they're pointers we'll just deference them later
+    copy_in (args, (uint32_t *) f->esp + 1, 12);
 
-  int retval = 0;
-  switch (call_nr) {
-    case SYS_WRITE:
-      retval = sys_write(args[0],(const void *) args[1], (unsigned) args[2]);
-      break;
-    case SYS_HALT:
-      break;
-    case SYS_EXIT:
-      sys_exit(args[0]);
-    default:
-      break;
+    int retval = 0;
+    switch (call_nr) {
+      case SYS_WRITE:
+        retval = sys_write(args[0],(const void *) args[1], (unsigned) args[2]);
+        break;
+      case SYS_HALT:
+        break;
+      case SYS_EXIT:
+        sys_exit(args[0]);
+      default:
+        break;
+    }
+    f->eax = retval;
   }
-  f->eax = retval;
 }
 
 static int 
@@ -181,6 +188,10 @@ copy_in_string (const char *us)
 static void 
 sys_exit (int status) {
   struct thread *t = thread_current();
+  enum intr_level old_level;
+  old_level = intr_disable();
   t->retval = status; 
+  intr_set_level(old_level);
+  struct thread *curr = thread_current();
   thread_exit();
 }
