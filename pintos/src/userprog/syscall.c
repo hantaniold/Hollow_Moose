@@ -1,4 +1,5 @@
 #include "userprog/syscall.h"
+#include "userprog/process.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,13 +12,14 @@
 #include "threads/vaddr.h"
 #include "devices/shutdown.h"
 
-
-
 static void syscall_handler (struct intr_frame *);
 static int sys_open (const char * file);
 static int sys_write (int fd, const void * buffer, unsigned size);
 static void sys_exit (int status);
 static void sys_halt (void);
+static int sys_exec(const char *);
+static int sys_wait(pid_t);
+
 static bool sys_create (const char *file, unsigned initial_size);
 
 static void copy_in (void *dst_, const void *usrc_, size_t size);
@@ -62,7 +64,13 @@ static void syscall_handler (struct intr_frame *f UNUSED)
         retval = sys_create((const char *) args[0], (unsigned) args[1]);
         break;
       case SYS_OPEN:
-        retval = sys_open ((const char *) args[0]);
+        retval = sys_open((const char *) args[0]);
+        break;
+      case SYS_EXEC:
+        retval = sys_exec((const char *) args[0]);
+        break;
+      case SYS_WAIT:
+        retval = sys_wait((pid_t) args[0]);
         break;
       default:
         break;
@@ -70,6 +78,18 @@ static void syscall_handler (struct intr_frame *f UNUSED)
     f->eax = retval;
   }
 
+}
+
+static int
+sys_exec(const char * cmd_line)
+{
+  return process_execute(cmd_line);
+}
+
+static int
+sys_wait(pid_t pid)
+{
+  return process_wait(pid);
 }
 
 //Creates a new file called file initially initial_size bytes in size. 

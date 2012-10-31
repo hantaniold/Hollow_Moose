@@ -572,12 +572,14 @@ init_thread (struct thread *t, const char *name, int priority)
 
 //adds a child to current_thread
 void 
-add_child(tid_t tid) {
+add_child(tid_t tid, const char * name) {
   enum intr_level old_level;
   old_level = intr_disable ();
   struct thread *t = thread_current();
   t->children[t->child_count].tid = tid;
   t->children[t->child_count].retval = 0;
+  size_t len = strcspn(name, " ");
+  strlcpy(&t->children[t->child_count].name, name, len + 1);
   t->child_count += 1;
   intr_set_level (old_level); 
 }
@@ -635,8 +637,8 @@ set_child_retval(struct thread *t, tid_t tid, int retval)
   intr_set_level(old_level);
 }
 
-int
-get_child_retval(tid_t tid)
+child_thread_marker
+get_child(tid_t tid)
 {
   enum intr_level old_level;
   old_level = intr_disable ();
@@ -646,11 +648,14 @@ get_child_retval(tid_t tid)
   {
     child_thread_marker m = t->children[i];
     if (m.tid == tid) {
-      return t->children[i].retval;
+      t->children[i].invalid = 0;
+      return t->children[i];
     }
   }
-  return NULL;
+  child_thread_marker m;
+  m.invalid = 1;
   intr_set_level(old_level);
+  return m;
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and

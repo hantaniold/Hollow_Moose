@@ -52,7 +52,7 @@ process_execute (const char *file_name)
     palloc_free_page (fn_copy); 
   }
 
-  add_child(tid);
+  add_child(tid, fn_copy);
   lock_release(&process_lock);
 
 
@@ -118,9 +118,10 @@ process_wait (tid_t child_tid)
     thread_yield();
   }
   
-  int retval = get_child_retval(child_tid);
-  //ASSERT(retval != NULL);
-  return retval;
+  child_thread_marker m;
+  m = get_child(child_tid);
+  printf ("%s: exit(%d)\n", m.name, m.retval);
+  return m.retval;
 }
 
 /* Free the current process's resources. */

@@ -88,9 +88,12 @@ typedef int tid_t;
    only because they are mutually exclusive: only a thread in the
    ready state is on the run queue, whereas only a thread in the
    blocked state is on a semaphore wait list. */
+
 typedef struct {
   tid_t tid;
   int retval;
+  char name[16];
+  uint8_t invalid;
 } child_thread_marker;
 
 
@@ -171,10 +174,10 @@ int thread_get_load_avg (void);
 /* Added for process_wait */
 /* returns true if the thread is on the ready_list, false otherwise */
 bool on_ready_list(tid_t tid);
-void add_child(tid_t tid);
+void add_child(tid_t tid, const char *name);
 struct thread *get_thread_by_tid(tid_t tid);
 void remove_child(tid_t tid);
 void set_child_retval(struct thread *parent, tid_t tid, int retval);
-int  get_child_retval(tid_t tid);
+child_thread_marker get_child(tid_t tid);
 
 #endif /* threads/thread.h */
