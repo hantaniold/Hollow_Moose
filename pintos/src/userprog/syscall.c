@@ -33,7 +33,7 @@ static void syscall_handler (struct intr_frame *f UNUSED)
   int args[3]; // 3 args max
   memset (args, 0, sizeof args);
 
-   if (f->esp <= 0x08048000) {
+  if (f->esp <= 0x08048000) {
     f->eax = -1;
     sys_exit(-1);
   } else {
@@ -63,7 +63,9 @@ static void syscall_handler (struct intr_frame *f UNUSED)
       default:
         break;
      }
+    f->eax = retval;
   }
+
 }
 
 //Creates a new file called file initially initial_size bytes in size. 
@@ -98,7 +100,7 @@ sys_open (const char * file)
   struct file * f;
   f = filesys_open (kfile);
   // Make 
-  if (f == null) return -1;
+  if (f == NULL) return -1;
 
   // call filesys_open 
 
@@ -234,6 +236,5 @@ sys_exit (int status) {
   old_level = intr_disable();
   t->retval = status; 
   intr_set_level(old_level);
-  struct thread *curr = thread_current();
   thread_exit();
 }
