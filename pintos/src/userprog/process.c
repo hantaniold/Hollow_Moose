@@ -120,7 +120,7 @@ process_wait (tid_t child_tid)
   
   child_thread_marker m;
   m = get_child(child_tid);
-  printf ("%s: exit(%d)\n", m.name, m.retval);
+  //printf ("%s: exit(%d)\n", m.name, m.retval);
   return m.retval;
 }
 
@@ -135,6 +135,8 @@ process_exit (void)
   struct thread *parent = get_thread_by_tid(cur->parent);
 
   set_child_retval(parent, cur->tid, cur->retval);
+
+  printf ("%s: exit(%d)\n", cur->name, cur->retval);
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
@@ -264,10 +266,14 @@ load (const char *file_name, void (**eip) (void), void **esp)
   /* Open executable file. */
   /* We just want the path to the executable */
   
-  
+
   size_t len = strcspn(file_name, " ");
+
+
   char name[16];
   strlcpy(&name, file_name, len + 1);
+
+
 
   file = filesys_open (name);
   if (file == NULL) 
