@@ -138,7 +138,11 @@ process_exit (void)
 
   set_child_retval(parent, cur->tid, cur->retval);
 
-  printf ("%s: exit(%d)\n", cur->name, cur->retval);
+  size_t len = strcspn(cur->name, " ");
+  char name[16];
+  strlcpy(&name, cur->name, len + 1); 
+ 
+  printf ("%s: exit(%d)\n", name, cur->retval);
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
