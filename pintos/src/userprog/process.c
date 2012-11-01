@@ -129,12 +129,12 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid) 
 {
-/*  
-  if (get_child_retval(child_tid) == NULL) {
-    printf("HERE WHY GOD!!!!\n");
+  child_thread_marker j = get_child(child_tid);
+  if (j.invalid == 1) {
     return -1;
   }
-*/
+
+
   while (on_ready_list(child_tid)){
     bool t_b = on_ready_list(child_tid);
     thread_yield();
@@ -142,6 +142,7 @@ process_wait (tid_t child_tid)
   
   child_thread_marker m;
   m = get_child(child_tid);
+  remove_child(child_tid);
   //printf ("%s: exit(%d)\n", m.name, m.retval);
   return m.retval;
 }
