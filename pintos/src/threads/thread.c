@@ -603,10 +603,12 @@ add_child(tid_t tid, const char * name) {
   struct thread *t = thread_current();
   t->children[t->child_count].tid = tid;
   t->children[t->child_count].retval = 0;
+  t->children[t->child_count].load_result = 0; 
   size_t len = strcspn(name, " ");
-  strlcpy(&t->children[t->child_count].name, name, len + 1);
+  strlcpy(t->children[t->child_count].name, name, len + 1);
   t->child_count += 1;
   intr_set_level (old_level); 
+  
 }
 
 void
@@ -663,16 +665,16 @@ set_child_retval(struct thread *t, tid_t tid, int retval)
 }
 
 child_thread_marker
-get_child(tid_t tid)
+get_child_by_parent(tid_t parent, tid_t child) 
 {
   enum intr_level old_level;
   old_level = intr_disable ();
-  struct thread *t = thread_current();
+  struct thread *t = get_thread_by_tid(parent);
   int i;
   for (i = 0; i < t->child_count; ++i)
   {
     child_thread_marker m = t->children[i];
-    if (m.tid == tid) {
+    if (m.tid == child) {
       t->children[i].invalid = 0;
       return t->children[i];
     }
@@ -681,6 +683,34 @@ get_child(tid_t tid)
   m.invalid = 1;
   intr_set_level(old_level);
   return m;
+}
+
+child_thread_marker
+get_child(tid_t tid)
+{
+  enum intr_level old_level;
+  old_level = intr_disable ();
+  struct thread *t = thread_current();
+  intr_set_level(old_level);
+  return get_child_by_parent(t->tid, tid);
+}
+
+child_thread_marker *
+get_child_pointer_parent(tid_t parent, tid_t child)
+{
+  enum intr_level old_level;
+  old_level = intr_disable ();
+  struct thread *t = get_thread_by_tid(parent);
+  int i;
+  for (i = 0; i < t->child_count; ++i)
+  {
+    child_thread_marker m = t->children[i];
+    if (m.tid == child) {
+      t->children[i].invalid = 0;
+      return &(t->children[i]);
+    }
+  }
+  return NULL;
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and

@@ -53,10 +53,21 @@ process_execute (const char *file_name)
   }
 
   add_child(tid, fn_copy);
+  
+  child_thread_marker *m = get_child_pointer_parent(t->tid, tid);
   lock_release(&process_lock);
-
-
-  return tid;
+  
+  //spin wait
+  while(m->load_result == 0)
+  {
+    thread_yield();
+  }
+  
+  if (m->load_result == 1) {
+    return tid;
+  } else {
+    return -1;
+  }
 }
 
 /* A thread function that loads a user process and starts it
@@ -80,10 +91,21 @@ start_process (void *file_name_)
   if_.eflags = FLAG_IF | FLAG_MBS;
   success = load (file_name, &if_.eip, &if_.esp);
 
+  child_thread_marker* m = get_child_pointer_parent(t->parent, t->tid);
+
+  if (success) {
+    m->load_result = 1;
+  } else {
+    m->load_result = -1;
+  }
+
   /* If load failed, quit. */
   palloc_free_page (file_name);
-  if (!success) 
+  if (!success)
+  {
+    t->retval = -1;
     thread_exit ();
+  }
 
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in

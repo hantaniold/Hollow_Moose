@@ -95,6 +95,7 @@ typedef struct {
   int retval;
   char name[16];
   uint8_t invalid;
+  int load_result;
 } child_thread_marker;
 
 
@@ -113,7 +114,7 @@ struct thread
     child_thread_marker children[16];
     int child_count;
     tid_t parent;
-    
+
     /* Threads status upon exit from a user process*/
     int retval;
 
@@ -181,12 +182,15 @@ void add_child(tid_t tid, const char *name);
 struct thread *get_thread_by_tid(tid_t tid);
 void remove_child(tid_t tid);
 void set_child_retval(struct thread *parent, tid_t tid, int retval);
+child_thread_marker *get_child_pointer_parent(tid_t parent, tid_t child);
 child_thread_marker get_child(tid_t tid);
+child_thread_marker get_child_by_parent(tid_t parent, tid_t child);
 
 /* Added for file descriptor stuff */
 int thread_get_new_fd (struct file * f);
 struct file * thread_close_fd (int fd);
 void thread_fs_lock (void);
 void thread_fs_unlock (void);
+
 
 #endif /* threads/thread.h */
