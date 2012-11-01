@@ -19,6 +19,7 @@ static void sys_exit (int status);
 static void sys_halt (void);
 static int sys_exec(const char *);
 static int sys_wait(pid_t);
+static void sys_close (int fd);
 
 static bool sys_create (const char *file, unsigned initial_size);
 
@@ -72,6 +73,9 @@ static void syscall_handler (struct intr_frame *f UNUSED)
       case SYS_WAIT:
         retval = sys_wait((pid_t) args[0]);
         break;
+      case SYS_CLOSE:
+        sys_close((int) args[0]);
+        break;
       default:
         break;
      }
@@ -101,7 +105,9 @@ sys_create (const char *file, unsigned initial_size)
 {
   bool retval = false;
   char *new_filename =  copy_in_string (file);
+  thread_fs_lock ();
   retval = filesys_create (new_filename,initial_size);
+  thread_fs_unlock ();
   return retval;
 }
 
@@ -117,18 +123,29 @@ sys_halt (void)
 static int 
 sys_open (const char * file)
 {
-  return -1;
-  
   char * kfile = copy_in_string (file);
-
   struct file * f;
+
+  thread_fs_lock();
   f = filesys_open (kfile);
-  // Make 
+  thread_fs_unlock();
   if (f == NULL) return -1;
+  
+  int fd = thread_get_new_fd(f);
 
-  // call filesys_open 
+  //printf("new fd: %d\n",fd);
+  return fd;
+}
 
-  return -1;
+// Try to close this fd. Fail silently if doesn't belong to thread,
+// try to close stdin/stdout. On success, closes the file 
+static void
+sys_close (int fd)
+{
+  thread_fs_lock ();
+  struct file * fp = thread_close_fd (fd);
+  if (fp != NULL) file_close(fp);
+  thread_fs_unlock ();
 }
 
 // Writes SIZE bytes from BUFFER into the open file FD. Returns the number of

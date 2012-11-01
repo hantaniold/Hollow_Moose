@@ -5,6 +5,7 @@
 #include <list.h>
 #include <stdint.h>
 #include "threads/synch.h"
+#include "filesys/file.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -123,6 +124,8 @@ struct thread
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
 #endif
+    uint32_t fd_list[128];              /* A list of file descriptors */
+#define FD_LIST_LEN 128
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
@@ -179,5 +182,11 @@ struct thread *get_thread_by_tid(tid_t tid);
 void remove_child(tid_t tid);
 void set_child_retval(struct thread *parent, tid_t tid, int retval);
 child_thread_marker get_child(tid_t tid);
+
+/* Added for file descriptor stuff */
+int thread_get_new_fd (struct file * f);
+struct file * thread_close_fd (int fd);
+void thread_fs_lock (void);
+void thread_fs_unlock (void);
 
 #endif /* threads/thread.h */

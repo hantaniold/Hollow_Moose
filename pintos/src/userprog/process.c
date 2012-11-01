@@ -131,6 +131,8 @@ process_exit (void)
   struct thread *cur = thread_current ();
   uint32_t *pd;
 
+  //TODO Close all fds.
+ // process_close_fds(-1);
 
   struct thread *parent = get_thread_by_tid(cur->parent);
 
@@ -154,6 +156,7 @@ process_exit (void)
       pagedir_activate (NULL);
       pagedir_destroy (pd);
     }
+
 }
 
 /* Sets up the CPU for running user code in the current

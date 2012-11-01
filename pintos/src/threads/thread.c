@@ -12,6 +12,7 @@
 #include "threads/synch.h"
 #include "threads/vaddr.h"
 #include "userprog/process.h"
+#include "filesys/file.h"
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -41,6 +42,16 @@ static struct thread *initial_thread;
 
 /* Lock used by allocate_tid(). */
 static struct lock tid_lock;
+
+
+/* File descriptor table. 
+ * Each entry contains a pointer to the file struct
+ * if existant, otherwise NULL. */
+static struct file * fd_table[128];
+#define FD_TABLE_LEN 128
+static struct lock fs_lock;
+
+
 
 /* Stack frame for kernel_thread(). */
 struct kernel_thread_frame 
@@ -95,6 +106,7 @@ thread_init (void)
   ASSERT (intr_get_level () == INTR_OFF);
 
   lock_init (&tid_lock);
+  lock_init (&fs_lock);
   list_init (&ready_list);
   list_init (&all_list);
   list_init (&dead_list);
@@ -105,6 +117,12 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
+
+  int i;
+  for (i =0; i < 128; i++) 
+  {
+    fd_table[i] = NULL;
+  }
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -190,6 +208,13 @@ thread_create (const char *name, int priority,
   /* Initialize thread. */
   init_thread (t, name, priority);
   tid = t->tid = allocate_tid ();
+
+  /* init FD list */
+  int i;
+  for (i = 0; i < FD_LIST_LEN; i++)
+  {
+    t->fd_list[i] = 0;
+  }
 
   /* Prepare thread for first run by initializing its stack.
      Do this atomically so intermediate values for the 'stack' 
@@ -771,3 +796,77 @@ allocate_tid (void)
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
+
+
+
+
+// Close the fd. If the thread doesn't own
+// the fd or some other error, fail silently. Otherwise,
+// grab the file pointer and set all fd_table entries to null
+struct file * thread_close_fd (int fd)
+{
+  // These returns may be substituted by killing hte thread with exit(-1) 
+  if (fd < 2 || fd > FD_TABLE_LEN) return NULL;
+
+  struct file * fp = fd_table[fd];
+  if (fp == NULL) return NULL;
+
+  // Remove all refs from table
+  int i;
+  for (i = 0; i < FD_TABLE_LEN; i++)
+  {
+    if (fd_table[i] == fp)
+    {
+      fd_table[i] = NULL;
+    }
+  }
+
+  // Remove all refs from thread's fd list
+  // TODO: Might need to do this to all threads here?
+  struct thread *t = thread_current ();
+  t->fd_list[fd] = 0;
+
+  return fp;
+}
+
+/* Get an fd for this file handle, update the global fd table,
+ * as well as the list of this thread's fds */
+int thread_get_new_fd (struct file * f) 
+{
+  thread_fs_lock ();
+  struct thread *t = thread_current ();
+
+  int fd = -1;
+  int i;
+  // 0, 1 reserved for stdout/in
+  // look for place to store new file pointer - store it, get key
+  for (i = 2; i < FD_TABLE_LEN; i++) 
+  {
+    if (fd_table[i] == NULL) 
+    {
+      fd_table[i] = f;
+      fd = i;
+    }
+  }
+  //Find a spot to place fd into thread's fd_list
+  for (i = 0; i < FD_LIST_LEN; i++) 
+  {
+    if (t->fd_list[i] == 0)
+    {
+      t->fd_list[i] = fd;
+    }
+  }
+  thread_fs_unlock ();
+
+  return fd;
+}
+
+void thread_fs_lock (void)
+{
+  lock_acquire(&fs_lock);
+}
+
+void thread_fs_unlock (void)
+{
+  lock_release(&fs_lock);
+}
