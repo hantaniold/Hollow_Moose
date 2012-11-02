@@ -187,6 +187,7 @@ child_thread_marker get_child(tid_t tid);
 child_thread_marker get_child_by_parent(tid_t parent, tid_t child);
 
 /* Added for file descriptor stuff */
+struct file * thread_get_file (int fd);
 int thread_get_new_fd (struct file * f);
 struct file * thread_close_fd (int fd);
 void thread_fs_lock (void);

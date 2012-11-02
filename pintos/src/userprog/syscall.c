@@ -11,6 +11,7 @@
 #include "threads/thread.h"
 #include "threads/vaddr.h"
 #include "devices/shutdown.h"
+#include "devices/input.h"
 
 static void syscall_handler (struct intr_frame *);
 static int sys_open (const char * file);
@@ -20,12 +21,14 @@ static void sys_halt (void);
 static int sys_exec(const char *);
 static int sys_wait(pid_t);
 static void sys_close (int fd);
-
+static int sys_read (int fd, void * buffer,unsigned size);
 static bool sys_create (const char *file, unsigned initial_size);
+static int sys_filesize (int fd);
 
 static void copy_in (void *dst_, const void *usrc_, size_t size);
 static char * copy_in_string (const char *us);
 
+static bool show_syscall;
 void
 syscall_init (void) 
 {
@@ -40,41 +43,68 @@ static void syscall_handler (struct intr_frame *f UNUSED)
 
 
 
-  if (f->esp <= 0x08048000 || ((PHYS_BASE - 4) <= f->esp )) {
+  if ((uint32_t) f->esp <= 0x08048000 || ((PHYS_BASE - 4) <= f->esp )) {
     f->eax = -1;
     sys_exit(-1);
   } else {
     copy_in (&call_nr, f->esp, sizeof call_nr);
-    int *t = f->esp;
+
     // We know there are only 3 args max to a system call, fetch 'em later
     // If they're pointers we'll just deference them later
     copy_in (args, (uint32_t *) f->esp + 1, 12);
 
     int retval = 0;
+    show_syscall = false;
+    if (show_syscall)  printf ("Entering syscall \n");
     switch (call_nr) {
       case SYS_WRITE:
+        if (show_syscall) printf( "WRITE!\n");
         retval = sys_write(args[0],(const void *) args[1], (unsigned) args[2]);
         break;
       case SYS_HALT:
+        if (show_syscall) printf( "HALT!\n");
         sys_halt ();
         break;
       case SYS_EXIT:
+        if (show_syscall) printf( "EXIT!\n");
         sys_exit(args[0]);
         break;
       case SYS_CREATE:
+        if (show_syscall) printf ("CREATE!\n");
         retval = sys_create((const char *) args[0], (unsigned) args[1]);
         break;
       case SYS_OPEN:
+        if (show_syscall) printf( "OPEN!\n");
         retval = sys_open((const char *) args[0]);
         break;
       case SYS_EXEC:
+        if (show_syscall) printf( "EXEC!\n");
         retval = sys_exec((const char *) args[0]);
         break;
       case SYS_WAIT:
+        if (show_syscall) printf( "WAIT!\n");
         retval = sys_wait((pid_t) args[0]);
         break;
       case SYS_CLOSE:
+        if (show_syscall) printf( "CLOSE!\n");
         sys_close((int) args[0]);
+        break;
+      case SYS_READ:
+        if (show_syscall) printf( "READ!\n");
+        retval = sys_read ((int) args[0], (void *) args[1], (unsigned) args[2]);
+        break;
+      case SYS_FILESIZE:
+        if (show_syscall) printf( "FILESIZE!\n");
+        retval = sys_filesize ((int) args[0]);
+        break;
+      case SYS_SEEK:
+        if (show_syscall) printf( "SEEK!\n");
+        break;
+      case SYS_TELL:
+        if (show_syscall) printf( "TELL!\n");
+        break;
+      case SYS_REMOVE:
+        if (show_syscall) printf( "REMOVE!\n");
         break;
       default:
         break;
@@ -82,6 +112,15 @@ static void syscall_handler (struct intr_frame *f UNUSED)
     f->eax = retval;
   }
 
+}
+
+// Returns -1 if doesnt belong to thread
+static int
+sys_filesize (int fd)
+{
+  struct file * fp = thread_get_file (fd);
+  if (fp == NULL) return -1;
+  return  file_length (fp);
 }
 
 static int
@@ -108,6 +147,7 @@ sys_create (const char *file, unsigned initial_size)
   thread_fs_lock ();
   retval = filesys_create (new_filename,initial_size);
   thread_fs_unlock ();
+  palloc_free_page (new_filename);
   return retval;
 }
 
@@ -133,6 +173,7 @@ sys_open (const char * file)
   
   int fd = thread_get_new_fd(f);
 
+  palloc_free_page (kfile);
   //printf("new fd: %d\n",fd);
   return fd;
 }
@@ -148,6 +189,40 @@ sys_close (int fd)
   thread_fs_unlock ();
 }
 
+
+// Rads SIZE bytes from the file open as FD into BUFFER. Returns the number of
+// bytes actually read (0 at EOF), or -1 if the file could not be read due
+// to some other condition. FD 0 reads from keyboard using input_getc ()
+static int
+sys_read (int fd, void * buffer, unsigned size)
+{
+  // If fd not belong to thread ERROR
+  
+  if (fd == 1) return -1; // stdout
+  if (fd == 0) 
+  {
+    unsigned i;
+    char * char_buf = (char *) buffer;
+    for (i = 0; i < size; i++)
+    {
+      char_buf[i] = input_getc ();
+    }
+    return (int) size;
+  } 
+  else 
+  {
+    struct file * fp;
+    if (NULL == (fp = thread_get_file (fd))) return -1;
+
+    int bytes_read;
+    thread_fs_lock ();
+    bytes_read = file_read (fp, buffer, size);
+    thread_fs_unlock ();
+    return bytes_read;
+  }
+
+
+}
 // Writes SIZE bytes from BUFFER into the open file FD. Returns the number of
 // bytes actually written, possibly less than SIZE.
 static int 
@@ -155,12 +230,13 @@ sys_write (int fd, const void * user_buf, unsigned size)
 {
   // Get the data to write from user memory
 
+  if (show_syscall)  printf ("WRITEINng to fd %d\n",fd);
 
-  char * data =  copy_in_string(user_buf);
-  int bytes_written;
+  char * data =  copy_in_string((const char *)user_buf);
+  int bytes_written = 0;
   if (fd == STDIN_FILENO)
   {
-
+    return 0;
   }
   // Write to terminal
   else if (fd == STDOUT_FILENO) 
@@ -168,6 +244,14 @@ sys_write (int fd, const void * user_buf, unsigned size)
     // Break up larger size things later
     putbuf(data, size);
     bytes_written = size;
+  }
+  else 
+  {
+    struct file * fp = thread_get_file (fd);
+    if (show_syscall) printf ("WRITE: file pointer is %x\n",fp);
+    if (fp == NULL) return 0;
+    bytes_written = file_write (fp, data, size);
+  
   }
 
   // Free the page
@@ -232,8 +316,9 @@ copy_in_string (const char *us)
 
   ks = palloc_get_page (PAL_ZERO);
   if (ks == NULL)
+  {
     thread_exit ();
-
+  }
   if ((uint8_t *) us >= (uint8_t *)PHYS_BASE) {
     thread_exit();
   }

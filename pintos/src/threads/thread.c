@@ -830,6 +830,21 @@ uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
 
 
+struct file *  thread_get_file (int fd) 
+{
+  struct thread * t =  thread_current ();
+
+  int i;
+  for (i = 0; i < FD_LIST_LEN; i++) 
+  {
+    if (t->fd_list[i] == fd)
+    {
+      return fd_table[fd];
+    }
+  }
+  return NULL;
+}
+
 // Close the fd. If the thread doesn't own
 // the fd or some other error, fail silently. Otherwise,
 // grab the file pointer and set all fd_table entries to null
