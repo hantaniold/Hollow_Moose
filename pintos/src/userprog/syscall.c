@@ -24,6 +24,8 @@ static void sys_close (int fd);
 static int sys_read (int fd, void * buffer,unsigned size);
 static bool sys_create (const char *file, unsigned initial_size);
 static int sys_filesize (int fd);
+static unsigned sys_tell (int fd);
+static void sys_seek (int fd, unsigned position);
 
 static void copy_in (void *dst_, const void *usrc_, size_t size);
 static char * copy_in_string (const char *us);
@@ -54,7 +56,7 @@ static void syscall_handler (struct intr_frame *f UNUSED)
     copy_in (args, (uint32_t *) f->esp + 1, 12);
 
     int retval = 0;
-    show_syscall = false;
+    show_syscall = true;
     if (show_syscall)  printf ("Entering syscall \n");
     switch (call_nr) {
       case SYS_WRITE:
@@ -67,27 +69,27 @@ static void syscall_handler (struct intr_frame *f UNUSED)
         break;
       case SYS_EXIT:
         if (show_syscall) printf( "EXIT!\n");
-        sys_exit(args[0]);
+        sys_exit (args[0]);
         break;
       case SYS_CREATE:
         if (show_syscall) printf ("CREATE!\n");
-        retval = sys_create((const char *) args[0], (unsigned) args[1]);
+        retval = sys_create ((const char *) args[0], (unsigned) args[1]);
         break;
       case SYS_OPEN:
         if (show_syscall) printf( "OPEN!\n");
-        retval = sys_open((const char *) args[0]);
+        retval = sys_open ((const char *) args[0]);
         break;
       case SYS_EXEC:
         if (show_syscall) printf( "EXEC!\n");
-        retval = sys_exec((const char *) args[0]);
+        retval = sys_exec ((const char *) args[0]);
         break;
       case SYS_WAIT:
         if (show_syscall) printf( "WAIT!\n");
-        retval = sys_wait((pid_t) args[0]);
+        retval = sys_wait ((pid_t) args[0]);
         break;
       case SYS_CLOSE:
         if (show_syscall) printf( "CLOSE!\n");
-        sys_close((int) args[0]);
+        sys_close ((int) args[0]);
         break;
       case SYS_READ:
         if (show_syscall) printf( "READ!\n");
@@ -99,9 +101,11 @@ static void syscall_handler (struct intr_frame *f UNUSED)
         break;
       case SYS_SEEK:
         if (show_syscall) printf( "SEEK!\n");
+        sys_seek ((int) args[0], (unsigned) args[1]);
         break;
       case SYS_TELL:
         if (show_syscall) printf( "TELL!\n");
+        retval = (int) sys_tell ((int) args[0]);
         break;
       case SYS_REMOVE:
         if (show_syscall) printf( "REMOVE!\n");
@@ -114,6 +118,34 @@ static void syscall_handler (struct intr_frame *f UNUSED)
 
 }
 
+static void
+sys_seek (int fd, unsigned position)
+{
+  thread_fs_lock ();
+  struct file * fp = thread_get_file (fd);
+  if (fp == NULL) return;
+  file_seek (fp, position);
+  thread_fs_unlock ();
+  return;
+  
+}
+
+
+static unsigned
+sys_tell (int fd)
+{
+  thread_fs_lock ();
+  struct file * fp = thread_get_file (fd);
+  int pos = 0;
+  if (fp == NULL)
+  {
+    return 0;
+  }
+  pos = file_tell(fp);
+  thread_fs_unlock ();
+
+  return pos;
+}
 // Returns -1 if doesnt belong to thread
 static int
 sys_filesize (int fd)
@@ -174,7 +206,6 @@ sys_open (const char * file)
   int fd = thread_get_new_fd(f);
 
   palloc_free_page (kfile);
-  //printf("new fd: %d\n",fd);
   return fd;
 }
 
