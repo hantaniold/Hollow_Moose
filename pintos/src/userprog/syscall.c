@@ -56,7 +56,7 @@ static void syscall_handler (struct intr_frame *f UNUSED)
     copy_in (args, (uint32_t *) f->esp + 1, 12);
 
     int retval = 0;
-    show_syscall = true;
+    show_syscall = false;
     if (show_syscall)  printf ("Entering syscall \n");
     switch (call_nr) {
       case SYS_WRITE:
@@ -287,6 +287,7 @@ sys_write (int fd, const void * user_buf, unsigned size)
   else 
   {
   
+    thread_fs_lock ();
     struct file *target = thread_get_file(fd);
     struct thread *t = thread_current();
     struct file *executable = filesys_open(t->name);
@@ -296,10 +297,10 @@ sys_write (int fd, const void * user_buf, unsigned size)
       printf("WRITING TO EXECUTABLE\n");
     }
     
-    struct file * fp = thread_get_file (fd);
-    if (show_syscall) printf ("WRITE: file pointer is %x\n",fp);
-    if (fp == NULL) return 0;
-    bytes_written = file_write (fp, data, size);
+    if (show_syscall) printf ("WRITE: file pointer is %x\n",target);
+    if (target == NULL) return 0;
+    bytes_written = file_write (target, data, size);
+    thread_fs_unlock ();
   }
 
   // Free the page

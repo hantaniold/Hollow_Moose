@@ -868,7 +868,17 @@ struct file * thread_close_fd (int fd)
   if (!found) {
     return NULL;
   }
-  
+ 
+  // Remove from this thread's fd list before rwe remove from
+  // the file descriptor table
+  for (i = 0; i < FD_LIST_LEN; i++)
+  {
+    if (t->fd_list[i] == fd) 
+    {
+      t->fd_list[i] = 0;
+    }
+  }
+ 
 
   struct file * fp = fd_table[fd];
   if (fp == NULL) return NULL;
@@ -876,20 +886,9 @@ struct file * thread_close_fd (int fd)
   // Remove all refs from table
   for (i = 0; i < FD_TABLE_LEN; i++)
   {
-    if (fd_table[i] == fp)
+    if (same_file(fd_table[i],fp)) 
     {
       fd_table[i] = NULL;
-    }
-  }
-
-  // Remove all refs from thread's fd list
-  // TODO: Might need to do this to all threads here?
-
-  for (i = 0; i < FD_LIST_LEN; i++)
-  {
-    if (t->fd_list[i] == fd) 
-    {
-      t->fd_list[i] = 0;
     }
   }
 
