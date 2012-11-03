@@ -834,6 +834,11 @@ struct file *  thread_get_file (int fd)
 {
   struct thread * t =  thread_current ();
 
+  if (fd <= 1 || fd >= FD_LIST_LEN)
+  {
+    return NULL;
+  }
+
   int i;
   for (i = 0; i < FD_LIST_LEN; i++) 
   {
@@ -931,7 +936,10 @@ int thread_get_new_fd (struct file * f)
 
 void thread_fs_lock (void)
 {
-  lock_acquire(&fs_lock);
+  if (!lock_held_by_current_thread(&fs_lock))
+  {
+    lock_acquire(&fs_lock);
+  }
 }
 
 void thread_fs_unlock (void)
