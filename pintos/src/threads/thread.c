@@ -884,7 +884,6 @@ struct file * thread_close_fd (int fd)
 
   // Remove all refs from thread's fd list
   // TODO: Might need to do this to all threads here?
-  struct thread *t = thread_current ();
 
   for (i = 0; i < FD_LIST_LEN; i++)
   {
