@@ -37,6 +37,11 @@ file_open (struct inode *inode)
 int
 same_file(struct file *f1, struct file *f2) 
 {
+  if (f1 == NULL || f2 == NULL)
+  {
+    return (int)false;
+  }
+  
   return (int) same_sector(f1->inode, f2->inode);
 }
 
