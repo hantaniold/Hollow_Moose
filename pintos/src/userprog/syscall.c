@@ -29,6 +29,10 @@ static void sys_seek (int fd, unsigned position);
 
 static void copy_in (void *dst_, const void *usrc_, size_t size);
 static char * copy_in_string (const char *us);
+static char * copy_in_data (const char *us);
+
+
+static bool put_bytes(uint8_t *udst, uint8_t *bytes, uint32_t size);
 
 static bool show_syscall;
 void
@@ -256,9 +260,27 @@ sys_read (int fd, void * buffer, unsigned size)
     {
       int bytes_read;
       thread_fs_lock ();
-      bytes_read = file_read (fp, buffer, size);
+      
+      unsigned left_to_read = size;
+      int bytes_read_cumulative = 0;
+      char *ks = palloc_get_page(PAL_ZERO);
+      unsigned t_size;
+      while (left_to_read > 0)
+      {
+        t_size = left_to_read > PGSIZE ? PGSIZE : left_to_read;
+        bytes_read = file_read(fp, ks, t_size);
+        put_bytes(((char *)buffer) + bytes_read_cumulative, ks ,t_size);
+        bytes_read_cumulative += bytes_read;
+        left_to_read -= bytes_read;
+      }
+      palloc_free_page(ks); 
+      
+      //static bool put_bytes(uint8_t *udst, uint8_t *bytes, uint32_t size)
+      
+      
+      
       thread_fs_unlock ();
-      return bytes_read;
+      return bytes_read_cumulative;
     }  
   }
 }
@@ -271,7 +293,7 @@ sys_write (int fd, const void * user_buf, unsigned size)
 
   if (show_syscall)  printf ("WRITEINng to fd %d\n",fd);
 
-  char * data =  copy_in_string((const char *)user_buf);
+  
   int bytes_written = 0;
   if (fd == STDIN_FILENO)
   {
@@ -280,6 +302,7 @@ sys_write (int fd, const void * user_buf, unsigned size)
   // Write to terminal
   else if (fd == STDOUT_FILENO) 
   {
+    char * data =  copy_in_string((const char *)user_buf);
     // Break up larger size things later
     putbuf(data, size);
     bytes_written = size;
@@ -293,37 +316,26 @@ sys_write (int fd, const void * user_buf, unsigned size)
     thread_fs_lock ();
     struct file *target = thread_get_file(fd);
     struct thread *t = thread_current();
-    
-    //struct file *executable = filesys_open(t->name);
-    /*
-    if (t->parent != NULL) {
-      struct thread *parent = get_thread_by_tid(t->parent);
-      intr_enable();
-      printf("NAME: %s\n", parent->name);
-      printf("NAMELEN %d\n", strlen(parent->name));
-      struct file *p_exec = filesys_open(parent->name);
-      bool ummm = p_exec == NULL;
-      printf("ummmm %d\n", ummm);
-      if (same_file(target, p_exec)) 
-      {
-        return 0;
-      }
-      printf("HOW GOD?????????\n");
-    }
-    */
-    /*
-    if (same_file(target, executable)) {
-      return 0;
-    }
-    */
+
     if (show_syscall) printf ("WRITE: file pointer is %x\n",target);
     if (target == NULL) return 0;
-    bytes_written = file_write (target, data, size);
+    
+    unsigned write_count = size;
+    int bytes_written_temp;
+    while (write_count > 0)
+    {
+      char * data =  copy_in_data((const char *)(user_buf + bytes_written));
+      
+      unsigned write_size = write_count > PGSIZE ? PGSIZE : write_count;
+      
+      bytes_written_temp = file_write (target, data, write_size);
+      bytes_written += bytes_written_temp;
+      write_count -= bytes_written_temp;
+      palloc_free_page(data);
+    }
+    
     thread_fs_unlock ();
   }
-
-  // Free the page
-  palloc_free_page(data);
   return bytes_written;
 }
   
@@ -355,6 +367,20 @@ put_user (uint8_t *udst, uint8_t byte)
   return eax != 0;
 }
 
+static bool
+put_bytes(uint8_t *udst, uint8_t *bytes, uint32_t size)
+{
+  bool output = true;
+
+  int i;
+  for (i = 0; i < size; i++) 
+  {
+    put_user(udst + i, *(bytes + i));
+  }
+
+  return output;
+}
+
 
 
 /* Copies SIZE bytes from user address USRC to kernel address DST.  Call
@@ -372,6 +398,43 @@ void copy_in (void *dst_, const void *usrc_, size_t size) {
 }
 
 
+
+static char *
+copy_in_data (const char *us)
+{
+  char *ks;
+
+  ks = palloc_get_page (PAL_ZERO);
+  if (ks == NULL)
+  {
+    thread_exit ();
+  }
+  if ((uint8_t *) us >= (uint8_t *)PHYS_BASE) {
+    thread_exit();
+  }
+
+  uint32_t counter = 0;
+  bool r_val = true;
+  char *char_ptr = ks;
+  const char *us_ptr = us;
+  while ((counter < PGSIZE) && (r_val)) {
+    r_val = get_user((uint8_t *) char_ptr, (const uint8_t *) us_ptr);    
+    char_ptr++;
+    us_ptr++; 
+    counter++;
+  }
+
+
+  if (!r_val) {
+    //segfault
+    thread_exit();
+  }
+
+  return ks;
+
+  // don't forget to call palloc_free_page(..) when you're done
+  // with this page, before you return to user from syscall
+}
 
 /* Creates a copy of user string US in kernel memory and returns it as a
    page that must be freed with palloc_free_page().  Truncates the string
@@ -411,6 +474,7 @@ copy_in_string (const char *us)
     thread_exit();
   }
 
+  
   if (*(char_ptr) != '\0') {
     //string was longer than a page
     *(char_ptr) = '\0';
