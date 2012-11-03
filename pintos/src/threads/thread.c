@@ -853,11 +853,26 @@ struct file * thread_close_fd (int fd)
   // These returns may be substituted by killing hte thread with exit(-1) 
   if (fd < 2 || fd > FD_TABLE_LEN) return NULL;
 
+  bool found = false;
+  struct thread *t = thread_current(); 
+  int i;
+
+  for (i = 0; i < FD_LIST_LEN; i++) {
+    if (t->fd_list[i] == fd) {
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    return NULL;
+  }
+  
+
   struct file * fp = fd_table[fd];
   if (fp == NULL) return NULL;
 
   // Remove all refs from table
-  int i;
   for (i = 0; i < FD_TABLE_LEN; i++)
   {
     if (fd_table[i] == fp)
@@ -868,7 +883,6 @@ struct file * thread_close_fd (int fd)
 
   // Remove all refs from thread's fd list
   // TODO: Might need to do this to all threads here?
-  struct thread *t = thread_current ();
   t->fd_list[fd] = 0;
 
   return fp;
