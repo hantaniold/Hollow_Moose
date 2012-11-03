@@ -53,6 +53,14 @@ byte_to_sector (const struct inode *inode, off_t pos)
     return -1;
 }
 
+bool
+same_sector(struct inode *node1, struct inode *node2)
+{
+  bool output = node1->sector == node2->sector;
+  return output;
+}
+
+
 /* List of open inodes, so that opening a single inode twice
    returns the same `struct inode'. */
 static struct list open_inodes;

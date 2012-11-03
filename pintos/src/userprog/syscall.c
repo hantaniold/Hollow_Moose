@@ -256,11 +256,20 @@ sys_write (int fd, const void * user_buf, unsigned size)
   }
   else 
   {
+  
+    struct file *target = thread_get_file(fd);
+    struct thread *t = thread_current();
+    struct file *executable = filesys_open(t->name);
+
+    if (same_file(target, executable)) {
+      return 0;
+      printf("WRITING TO EXECUTABLE\n");
+    }
+    
     struct file * fp = thread_get_file (fd);
     if (show_syscall) printf ("WRITE: file pointer is %x\n",fp);
     if (fp == NULL) return 0;
     bytes_written = file_write (fp, data, size);
-  
   }
 
   // Free the page
