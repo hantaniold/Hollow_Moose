@@ -294,12 +294,28 @@ sys_write (int fd, const void * user_buf, unsigned size)
     struct file *target = thread_get_file(fd);
     struct thread *t = thread_current();
     
-    struct file *executable = filesys_open(t->name);
-
+    //struct file *executable = filesys_open(t->name);
+    /*
+    if (t->parent != NULL) {
+      struct thread *parent = get_thread_by_tid(t->parent);
+      intr_enable();
+      printf("NAME: %s\n", parent->name);
+      printf("NAMELEN %d\n", strlen(parent->name));
+      struct file *p_exec = filesys_open(parent->name);
+      bool ummm = p_exec == NULL;
+      printf("ummmm %d\n", ummm);
+      if (same_file(target, p_exec)) 
+      {
+        return 0;
+      }
+      printf("HOW GOD?????????\n");
+    }
+    */
+    /*
     if (same_file(target, executable)) {
       return 0;
-      printf("WRITING TO EXECUTABLE\n");
     }
+    */
     if (show_syscall) printf ("WRITE: file pointer is %x\n",target);
     if (target == NULL) return 0;
     bytes_written = file_write (target, data, size);
