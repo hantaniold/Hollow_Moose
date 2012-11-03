@@ -261,6 +261,8 @@ sys_read (int fd, void * buffer, unsigned size)
       return bytes_read;
     }  
   }
+
+  return -1;
 }
 // Writes SIZE bytes from BUFFER into the open file FD. Returns the number of
 // bytes actually written, possibly less than SIZE.
@@ -272,6 +274,7 @@ sys_write (int fd, const void * user_buf, unsigned size)
   if (show_syscall)  printf ("WRITEINng to fd %d\n",fd);
 
   char * data =  copy_in_string((const char *)user_buf);
+
   int bytes_written = 0;
   if (fd == STDIN_FILENO)
   {
