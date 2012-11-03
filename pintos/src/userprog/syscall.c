@@ -29,7 +29,7 @@ static void sys_seek (int fd, unsigned position);
 
 static void copy_in (void *dst_, const void *usrc_, size_t size);
 static char * copy_in_string (const char *us);
-static char * copy_in_data (const char *us);
+static char * copy_in_data (const char *us, unsigned);
 
 
 static bool put_bytes(uint8_t *udst, uint8_t *bytes, uint32_t size);
@@ -326,16 +326,13 @@ sys_write (int fd, const void * user_buf, unsigned size)
     int bytes_written_temp;
     while (write_count > 0)
     {
-      char * data =  copy_in_data((const char *)(user_buf + bytes_written));
-      
       unsigned write_size = write_count > PGSIZE ? PGSIZE : write_count;
-      
+      char * data =  copy_in_data(user_buf + bytes_written, write_size);
       bytes_written_temp = file_write (target, data, write_size);
       bytes_written += bytes_written_temp;
       write_count -= bytes_written_temp;
       palloc_free_page(data);
     }
-    
     thread_fs_unlock ();
   }
   return bytes_written;
@@ -402,7 +399,7 @@ void copy_in (void *dst_, const void *usrc_, size_t size) {
 
 
 static char *
-copy_in_data (const char *us)
+copy_in_data (const char *us, unsigned write_size)
 {
   char *ks;
 
@@ -419,7 +416,7 @@ copy_in_data (const char *us)
   bool r_val = true;
   char *char_ptr = ks;
   const char *us_ptr = us;
-  while ((counter < PGSIZE) && (r_val)) {
+  while ((counter < write_size) && (r_val)) {
     r_val = get_user((uint8_t *) char_ptr, (const uint8_t *) us_ptr);    
     char_ptr++;
     us_ptr++; 
