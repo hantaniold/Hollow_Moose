@@ -169,9 +169,13 @@ sys_open (const char * file)
   thread_fs_lock();
   f = filesys_open (kfile);
   thread_fs_unlock();
-  if (f == NULL) return -1;
+  if (f == NULL)
+  {
+    return -1;
+  }
   
   int fd = thread_get_new_fd(f);
+
 
   palloc_free_page (kfile);
   //printf("new fd: %d\n",fd);
@@ -214,14 +218,19 @@ sys_read (int fd, void * buffer, unsigned size)
     struct file * fp;
     if (NULL == (fp = thread_get_file (fd))) return -1;
 
-    int bytes_read;
-    thread_fs_lock ();
-    bytes_read = file_read (fp, buffer, size);
-    thread_fs_unlock ();
-    return bytes_read;
+    if ((uint32_t) buffer <= 0x08048000 || ((PHYS_BASE - 4) <= buffer ))
+    {
+      sys_exit(-1);         
+    } 
+    else
+    {
+      int bytes_read;
+      thread_fs_lock ();
+      bytes_read = file_read (fp, buffer, size);
+      thread_fs_unlock ();
+      return bytes_read;
+    }  
   }
-
-
 }
 // Writes SIZE bytes from BUFFER into the open file FD. Returns the number of
 // bytes actually written, possibly less than SIZE.
