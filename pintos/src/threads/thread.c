@@ -589,7 +589,8 @@ init_thread (struct thread *t, const char *name, int priority)
   list_push_back (&all_list, &t->allelem);
 
   t->child_count = 0;
-
+  t->parent = NULL;
+  
   list_init(&t->children);
 }
 

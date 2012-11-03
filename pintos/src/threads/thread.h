@@ -114,6 +114,7 @@ struct thread
     child_thread_marker children[16];
     int child_count;
     tid_t parent;
+    struct file *exec_lock;
 
     /* Threads status upon exit from a user process*/
     int retval;

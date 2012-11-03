@@ -53,7 +53,20 @@ process_execute (const char *file_name)
   }
 
   add_child(tid, fn_copy);
+  struct thread *child = get_thread_by_tid(tid);
+  child->parent = t->tid;
   
+  size_t len = strcspn(fn_copy, " ");
+  char name[16];
+  strlcpy(&name, fn_copy, len + 1);
+  intr_enable();
+  child->exec_lock = filesys_open (name);
+  if (child->exec_lock != NULL)
+  {
+    file_deny_write(child->exec_lock); 
+  }
+  intr_enable();
+
   child_thread_marker *m = get_child_pointer_parent(t->tid, tid);
   lock_release(&process_lock);
   
@@ -156,6 +169,11 @@ process_exit (void)
 
   //TODO Close all fds.
  // process_close_fds(-1);
+
+  if (cur->exec_lock != NULL)
+  {
+    file_close(cur->exec_lock);
+  }
 
   struct thread *parent = get_thread_by_tid(cur->parent);
 
@@ -298,13 +316,8 @@ load (const char *file_name, void (**eip) (void), void **esp)
   
 
   size_t len = strcspn(file_name, " ");
-
-
   char name[16];
   strlcpy(&name, file_name, len + 1);
-
-
-
   file = filesys_open (name);
   if (file == NULL) 
     {
