@@ -96,6 +96,7 @@ typedef struct {
   char name[16];
   uint8_t invalid;
   int load_result;
+  struct file *exec_lock;
 } child_thread_marker;
 
 

@@ -607,8 +607,14 @@ add_child(tid_t tid, const char * name) {
   t->children[t->child_count].load_result = 0; 
   size_t len = strcspn(name, " ");
   strlcpy(t->children[t->child_count].name, name, len + 1);
-  t->child_count += 1;
   intr_set_level (old_level); 
+  intr_enable();
+  t->children[t->child_count].exec_lock = filesys_open (t->children[t->child_count].name);
+  if (t->children[t->child_count].exec_lock != NULL)
+  {
+    file_deny_write(t->children[t->child_count].exec_lock); 
+  }
+  t->child_count += 1;
   
 }
 

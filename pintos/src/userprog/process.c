@@ -31,6 +31,8 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp);
 tid_t
 process_execute (const char *file_name) 
 {
+
+
   char *fn_copy;
   tid_t tid;
 
@@ -55,7 +57,7 @@ process_execute (const char *file_name)
   add_child(tid, fn_copy);
   struct thread *child = get_thread_by_tid(tid);
   child->parent = t->tid;
-  
+ /* 
   size_t len = strcspn(fn_copy, " ");
   char name[16];
   strlcpy(&name, fn_copy, len + 1);
@@ -66,6 +68,7 @@ process_execute (const char *file_name)
     file_deny_write(child->exec_lock); 
   }
   intr_enable();
+*/
 
   child_thread_marker *m = get_child_pointer_parent(t->tid, tid);
   lock_release(&process_lock);
@@ -107,7 +110,29 @@ start_process (void *file_name_)
   child_thread_marker* m = get_child_pointer_parent(t->parent, t->tid);
 
   if (success) {
-    m->load_result = 1;
+  
+    //struct file *executable = filesys_open(t->name);
+    /*
+    if (t->parent != NULL) {
+      struct thread *parent = get_thread_by_tid(t->parent);
+      intr_enable();
+      printf("NAME: %s\n", parent->name);
+      printf("NAMELEN %d\n", strlen(parent->name));
+      struct file *p_exec = filesys_open(parent->name);
+      bool ummm = p_exec == NULL;
+      printf("ummmm %d\n", ummm);
+      if (same_file(target, p_exec)) 
+      {
+        return 0;
+      }
+      printf("HOW GOD?????????\n");
+    }
+    */
+    /*
+    if (same_file(target, executable)) {
+      return 0;
+    }
+    */   m->load_result = 1;
   } else {
     m->load_result = -1;
   }
@@ -155,6 +180,10 @@ process_wait (tid_t child_tid)
   
   child_thread_marker m;
   m = get_child(child_tid);
+  if (m.exec_lock != NULL)
+  {
+    file_close(m.exec_lock);
+  }
   remove_child(child_tid);
   //printf ("%s: exit(%d)\n", m.name, m.retval);
   return m.retval;
@@ -169,11 +198,12 @@ process_exit (void)
 
   //TODO Close all fds.
  // process_close_fds(-1);
-
+/*
   if (cur->exec_lock != NULL)
   {
     file_close(cur->exec_lock);
   }
+*/
 
   struct thread *parent = get_thread_by_tid(cur->parent);
 
