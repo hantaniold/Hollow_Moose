@@ -283,6 +283,8 @@ sys_read (int fd, void * buffer, unsigned size)
       return bytes_read_cumulative;
     }  
   }
+
+  return -1;
 }
 // Writes SIZE bytes from BUFFER into the open file FD. Returns the number of
 // bytes actually written, possibly less than SIZE.

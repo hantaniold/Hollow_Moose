@@ -886,7 +886,7 @@ struct file * thread_close_fd (int fd)
   for (i = 0; i < FD_LIST_LEN; i++)
   {
     if (t->fd_list[i] == fd) 
-    {
+   {
       t->fd_list[i] = 0;
     }
   }
@@ -894,6 +894,7 @@ struct file * thread_close_fd (int fd)
 
   struct file * fp = fd_table[fd];
   if (fp == NULL) return NULL;
+
 
   // Remove all refs from table
   for (i = 0; i < FD_TABLE_LEN; i++)

@@ -112,6 +112,37 @@ file_write (struct file *file, const void *buffer, off_t size)
   return bytes_written;
 }
 
+/* Zero out the firstt SIZE bytes of FILE */
+off_t
+file_clear (struct file *file, off_t size)
+{
+  char buf[1024];
+  
+  
+  int write_size = 1024;
+  int i;
+  for (i = 0; i < 1024; i++)
+  {
+    buf[i] = '\0';
+  }
+  off_t bytes_written = 0;
+  off_t bytes_to_write = size;
+  file->pos = 0;
+  while (bytes_to_write > 0) 
+  {
+    if (write_size > size) 
+    {
+      write_size = size;
+    } 
+    bytes_written += file_write (file, buf, write_size);
+    if (bytes_written == 0) break;
+    bytes_to_write -= bytes_written;
+
+  }
+  file->pos = 0;
+  return bytes_written;
+}
+
 /* Writes SIZE bytes from BUFFER into FILE,
    starting at offset FILE_OFS in the file.
    Returns the number of bytes actually written,

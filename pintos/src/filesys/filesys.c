@@ -56,6 +56,14 @@ filesys_create (const char *name, off_t initial_size)
     free_map_release (inode_sector, 1);
   dir_close (dir);
 
+  if (success) 
+  {
+    struct file * fp = filesys_open (name);
+    int bw = file_clear (fp, initial_size);
+    file_close (fp);
+
+  }
+
   return success;
 }
 
