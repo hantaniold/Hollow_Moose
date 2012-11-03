@@ -116,8 +116,9 @@ file_write (struct file *file, const void *buffer, off_t size)
 off_t
 file_clear (struct file *file, off_t size)
 {
+  printf("CLEARING %d bytes\n",size);
   char buf[1];
-  buf[0] = '0';
+  buf[0] = '\0';
   int i;
   off_t bytes_written = 0;
   file->pos = 0;

@@ -60,7 +60,7 @@ filesys_create (const char *name, off_t initial_size)
   {
     struct file * fp = filesys_open (name);
     int bw = file_clear (fp, initial_size);
-    printf("CLEARED %d bytes\n",bw);
+    file_close (fp);
 
   }
 

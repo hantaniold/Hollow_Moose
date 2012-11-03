@@ -1,8 +1,0 @@
-FAIL
-Kernel panic in run: PANIC at ../../userprog/process.c:43 in process_execute(): assertion `4 == 5' failed.
-Call stack: 0xc002cfd1 0xc002f021 0xc0020291 0xc0020a07
-Translation of call stack:
-0xc002cfd1: debug_panic (.../../lib/kernel/debug.c:38)
-0xc002f021: start_process (.../../userprog/process.c:53)
-0xc0020291: run_task (.../../../threads/init.c:316)
-0xc0020a07: run_actions (.../../../threads/init.c:369)
