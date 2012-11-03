@@ -837,6 +837,7 @@ struct file *  thread_get_file (int fd)
   int i;
   for (i = 0; i < FD_LIST_LEN; i++) 
   {
+    // If we have the descriptor then get its FP from the table
     if (t->fd_list[i] == fd)
     {
       return fd_table[fd];
@@ -869,6 +870,14 @@ struct file * thread_close_fd (int fd)
   // Remove all refs from thread's fd list
   // TODO: Might need to do this to all threads here?
   struct thread *t = thread_current ();
+
+  for (i = 0; i < FD_LIST_LEN; i++)
+  {
+    if (t->fd_list[i] == fd) 
+    {
+      t->fd_list[i] = 0;
+    }
+  }
   t->fd_list[fd] = 0;
 
   return fp;
