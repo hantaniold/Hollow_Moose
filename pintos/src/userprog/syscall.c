@@ -286,17 +286,20 @@ sys_write (int fd, const void * user_buf, unsigned size)
   }
   else 
   {
-  
+    if ((uint32_t) user_buf <= 0x08048000 || ((PHYS_BASE - 4) <= user_buf ))
+    {
+      sys_exit(-1);         
+    }
     thread_fs_lock ();
     struct file *target = thread_get_file(fd);
     struct thread *t = thread_current();
+    
     struct file *executable = filesys_open(t->name);
 
     if (same_file(target, executable)) {
       return 0;
       printf("WRITING TO EXECUTABLE\n");
     }
-    
     if (show_syscall) printf ("WRITE: file pointer is %x\n",target);
     if (target == NULL) return 0;
     bytes_written = file_write (target, data, size);
