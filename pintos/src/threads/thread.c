@@ -891,6 +891,7 @@ int thread_get_new_fd (struct file * f)
     {
       fd_table[i] = f;
       fd = i;
+      break;
     }
   }
   //Find a spot to place fd into thread's fd_list
@@ -899,6 +900,7 @@ int thread_get_new_fd (struct file * f)
     if (t->fd_list[i] == 0)
     {
       t->fd_list[i] = fd;
+      break;
     }
   }
   thread_fs_unlock ();

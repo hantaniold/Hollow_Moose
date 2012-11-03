@@ -176,7 +176,6 @@ sys_open (const char * file)
   
   int fd = thread_get_new_fd(f);
 
-
   palloc_free_page (kfile);
   //printf("new fd: %d\n",fd);
   return fd;
