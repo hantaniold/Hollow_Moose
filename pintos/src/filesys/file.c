@@ -33,6 +33,14 @@ file_open (struct inode *inode)
     }
 }
 
+//CHECKS WHETHER SAME UNDERLYING FILE
+int
+same_file(struct file *f1, struct file *f2) 
+{
+  return (int) same_sector(f1->inode, f2->inode);
+}
+
+
 /* Opens and returns a new file for the same inode as FILE.
    Returns a null pointer if unsuccessful. */
 struct file *

@@ -20,4 +20,9 @@ void inode_deny_write (struct inode *);
 void inode_allow_write (struct inode *);
 off_t inode_length (const struct inode *);
 
+
+/* Added for checking file descriptors pointer to same file */
+bool same_sector(struct inode *, struct inode *);
+
+
 #endif /* filesys/inode.h */

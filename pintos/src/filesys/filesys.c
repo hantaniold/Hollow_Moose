@@ -30,6 +30,7 @@ filesys_init (bool format)
   free_map_open ();
 }
 
+
 /* Shuts down the file system module, writing any unwritten data
    to disk. */
 void
