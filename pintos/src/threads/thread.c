@@ -631,6 +631,10 @@ remove_child(tid_t tid) {
     if (m.tid != tid) {
       t->children[count].tid = t->children[i].tid;
       t->children[count].retval = t->children[i].retval;
+      size_t len = strcspn(t->children[i].name, " ");
+      strlcpy(t->children[count].name, t->children[i].name, len + 1);   
+      t->children[count].load_result = t->children[i].load_result;
+      t->children[count].exec_lock = t->children[i].exec_lock;
       count++;
     }
   }

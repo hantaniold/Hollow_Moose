@@ -259,7 +259,6 @@ sys_read (int fd, void * buffer, unsigned size)
     else
     {
       int bytes_read;
-      thread_fs_lock ();
       
       unsigned left_to_read = size;
       int bytes_read_cumulative = 0;
@@ -268,8 +267,12 @@ sys_read (int fd, void * buffer, unsigned size)
       while (left_to_read > 0)
       {
         t_size = left_to_read > PGSIZE ? PGSIZE : left_to_read;
+        thread_fs_lock();
         bytes_read = file_read(fp, ks, t_size);
+        thread_fs_unlock();
+        //thread_fs_lock();
         put_bytes(((char *)buffer) + bytes_read_cumulative, ks ,t_size);
+        //thread_fs_unlock();
         bytes_read_cumulative += bytes_read;
         left_to_read -= bytes_read;
       }
@@ -279,7 +282,6 @@ sys_read (int fd, void * buffer, unsigned size)
       
       
       
-      thread_fs_unlock ();
       return bytes_read_cumulative;
     }  
   }

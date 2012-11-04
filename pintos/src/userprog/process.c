@@ -134,6 +134,12 @@ start_process (void *file_name_)
     }
     */   m->load_result = 1;
   } else {
+    if (m->exec_lock != NULL)
+    {
+      file_allow_write(m->exec_lock);
+      file_close(m->exec_lock);
+    }
+    m->exec_lock = NULL;
     m->load_result = -1;
   }
 
@@ -182,6 +188,7 @@ process_wait (tid_t child_tid)
   m = get_child(child_tid);
   if (m.exec_lock != NULL)
   {
+    file_allow_write(m.exec_lock);
     file_close(m.exec_lock);
   }
   remove_child(child_tid);
