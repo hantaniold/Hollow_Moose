@@ -15,6 +15,7 @@
 
 static void syscall_handler (struct intr_frame *);
 static int sys_open (const char * file);
+static int sys_remove (const char * file);
 static int sys_write (int fd, const void * buffer, unsigned size);
 static void sys_exit (int status);
 static void sys_halt (void);
@@ -113,6 +114,7 @@ static void syscall_handler (struct intr_frame *f UNUSED)
         break;
       case SYS_REMOVE:
         if (show_syscall) printf( "REMOVE!\n");
+        retval = (int) sys_remove((const char *) args[0]);
         break;
       default:
         break;
@@ -503,6 +505,20 @@ copy_in_string (const char *us)
   // don't forget to call palloc_free_page(..) when you're done
   // with this page, before you return to user from syscall
 }
+
+static int 
+sys_remove (const char * file)
+{
+   if ((uint32_t) file <= 0x08048000 || ((PHYS_BASE - 4) <= file ))
+   {
+     sys_exit(-1);         
+   } 
+   char * kfile = copy_in_string (file); 
+   bool o = filesys_remove(kfile);
+   palloc_free_page(kfile);
+   return (int)o;
+}
+
 
 /* Exit system call. */
 static void 
