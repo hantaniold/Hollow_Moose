@@ -56,7 +56,8 @@ to deal with the context.
 >> and arguments.  In Unix-like systems, the shell does this
 >> separation.  Identify at least two advantages of the Unix approach.
 
-1. ???
+1. We can catch errors earlier
+2. More flexibility for the programs in how they use command-line arguments and talk to the kernel
 
 			     SYSTEM CALLS
 			     ============
@@ -90,20 +91,20 @@ enum child_status // Statuses for children threads
     CHILD_DEAD
   };
 
-typedef struct {
-  tid_t tid;
-  int retval;
-  char name[16];
-  uint8_t invalid;
-  int load_result;
+typedef struct { // A marker for a thread's child.
+  tid_t tid; // Thread's tid.
+  int retval; // This thread's exit value
+  char name[16]; // name of the thread's executable
+  uint8_t invalid; // DEPRECATED
+  int load_result; // Whether the call to load for the executable worked
 } child_thread_marker;
 
 in struct thread:
 
-child_thread_marker children[16];
-int child_count;
-tid_t parent;
-struct file *exec_lock;
+child_thread_marker children[16]; //Array of children for a thread
+int child_count; // How many children the thread currently has
+tid_t parent; // If the thread has a parent, what's its tid?
+struct file *exec_lock; // Pointer to its executable for locking/unlocking write permissions
 
 int retval; // Return value of this thread when it calls exit
 
@@ -122,7 +123,11 @@ within the entire OS.
 >> B3: Describe your code for reading and writing user data from the
 >> kernel.
 
-Reading: 
+Reading:  Copying bytes: Call copy_in, asks the kernel for a single byte from user memory and puts it into kernel memory.
+
+If bigger data (strings or data) are needed we call copy_in_string or copy_in_data which gives us a pointer to a page containing the data in kernel memory.
+
+Writing: We just provide a buffer of the data and a destination address in user memory for the data, calling put_user some number of times.
 
 >> B4: Suppose a system call causes a full page (4,096 bytes) of data
 >> to be copied from user space into the kernel.  What is the least
@@ -142,6 +147,12 @@ There is no room for improvement.
 
 >> B5: Briefly describe your implementation of the "wait" system call
 >> and how it interacts with process termination.
+
+The parent gets a marker for the child's tid, which lets it track the child.
+Then the parent spins and yields until the child is not on the ready_list, implying
+that the child it ehn dead. Afterwards, we re-allow write permissions
+to the child's executable and close the file, and remove the child
+from the parent's list.
 
 >> B6: Any access to user program memory at a user-specified address
 >> can fail due to a bad pointer value.  Such accesses must cause the
@@ -165,7 +176,10 @@ checks to see if the copy worked or not.
 Resources are never dynamically allocated so that when thread_exit ()
 is called everything gets cleared correctly.
 
-Say...
+So that's how bad memory accesses are dealt with. In the case of a failure, if
+it's a child thread that dies, then the parent knows how to
+when it dies the child deals with cleaning up its executables, destroying
+pages it has, settings its return value..
 
 ---- SYNCHRONIZATION ----
 
@@ -187,6 +201,20 @@ of a failure so, otehrwise the parent gets the pid.
 >> terminates without waiting, before C exits?  After C exits?  Are
 >> there any special cases?
 
+We have a lock and indicator variable to make sure that the child and parent relationship is set up before the child runs any code. In any case:
+
+P calls wait before C exits: This is okay, the parent will detect it
+....after... : The child will have been added to a dead_list so the P will detect it.
+
+All resources freed: P cleans up C in both cases, C also cleans up some of its resources
+
+If P terminates before its child exits...
+If P terminates without waiting after C exits it's okay, will have been cleaned up
+
+No special cases
+
+
+
 ---- RATIONALE ----
 
 >> B9: Why did you choose to implement access to user memory from the
@@ -203,6 +231,8 @@ A finite number of FDs is never a good idea.
 
 >> B11: The default tid_t to pid_t mapping is the identity mapping.
 >> If you changed it, what advantages are there to your approach?
+
+We didn't.
 
 			   SURVEY QUESTIONS
 			   ================
