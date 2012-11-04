@@ -324,6 +324,8 @@ sys_write (int fd, const void * user_buf, unsigned size)
     
     unsigned write_count = size;
     int bytes_written_temp;
+    unsigned write_count_last = 0;
+    bool first = true;
     while (write_count > 0)
     {
       unsigned write_size = write_count > PGSIZE ? PGSIZE : write_count;
@@ -331,6 +333,15 @@ sys_write (int fd, const void * user_buf, unsigned size)
       bytes_written_temp = file_write (target, data, write_size);
       bytes_written += bytes_written_temp;
       write_count -= bytes_written_temp;
+      if (!first) 
+      {
+        if (write_count_last == write_count) {
+          break;
+        }
+      } else {
+        first = false;
+      }
+      write_count_last = write_count;
       palloc_free_page(data);
     }
     thread_fs_unlock ();
