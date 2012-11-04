@@ -110,29 +110,7 @@ start_process (void *file_name_)
   child_thread_marker* m = get_child_pointer_parent(t->parent, t->tid);
 
   if (success) {
-  
-    //struct file *executable = filesys_open(t->name);
-    /*
-    if (t->parent != NULL) {
-      struct thread *parent = get_thread_by_tid(t->parent);
-      intr_enable();
-      printf("NAME: %s\n", parent->name);
-      printf("NAMELEN %d\n", strlen(parent->name));
-      struct file *p_exec = filesys_open(parent->name);
-      bool ummm = p_exec == NULL;
-      printf("ummmm %d\n", ummm);
-      if (same_file(target, p_exec)) 
-      {
-        return 0;
-      }
-      printf("HOW GOD?????????\n");
-    }
-    */
-    /*
-    if (same_file(target, executable)) {
-      return 0;
-    }
-    */   m->load_result = 1;
+    m->load_result = 1;
   } else {
     if (m->exec_lock != NULL)
     {
@@ -213,6 +191,7 @@ process_exit (void)
 */
 
   struct thread *parent = get_thread_by_tid(cur->parent);
+  //printf("PARENT TID: %d\n", parent->tid);
 
   set_child_retval(parent, cur->tid, cur->retval);
 
