@@ -199,6 +199,12 @@ sys_halt (void)
 static int 
 sys_open (const char * file)
 {
+  if ((uint32_t) file <= 0x08048000 || ((PHYS_BASE - 4) <= file ))
+  {
+    sys_exit(-1);
+  }
+
+  
   char * kfile = copy_in_string (file);
   struct file * f;
 

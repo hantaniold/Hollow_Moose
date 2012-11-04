@@ -13,6 +13,7 @@
 #include "threads/vaddr.h"
 #include "userprog/process.h"
 #include "filesys/file.h"
+#include "filesys/filesys.h"
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
