@@ -6,11 +6,8 @@
 
 ---- GROUP ----
 
->> Fill in the names and email addresses of your group members.
-
-FirstName LastName <email@domain.example>
-FirstName LastName <email@domain.example>
-FirstName LastName <email@domain.example>
+Sean Hogan seanhogan@uchicago.edu
+Charles Cary cioc@uchicago.edu
 
 ---- PRELIMINARIES ----
 
@@ -26,9 +23,7 @@ FirstName LastName <email@domain.example>
 
 ---- DATA STRUCTURES ----
 
->> A1: Copy here the declaration of each new or changed `struct' or
->> `struct' member, global or static variable, `typedef', or
->> enumeration.  Identify the purpose of each in 25 words or less.
+None
 
 ---- ALGORITHMS ----
 
@@ -36,13 +31,32 @@ FirstName LastName <email@domain.example>
 >> you arrange for the elements of argv[] to be in the right order?
 >> How do you avoid overflowing the stack page?
 
+First we get a new page, and then copy the command line arguments entirely to
+the top of the user page. 
+
+Then, we parse the locations of the command line arguments and
+place them into an array.
+
+Then, we push the stored addresses onto the stack in reverse order.
+
+We avoid overflowing the stacmk page by throwing an error when the
+length of the command line string is larger than PGSIZE.
+
+
 ---- RATIONALE ----
 
 >> A3: Why does Pintos implement strtok_r() but not strtok()?
 
+We need a thread-safe version, as it's possible that we get interwoven calls of
+strtok_r 's, which has an internal context. If we use strtok then that context gets
+messed up from interwoven calls, whereas strtok_r uses another pointer
+to deal with the context.
+
 >> A4: In Pintos, the kernel separates commands into a executable name
 >> and arguments.  In Unix-like systems, the shell does this
 >> separation.  Identify at least two advantages of the Unix approach.
+
+1. ???
 
 			     SYSTEM CALLS
 			     ============
@@ -53,14 +67,62 @@ FirstName LastName <email@domain.example>
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
+syscall.c
+---------
+
+static bool show_syscall; // Shows debug messages
+
+thread.c
+--------
+
+static struct dead_list; // A list of children that have finished (via crashing or not)
+
+static struct file * fd_table[128]; // A table mapping FDs to file pointers.
+#define FD_TABLE_LEN 128 // Length of the FD_TABLE
+static struct lock fs_lock; // Lock for any filesystem or FD table interactions
+
+thread.h
+--------
+
+enum child_status // Statuses for children threads
+  {
+    CHILD_ALIVE,
+    CHILD_DEAD
+  };
+
+typedef struct {
+  tid_t tid;
+  int retval;
+  char name[16];
+  uint8_t invalid;
+  int load_result;
+} child_thread_marker;
+
+in struct thread:
+
+child_thread_marker children[16];
+int child_count;
+tid_t parent;
+struct file *exec_lock;
+
+int retval; // Return value of this thread when it calls exit
+
+uint32_t fd_list[128]; // List of FDs for this thread
+#define FD_LIST_LEN 128; // Max length of FD list
+
 >> B2: Describe how file descriptors are associated with open files.
 >> Are file descriptors unique within the entire OS or just within a
 >> single process?
+
+Many FDs can correspond to one open file. File descriptors are unique
+within the entire OS.
 
 ---- ALGORITHMS ----
 
 >> B3: Describe your code for reading and writing user data from the
 >> kernel.
+
+Reading: 
 
 >> B4: Suppose a system call causes a full page (4,096 bytes) of data
 >> to be copied from user space into the kernel.  What is the least
@@ -68,6 +130,15 @@ FirstName LastName <email@domain.example>
 >> (e.g. calls to pagedir_get_page()) that might result?  What about
 >> for a system call that only copies 2 bytes of data?  Is there room
 >> for improvement in these numbers, and how much?
+
+Least : 1, Most: 2  - Maybe the data is stored across two pages.
+
+For 2 bytes, also 1 or two, in the unfortunate case one byte is at the end
+of the first page and one is at the beginning of the 2nd
+
+There is no room for improvement.
+
+
 
 >> B5: Briefly describe your implementation of the "wait" system call
 >> and how it interacts with process termination.
@@ -86,12 +157,28 @@ FirstName LastName <email@domain.example>
 >> paragraphs, describe the strategy or strategies you adopted for
 >> managing these issues.  Give an example.
 
+We check if the stack pointer is messed up at the top of the dispatch
+table function (syscall handler). Then within each function are
+the validity of arguments checked. Copying from user memory also
+checks to see if the copy worked or not.
+
+Resources are never dynamically allocated so that when thread_exit ()
+is called everything gets cleared correctly.
+
+Say...
+
 ---- SYNCHRONIZATION ----
 
 >> B7: The "exec" system call returns -1 if loading the new executable
 >> fails, so it cannot return before the new executable has completed
 >> loading.  How does your code ensure this?  How is the load
 >> success/failure status passed back to the thread that calls "exec"?
+
+Threads now store "load_results" of loading. The parent and child
+have a relationship that makes the parent constantly yield
+inside of process_execute until the child has some nonzero
+status of load. In the case of -1, the child quit because
+of a failure so, otehrwise the parent gets the pid.
 
 >> B8: Consider parent process P with child process C.  How do you
 >> ensure proper synchronization and avoid race conditions when P
@@ -105,8 +192,14 @@ FirstName LastName <email@domain.example>
 >> B9: Why did you choose to implement access to user memory from the
 >> kernel in the way that you did?
 
+It forms a nice interface for the system calls. Errors with actual
+copying are dealt with inside of the calls, we can deal with
+errors with bad pointers outside.
+
 >> B10: What advantages or disadvantages can you see to your design
 >> for file descriptors?
+
+A finite number of FDs is never a good idea.
 
 >> B11: The default tid_t to pid_t mapping is the identity mapping.
 >> If you changed it, what advantages are there to your approach?
@@ -123,14 +216,25 @@ the quarter.
 >> In your opinion, was this assignment, or any one of the three problems
 >> in it, too easy or too hard?  Did it take too long or too little time?
 
+A little too hard, took too long. Wait took quite a while, as did figuring out
+the issues with reading and writing over multiple pages
+
 >> Did you find that working on a particular part of the assignment gave
 >> you greater insight into some aspect of OS design?
+
+Everything, this is hard, etc.
 
 >> Is there some particular fact or hint we should give students in
 >> future quarters to help them solve the problems?  Conversely, did you
 >> find any of our guidance to be misleading?
 
+A drawing of the general idea of argument passing
+would be nice. A few heads up about the larger complexity
+of write/read would also be nice
+
 >> Do you have any suggestions for the TAs to more effectively assist
 >> students, either for future quarters or the remaining projects?
+No.
 
 >> Any other comments?
+No.
