@@ -899,10 +899,12 @@ struct file * thread_close_fd (int fd)
   // Remove all refs from table
   for (i = 0; i < FD_TABLE_LEN; i++)
   {
+    /*
     if (same_file(fd_table[i],fp)) 
     {
       fd_table[i] = NULL;
     }
+    */
   }
 
   return fp;
