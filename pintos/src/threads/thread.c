@@ -271,8 +271,13 @@ thread_create_with_parent(tid_t parent,
   /* Initialize thread. */
   init_thread (t, name, priority);
   t->parent = parent;
-
   tid = t->tid = allocate_tid ();
+  
+  int i;
+  for (i = 0; i < FD_LIST_LEN; i++)
+  {
+    t->fd_list[i] = 0;
+  }
 
   /* Prepare thread for first run by initializing its stack.
      Do this atomically so intermediate values for the 'stack' 
@@ -608,15 +613,19 @@ add_child(tid_t tid, const char * name) {
   t->children[t->child_count].load_result = 0; 
   size_t len = strcspn(name, " ");
   strlcpy(t->children[t->child_count].name, name, len + 1);
-  intr_set_level (old_level); 
-  intr_enable();
-  t->children[t->child_count].exec_lock = filesys_open (t->children[t->child_count].name);
-  if (t->children[t->child_count].exec_lock != NULL)
-  {
-    file_deny_write(t->children[t->child_count].exec_lock); 
-  }
+  int index = t->child_count;
   t->child_count += 1;
-  
+  intr_set_level (old_level); 
+  //intr_enable();
+  /* 
+  thread_fs_lock(); 
+  t->children[index].exec_lock = filesys_open (t->children[index].name);
+  if (t->children[index].exec_lock != NULL)
+  {
+    file_deny_write(t->children[index].exec_lock); 
+  }
+  thread_fs_unlock();
+  */
 }
 
 void
@@ -653,6 +662,7 @@ get_thread_by_tid(tid_t tid) {
   {
     struct thread *t = list_entry (e, struct thread, allelem);
     if (t->tid == tid) {
+      intr_set_level(old_level);
       return t;
     }
   }
@@ -719,9 +729,11 @@ get_child_pointer_parent(tid_t parent, tid_t child)
     child_thread_marker m = t->children[i];
     if (m.tid == child) {
       t->children[i].invalid = 0;
+      intr_set_level(old_level);
       return &(t->children[i]);
     }
   }
+  intr_set_level(old_level);
   return NULL;
 }
 
