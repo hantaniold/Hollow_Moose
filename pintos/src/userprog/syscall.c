@@ -264,34 +264,38 @@ sys_read (int fd, void * buffer, unsigned size)
     {
       sys_exit(-1);         
     } 
+    int bytes = file_read(fp, buffer, size);
+    return bytes;
+    /*
     else
     {
       int bytes_read;
       
       unsigned left_to_read = size;
       int bytes_read_cumulative = 0;
+      
       char *ks = palloc_get_page(PAL_ZERO);
+      if (ks == NULL) {
+        return -1;
+      }
       unsigned t_size;
+      //thread_fs_lock();
+      printf("BEFORE WHILE\n");
       while (left_to_read > 0)
       {
         t_size = left_to_read > PGSIZE ? PGSIZE : left_to_read;
-        thread_fs_lock();
+        printf("t_size %d\n", t_size);
         bytes_read = file_read(fp, ks, t_size);
-        thread_fs_unlock();
-        //thread_fs_lock();
         put_bytes(((char *)buffer) + bytes_read_cumulative, ks ,t_size);
-        //thread_fs_unlock();
-        bytes_read_cumulative += bytes_read;
+        
         left_to_read -= bytes_read;
+        bytes_read_cumulative += bytes_read;
       }
+      //thread_fs_unlock();
       palloc_free_page(ks); 
-      
-      //static bool put_bytes(uint8_t *udst, uint8_t *bytes, uint32_t size)
-      
-      
-      
       return bytes_read_cumulative;
-    }  
+    } 
+    */
   }
 
   return -1;

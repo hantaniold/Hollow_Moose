@@ -31,7 +31,7 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp);
 tid_t
 process_execute (const char *file_name) 
 {
-
+  //printf("ENTER EXECUTE\n");
 
   char *fn_copy;
   tid_t tid;
@@ -48,41 +48,45 @@ process_execute (const char *file_name)
   /* Create a new thread to execute FILE_NAME. */
   struct thread *t = thread_current();
   tid = thread_create_with_parent (t->tid, file_name, PRI_DEFAULT, start_process, fn_copy);
+  //printf("TOP\n");
   if (tid == TID_ERROR)
   {
     printf("TID_ERROR\n");
     palloc_free_page (fn_copy); 
-  }
-
-  add_child(tid, fn_copy);
-  struct thread *child = get_thread_by_tid(tid);
-  child->parent = t->tid;
- /* 
-  size_t len = strcspn(fn_copy, " ");
-  char name[16];
-  strlcpy(&name, fn_copy, len + 1);
-  intr_enable();
-  child->exec_lock = filesys_open (name);
-  if (child->exec_lock != NULL)
-  {
-    file_deny_write(child->exec_lock); 
-  }
-  intr_enable();
-*/
-
-  child_thread_marker *m = get_child_pointer_parent(t->tid, tid);
-  lock_release(&process_lock);
-  
-  //spin wait
-  while(m->load_result == 0)
-  {
-    thread_yield();
-  }
-  
-  if (m->load_result == 1) {
-    return tid;
-  } else {
     return -1;
+  }
+  else
+  {
+    //printf("BEFORE add_child\n");
+    add_child(tid, file_name);
+    //printf("BOTTOM\n");
+    struct thread *child = get_thread_by_tid(tid);
+    if (child != NULL)
+    {
+      child->parent = t->tid;
+    }
+    //printf("AFTER 11111\n");
+   
+
+    //printf("BOTTOM\n");
+    child_thread_marker *m = get_child_pointer_parent(t->tid, tid);
+   
+    lock_release(&process_lock);   
+
+    //spin wait
+    while(m->load_result == 0)
+    {
+      thread_yield();
+    }
+
+
+    m = get_child_pointer_parent(t->tid, tid);
+    if (m->load_result == 1) {
+      return tid;
+    } else {
+      remove_child(tid);
+      return -1;
+    }
   }
 }
 
@@ -161,7 +165,6 @@ process_wait (tid_t child_tid)
     bool t_b = on_ready_list(child_tid);
     thread_yield();
   }
-  
   child_thread_marker m;
   m = get_child(child_tid);
   if (m.exec_lock != NULL)
@@ -170,7 +173,6 @@ process_wait (tid_t child_tid)
     file_close(m.exec_lock);
   }
   remove_child(child_tid);
-  //printf ("%s: exit(%d)\n", m.name, m.retval);
   return m.retval;
 }
 
@@ -341,6 +343,13 @@ load (const char *file_name, void (**eip) (void), void **esp)
       goto done; 
     }
 
+    child_thread_marker* m = get_child_pointer_parent(t->parent, t->tid);
+    m->exec_lock = file;
+    if (m->exec_lock != NULL)
+    {
+      file_deny_write(m->exec_lock);
+    }
+
   /* Read and verify executable header. */
   if (file_read (file, &ehdr, sizeof ehdr) != sizeof ehdr
       || memcmp (ehdr.e_ident, "\177ELF\1\1\1", 7)
@@ -424,7 +433,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
  done:
   /* We arrive here whether the load is successful or not. */
-  file_close (file);
+  //file_close (file);
   return success;
 }
 
