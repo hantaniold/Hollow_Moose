@@ -44,11 +44,16 @@ syscall_init (void)
 
 static void syscall_handler (struct intr_frame *f UNUSED) 
 {
+  
   unsigned call_nr;
   int args[3]; // 3 args max
   memset (args, 0, sizeof args);
 
 
+  //store the stack pointer just incase we have a page fault
+  //in tke kernel. 
+  struct thread *t = thread_current();
+  t->esp_for_switch = f->esp;
 
   if ((uint32_t) f->esp <= 0x08048000 || ((PHYS_BASE - 4) <= f->esp )) {
     f->eax = -1;
@@ -180,6 +185,11 @@ sys_wait(pid_t pid)
 static bool
 sys_create (const char *file, unsigned initial_size) 
 {
+  if ((uint32_t) file <= 0x08048000 || ((PHYS_BASE - 4) <= file ))
+  {
+    sys_exit(-1);
+  }
+  
   bool retval = false;
   char *new_filename =  copy_in_string (file);
   thread_fs_lock ();

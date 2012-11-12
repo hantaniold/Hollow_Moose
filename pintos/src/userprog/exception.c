@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include "userprog/gdt.h"
 #include "threads/interrupt.h"
+#include "threads/vaddr.h"
 #include "threads/thread.h"
+#include "vm/frame-table.h"
 
 
 /* Number of page faults processed. */
@@ -139,17 +141,28 @@ page_fault (struct intr_frame *f)
 
   /* Turn interrupts back on (they were only off so that we could
      be assured of reading CR2 before it changed). */
-
+  /*
   if (!user) 
   {
+    
     f->eip = (void (*) (void)) f->eax;
     f->eax = 0;
     struct thread *t = thread_current();
-    t->retval = -1;
-    thread_exit();
+
+    if (is_on_stack(fault_addr, f->esp))
+    {
+      return;  
+    }
+    else
+    {
+    
+      t->retval = -1;
+      thread_exit();
+    }
     //f->eax = 0xffffffff;    
     return;
   }
+  */
   intr_enable ();
 
   /* Count page faults. */
@@ -159,6 +172,38 @@ page_fault (struct intr_frame *f)
   not_present = (f->error_code & PF_P) == 0;
   write = (f->error_code & PF_W) != 0;
   user = (f->error_code & PF_U) != 0;
+
+  struct thread *t = thread_current();
+  void *stack = user ? f->esp : t->esp_for_switch;
+
+  if (is_on_stack(fault_addr, stack))
+  {
+    //printf("ENTER GROW STACK\n");
+    uint32_t curr_base = (uint32_t)PHYS_BASE - (uint32_t)(t->stack_pages * PGSIZE);
+    uint32_t calc_raw = curr_base - (uint32_t)f->esp;
+
+    uint32_t new_pages = (calc_raw % PGSIZE == 0) ? calc_raw / PGSIZE : (calc_raw / PGSIZE) + 1;
+    void *upage;
+    while (new_pages > 0) {
+      upage = ((uint8_t *) PHYS_BASE - ((t->stack_pages + 1) * PGSIZE));
+      install_user_page(t, upage, 0); 
+      new_pages--;
+    }
+    //printf("HAMBURGER\n");  
+    //t->retval = -1;
+    //thread_exit();
+    return;  
+  }
+  else
+  {  
+    f->eip = (void (*) (void)) f->eax;
+    f->eax = 0;
+    t->retval = -1;
+    thread_exit();
+    return;
+  }
+
+
 
   /* To implement virtual memory, delete the rest of the function
      body, and replace it with code that brings in the page to

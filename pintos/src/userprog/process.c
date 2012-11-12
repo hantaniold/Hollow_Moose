@@ -19,6 +19,7 @@
 #include "threads/thread.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
+#include "vm/frame-table.h"
 
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
@@ -423,6 +424,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
     }
 
   /* Set up stack. */
+  t->stack_pages = 0;
   if (!setup_stack (esp,file_name))
     goto done;
 
@@ -552,14 +554,16 @@ setup_stack (void **esp, char * file_name)
 {
   uint8_t *kpage;
   bool success = false;
-
-  kpage = palloc_get_page (PAL_USER | PAL_ZERO);
+  void *userpage = ((uint8_t *) PHYS_BASE) - PGSIZE;
+  struct thread *t = thread_current();
+  kpage = install_user_page(t, userpage, 0);
+  //kpage = palloc_get_page (PAL_USER | PAL_ZERO);
   if (kpage != NULL) 
-    {
-      void *userpage = ((uint8_t *) PHYS_BASE) - PGSIZE;
-      success = install_page (userpage, kpage, true);
-      if (success)
-      {
+  {   
+    success = true;
+      //success = install_page (userpage, kpage, true);
+      //if (success)
+      //{
       	*esp = PHYS_BASE;
 
         uint32_t cmd_len = strlen(file_name) + 1;
@@ -619,12 +623,14 @@ setup_stack (void **esp, char * file_name)
 
         memcpy(*esp - sizeof(void (*)()), &zero, sizeof(void (*)()));
         *esp -= sizeof(void (*)());
+    /*
     }  
      else
      {
        palloc_free_page (kpage);
      }
-    }
+    */
+  }
   return success;
 }
 

@@ -60,18 +60,33 @@ frame_table_init(void)
 }
 
 void *
-install_user_page(struct thread *t, void *upage, enum palloc_flags flags)
+install_user_page(struct thread *t, void *upage, enum palloc_flags flags UNUSED)
 {
   frame_table_entry *fe = (frame_table_entry *)malloc(sizeof(frame_table_entry));
-  void *frame = palloc_get_page(PAL_USER | flags);
+  void *frame = palloc_get_page(PAL_USER | PAL_ZERO);
   
+  if (frame == NULL)
+  {
+    return NULL;
+  }
+
   fe->tid = t->tid;
   fe->frame = frame;
   fe->upage = upage; 
   lock_acquire(&frame_table_lock);
+  t->stack_pages += 1;
   hash_insert(&frame_table, &fe->elem);
-  pagedir_get_page (t->pagedir, upage);
-  pagedir_set_page (t->pagedir, upage, frame, true);
+  if (pagedir_get_page (t->pagedir, upage) == NULL)
+  {
+    //printf("HERE1\n");
+    bool result = pagedir_set_page (t->pagedir, upage, frame, true);
+    //printf("RESULT %i\n", (int)result);
+  }
+  else
+  {
+    palloc_free_page(frame);
+    return NULL;
+  }
   lock_release(&frame_table_lock);
 
   return frame;
@@ -80,8 +95,10 @@ install_user_page(struct thread *t, void *upage, enum palloc_flags flags)
 bool
 is_on_stack(void *access, void *esp) 
 {
-  if (access < PHYS_BASE && esp > access) 
+  //printf("%x | %x | %x \n", (int)PHYS_BASE, (int)access, (int)esp);
+  if (access < (PHYS_BASE - 4) && esp <= access) 
   {
+    //printf("is_on_stack(true)\n");
     return true;
   }
   return false;
