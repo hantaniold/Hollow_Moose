@@ -96,7 +96,7 @@ bool
 is_on_stack(void *access, void *esp) 
 {
   //printf("%x | %x | %x \n", (int)PHYS_BASE, (int)access, (int)esp);
-  if (access < (PHYS_BASE - 4) && esp <= access) 
+  if (access < (PHYS_BASE - 4) && esp <= access && esp <= PHYS_BASE) 
   {
     //printf("is_on_stack(true)\n");
     return true;

@@ -176,7 +176,7 @@ page_fault (struct intr_frame *f)
   struct thread *t = thread_current();
   void *stack = user ? f->esp : t->esp_for_switch;
 
-  if (is_on_stack(fault_addr, stack))
+  if (is_on_stack(fault_addr, stack)  && user)
   {
     //printf("ENTER GROW STACK\n");
     uint32_t curr_base = (uint32_t)PHYS_BASE - (uint32_t)(t->stack_pages * PGSIZE);
