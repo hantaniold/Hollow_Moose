@@ -11,7 +11,9 @@
 typedef struct {
   tid_t tid;
   void * frame;      
+  void * upage;
   struct hash_elem elem;
+  
 } frame_table_entry;
 
 //Need to call before using frame table.
@@ -25,6 +27,6 @@ void *get_user_page(struct thread *t, void *upage, enum palloc_flags flags);
 //false otherwise
 bool is_on_stack(void *access, void *esp); 
 
-//TODO - NEED FUNCTION TO FREE USER PAGES
+void clear_frame_table(struct thread *t);
 
 #endif

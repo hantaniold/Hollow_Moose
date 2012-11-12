@@ -1,5 +1,7 @@
+#include <list.h>
 #include <hash.h>
 #include "threads/palloc.h"
+#include "threads/malloc.h"
 #include "threads/vaddr.h"
 #include "threads/synch.h"
 #include "userprog/pagedir.h"
@@ -12,9 +14,8 @@ static struct lock frame_table_lock;
 //FORWARD DEFS
 unsigned thread_hash(const struct hash_elem *e, void *aux); 
 bool thread_less(const struct hash_elem *a, const struct hash_elem *b, void *aux);
-static bool install_page (struct thread *t, void *upage, void *kpage, bool writable);
-void * install_user_page(struct thread *t, void *upage, enum palloc_flags flags);
-
+void clear_frame_table(struct thread *t);
+void *install_user_page(struct thread *t, void *upage, enum palloc_flags flags);
 
 unsigned
 thread_hash(const struct hash_elem *e, void *aux UNUSED) 
@@ -61,18 +62,16 @@ frame_table_init(void)
 void *
 install_user_page(struct thread *t, void *upage, enum palloc_flags flags)
 {
-  //TODO - IT IS INSANE TO USE ONE PAGE FOR FRAME METADATA u
-  //AND ANOTHER FOR THE PAGE. FIX THIS!!!
-  frame_table_entry *fe = (frame_table_entry *)palloc_get_page(PAL_ZERO);
+  frame_table_entry *fe = (frame_table_entry *)malloc(sizeof(frame_table_entry));
   void *frame = palloc_get_page(PAL_USER | flags);
   
   fe->tid = t->tid;
   fe->frame = frame;
-  
+  fe->upage = upage; 
   lock_acquire(&frame_table_lock);
   hash_insert(&frame_table, &fe->elem);
-  //always writeable for now, probably should change this
-  install_page(t, upage, frame, true);
+  pagedir_get_page (t->pagedir, upage);
+  pagedir_set_page (t->pagedir, upage, frame, true);
   lock_release(&frame_table_lock);
 
   return frame;
@@ -88,22 +87,31 @@ is_on_stack(void *access, void *esp)
   return false;
 }
 
-//TAKEN FROM PROCESS.C
-/* Adds a mapping from user virtual address UPAGE to kernel
-   virtual address KPAGE to the page table.
-   If WRITABLE is true, the user process may modify the page;
-   otherwise, it is read-only.
-   UPAGE must not already be mapped.
-   KPAGE should probably be a page obtained from the user pool
-   with palloc_get_page().
-   Returns true on success, false if UPAGE is already mapped or
-   if memory allocation fails. */
-static bool
-install_page (struct thread *t, void *upage, void *kpage, bool writable)
+void
+clear_frame_table(struct thread *t)
 {
-  /* Verify that there's not already a page at that virtual
-     address, then map our page there. */
-  return (pagedir_get_page (t->pagedir, upage) == NULL
-          && pagedir_set_page (t->pagedir, upage, kpage, writable));
+  struct list *bucket = find_bucket_by_index(&frame_table, hash_int(t->tid));
+  if (bucket != NULL)
+  {
+    struct list_elem *i;
+    i = list_begin(bucket);
+    lock_acquire(&frame_table_lock);
+    while (i != list_end(bucket))
+    {
+      struct hash_elem *hi = list_elem_to_hash_elem (i);
+      frame_table_entry *entry = hash_entry(hi, frame_table_entry, elem);
+      if (entry->tid == t->tid)
+      {
+        i = list_remove(i);
+        pagedir_clear_page(t->pagedir, entry->upage); 
+        free(entry);
+      }
+      else
+      {
+        i = list_next(i);
+      }
+    }
+    lock_release(&frame_table_lock);
+  }
 }
 

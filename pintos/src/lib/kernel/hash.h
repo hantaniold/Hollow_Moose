@@ -40,6 +40,10 @@ struct hash_elem
         ((STRUCT *) ((uint8_t *) &(HASH_ELEM)->list_elem        \
                      - offsetof (STRUCT, MEMBER.list_elem)))
 
+#define list_elem_to_hash_elem(LIST_ELEM)                       \
+        list_entry(LIST_ELEM, struct hash_elem, list_elem)
+
+
 /* Computes and returns the hash value for hash element E, given
    auxiliary data AUX. */
 typedef unsigned hash_hash_func (const struct hash_elem *e, void *aux);
@@ -90,6 +94,9 @@ void hash_apply (struct hash *, hash_action_func *);
 void hash_first (struct hash_iterator *, struct hash *);
 struct hash_elem *hash_next (struct hash_iterator *);
 struct hash_elem *hash_cur (struct hash_iterator *);
+struct list *find_bucket_by_index (struct hash *h, size_t bucket_idx);
+
+
 
 /* Information. */
 size_t hash_size (struct hash *);

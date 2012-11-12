@@ -12,7 +12,8 @@
 #define list_elem_to_hash_elem(LIST_ELEM)                       \
         list_entry(LIST_ELEM, struct hash_elem, list_elem)
 
-static struct list *find_bucket (struct hash *, struct hash_elem *);
+
+static struct list * find_bucket (struct hash *h, struct hash_elem *e); 
 static struct hash_elem *find_elem (struct hash *, struct list *,
                                     struct hash_elem *);
 static void insert_elem (struct hash *, struct list *, struct hash_elem *);
@@ -306,6 +307,12 @@ static struct list *
 find_bucket (struct hash *h, struct hash_elem *e) 
 {
   size_t bucket_idx = h->hash (e, h->aux) & (h->bucket_cnt - 1);
+  return &h->buckets[bucket_idx];
+}
+
+struct list *
+find_bucket_by_index (struct hash *h, size_t bucket_idx)
+{
   return &h->buckets[bucket_idx];
 }
 
