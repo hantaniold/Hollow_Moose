@@ -176,13 +176,24 @@ page_fault (struct intr_frame *f)
   struct thread *t = thread_current();
   void *stack = user ? f->esp : t->esp_for_switch;
 
+  //printf("before stack check\n");
   if (is_on_stack(fault_addr, stack)  && user)
   {
     //printf("ENTER GROW STACK\n");
     uint32_t curr_base = (uint32_t)PHYS_BASE - (uint32_t)(t->stack_pages * PGSIZE);
     uint32_t calc_raw = curr_base - (uint32_t)f->esp;
 
-    uint32_t new_pages = (calc_raw % PGSIZE == 0) ? calc_raw / PGSIZE : (calc_raw / PGSIZE) + 1;
+    uint32_t new_pages;
+    if ((uint32_t)stack - (uint32_t)fault_addr <= 32)
+    {
+      //PUSHA instruction handling
+      new_pages = 1;
+    }
+    else
+    {
+      new_pages = (calc_raw % PGSIZE == 0) ? calc_raw / PGSIZE : (calc_raw / PGSIZE) + 1;
+    }
+    //printf("NEW_PAGES %d\n", new_pages);
     void *upage;
     while (new_pages > 0) {
       upage = ((uint8_t *) PHYS_BASE - ((t->stack_pages + 1) * PGSIZE));
