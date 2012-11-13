@@ -4,16 +4,26 @@
 #include <debug.h>
 #include <hash.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include "threads/thread.h"
 #include "threads/synch.h"
 #include "threads/palloc.h"
+#include "devices/block.h"
 
 typedef struct {
   tid_t tid;
   void * frame;      
   void * upage;
   struct hash_elem elem;
-  
+
+  uint32_t fd; // In case this page is stored in some file
+  int32_t pos; // Position the page is read from in the file
+  uint32_t size; // nr bytes we care about (might not need..?)
+   
+  bool on_swap; // Has this page been written to swap
+  block_sector_t sector_nr; // What swap spot it's on
+
+  // swap something something
 } frame_table_entry;
 
 //Need to call before using frame table.
