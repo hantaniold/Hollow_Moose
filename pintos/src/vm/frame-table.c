@@ -232,6 +232,8 @@ is_on_stack(void *access, void *esp)
 }
 
 /* TODO - TEST/DEBUG THIS */
+//TODO - THIS also needs to clear swap
+
 void
 clear_frame_table(struct thread *t)
 {
