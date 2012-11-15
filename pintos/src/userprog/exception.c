@@ -5,7 +5,7 @@
 #include "threads/interrupt.h"
 #include "threads/vaddr.h"
 #include "threads/thread.h"
-#include "vm/frame-table.h"
+#include "vm/page.h"
 
 
 /* Number of page faults processed. */
@@ -13,6 +13,7 @@ static long long page_fault_cnt;
 
 static void kill (struct intr_frame *);
 static void page_fault (struct intr_frame *);
+static bool is_on_stack(void *access, void *esp); 
 
 /* Registers handlers for interrupts that can be caused by user
    programs.
@@ -122,6 +123,22 @@ kill (struct intr_frame *f)
    can find more information about both of these in the
    description of "Interrupt 14--Page Fault Exception (#PF)" in
    [IA32-v3a] section 5.15 "Exception and Interrupt Reference". */
+
+
+
+//heuristic for stack access detection
+static bool
+is_on_stack(void *access, void *esp) 
+{
+  //printf("%x | %x | %x \n", (int)PHYS_BASE, (int)access, (int)esp);
+  if (access < (PHYS_BASE - 4) && (((uint32_t)esp - 32) <= (uint32_t)access) && esp <= PHYS_BASE) 
+  {
+    //printf("is_on_stack(true)\n");
+    return true;
+  }
+  return false;
+}
+
 static void
 page_fault (struct intr_frame *f) 
 {
@@ -179,7 +196,6 @@ page_fault (struct intr_frame *f)
   //printf("before stack check\n");
   if (is_on_stack(fault_addr, stack)  && user)
   {
-    //printf("ENTER GROW STACK\n");
     uint32_t curr_base = (uint32_t)PHYS_BASE - (uint32_t)(t->stack_pages * PGSIZE);
     uint32_t calc_raw = curr_base - (uint32_t)f->esp;
 
@@ -197,7 +213,9 @@ page_fault (struct intr_frame *f)
     void *upage;
     while (new_pages > 0) {
       upage = ((uint8_t *) PHYS_BASE - ((t->stack_pages + 1) * PGSIZE));
-      install_user_page(t, upage, 0); 
+      page *p = page_allocate(upage, false);
+      
+      //install_user_page(t, upage, 0); 
       new_pages--;
     }
     //printf("HAMBURGER\n");  

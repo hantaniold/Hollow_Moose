@@ -2,6 +2,7 @@
 #define THREADS_THREAD_H
 
 #include <debug.h>
+#include <hash.h>
 #include <list.h>
 #include <stdint.h>
 #include "threads/synch.h"
@@ -115,7 +116,7 @@ struct thread
     child_thread_marker children[16];
     int child_count;
     tid_t parent;
-    struct file *exec_lock;
+    struct file *exec_lock;             /* Executable file */
 
     /* Threads status upon exit from a user process*/
     int retval;
@@ -126,8 +127,9 @@ struct thread
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
-    uint32_t stack_pages; /* Number of pages allocateted to stack*/
-    void *esp_for_switch; /* Hold esp for user->kernel switch exception*/
+    struct hash *pages;                 /* page table */
+    uint32_t stack_pages;               /* Number of pages allocateted to stack*/
+    void *esp_for_switch;               /* Hold esp for user->kernel switch exception*/
 #endif
     uint32_t fd_list[128];              /* A list of file descriptors */
 #define FD_LIST_LEN 128

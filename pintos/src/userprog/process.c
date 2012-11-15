@@ -19,7 +19,8 @@
 #include "threads/thread.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
-#include "vm/frame-table.h"
+#include "vm/page.h"
+#include "vm/frame.h"
 
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
@@ -424,7 +425,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
     }
 
   /* Set up stack. */
-  t->stack_pages = 0;
+  t->stack_pages = 1;
   if (!setup_stack (esp,file_name))
     goto done;
 
@@ -552,11 +553,13 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
 static bool
 setup_stack (void **esp, char * file_name)
 {
-  uint8_t *kpage;
+  page *kpage;
   bool success = false;
   void *userpage = ((uint8_t *) PHYS_BASE) - PGSIZE;
   struct thread *t = thread_current();
-  kpage = install_user_page(t, userpage, 0);
+  kpage = page_allocate(userpage, false);
+  uint8_t *kaddr = (uint8_t *)kpage->frame->base;
+  //kpage = install_user_page(t, userpage, 0);
   //kpage = palloc_get_page (PAL_USER | PAL_ZERO);
   if (kpage != NULL) 
   {   
@@ -571,7 +574,7 @@ setup_stack (void **esp, char * file_name)
           return NULL;
         }
 
-        char *cpy = kpage + PGSIZE - cmd_len;
+        char *cpy = kaddr + PGSIZE - cmd_len;
         memcpy((void *)cpy, file_name, cmd_len);
         *esp -= cmd_len;
 
@@ -592,7 +595,7 @@ setup_stack (void **esp, char * file_name)
             token = strtok_r(NULL, delim, &saveme);
           }
           if (token != NULL) {
-            arg_locations[argc] = userpage + (token - (char *) kpage);
+            arg_locations[argc] = userpage + (token - (char *) kaddr);
             argc++;
           } else{
             break;
