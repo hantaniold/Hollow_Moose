@@ -26,14 +26,15 @@ frame_init(void)
   //init_ram_pages
   //Should be using init_ram_pages, but ghetto turned up
   //to 9001 to make things work for now
-  frames = malloc (sizeof(*frames) * 20);
+  frames = malloc (sizeof(*frames) * init_ram_pages);
 
   if (frames == NULL)
   {
     PANIC ("out of memory allocating page frames");
   }
-
-  while ((base = palloc_get_page (PAL_USER)) != NULL && frame_count < 20)
+  
+  //&& frame_count < 20
+  while ((base = palloc_get_page (PAL_USER)) != NULL)
   {
     frame *f = &frames[frame_count++];
     lock_init(&f->lock);
@@ -69,5 +70,7 @@ obtain_frame(page *p)
     lock_release(&scan_lock);
     return false;
   }
+  //TODO - Once paging works, we'll remove this panic
+  PANIC ("OUT OF MEMORY\n");
   return false;
 }

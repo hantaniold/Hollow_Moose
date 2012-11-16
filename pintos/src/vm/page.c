@@ -2,6 +2,7 @@
 #include <hash.h>
 #include <stdbool.h>
 #include "threads/thread.h"
+#include "threads/vaddr.h"
 #include "threads/malloc.h"
 #include "vm/frame.h"
 #include "filesys/directory.h"
@@ -50,7 +51,24 @@ destroy_page (struct hash_elem *p_, void *aux UNUSED)
 
 static struct page *page_for_addr (const void *address) 
 {
-  return NULL;    
+  struct thread *t = thread_current();
+  
+  struct hash_iterator i;
+  hash_first(&i, t->pages);
+  
+  while (hash_next(&i))
+  {
+    page *p = hash_entry(hash_cur(&i), page, hash_elem);
+    
+    uint8_t addr_cmp = (uint8_t *)address;
+    uint8_t vaddr_cmp = (uint8_t *)p->addr;
+
+    if (addr_cmp >= vaddr_cmp && addr_cmp <= (vaddr_cmp + PGSIZE))
+    {
+      return p;
+    }
+  }
+  return NULL;
 }
 
 static bool do_page_in (struct page *p) 
@@ -79,9 +97,33 @@ void page_exit (void)
   return;
 }
 
+//TODO - finish this
 bool page_in (void *fault_addr) 
 {
-  return false;  
+  page *p = page_for_addr(fault_addr);
+  if (p != NULL)
+  {
+    if (p->frame != NULL)
+    {
+      return true;
+    }
+    else
+    { 
+      if (p->read_only)
+      {
+        return false;
+      }
+      else
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 bool page_out (struct page *p) 

@@ -521,11 +521,25 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
       size_t page_zero_bytes = PGSIZE - page_read_bytes;
 
       /* Get a page of memory. */
-      uint8_t *kpage = palloc_get_page (PAL_USER);
+      page *p = page_allocate(upage, true);
+      if (p == NULL)
+      {
+        return false;
+      }
+      
+      uint8_t *kaddr = (uint8_t *)p->frame->base;
+      if (file_read (file, kaddr, page_read_bytes) != (int) page_read_bytes)
+      {
+        return false;
+      }
+      memset(kaddr + page_read_bytes, 0, page_zero_bytes);
+
+      //uint8_t *kpage = palloc_get_page (PAL_USER);
+      /*
       if (kpage == NULL)
         return false;
 
-      /* Load this page. */
+      // Load this page. 
       if (file_read (file, kpage, page_read_bytes) != (int) page_read_bytes)
         {
           palloc_free_page (kpage);
@@ -533,12 +547,13 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
         }
       memset (kpage + page_read_bytes, 0, page_zero_bytes);
 
-      /* Add the page to the process's address space. */
+      //  Add the page to the process's address space. 
       if (!install_page (upage, kpage, writable)) 
         {
           palloc_free_page (kpage);
           return false; 
         }
+      */
 
       /* Advance. */
       read_bytes -= page_read_bytes;
