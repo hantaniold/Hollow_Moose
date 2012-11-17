@@ -130,7 +130,7 @@ kill (struct intr_frame *f)
 static bool
 is_on_stack(void *access, void *esp) 
 {
-  //printf("%x | %x | %x \n", (int)PHYS_BASE, (int)access, (int)esp);
+  //printf("%x | %x | %x \n", (int)PHYS_BASE, (int)access, (int)esp);  
   if (access < (PHYS_BASE - 4) && (((uint32_t)esp - 32) <= (uint32_t)access) && esp <= PHYS_BASE) 
   {
     //printf("is_on_stack(true)\n");
@@ -190,11 +190,15 @@ page_fault (struct intr_frame *f)
   write = (f->error_code & PF_W) != 0;
   user = (f->error_code & PF_U) != 0;
 
+  //printf("USER %i\n", user);
+  //printf("WRITE %i\n", write);
+
   struct thread *t = thread_current();
+  //printf("f->esp %x , t->esp_for_switch %x\n", f->esp, t->esp_for_switch);
   void *stack = user ? f->esp : t->esp_for_switch;
 
   //printf("before stack check\n");
-  if (is_on_stack(fault_addr, stack)  && user)
+  if (user && is_on_stack(fault_addr, stack))
   {
     uint32_t curr_base = (uint32_t)PHYS_BASE - (uint32_t)(t->stack_pages * PGSIZE);
     uint32_t calc_raw = curr_base - (uint32_t)f->esp;
@@ -223,8 +227,20 @@ page_fault (struct intr_frame *f)
     //thread_exit();
     return;  
   }
+  else if (user && fault_addr <= stack) 
+  {
+    if (page_in(fault_addr))
+    {
+      return;
+    }
+    else
+    {
+      PANIC("CODE PAGE IN FAILURE!!!\n");
+    }
+  }
   else
   {  
+    //printf("STANDARD PAGE FAULT  with addr %x\n", fault_addr);
     f->eip = (void (*) (void)) f->eax;
     f->eax = 0;
     t->retval = -1;
@@ -237,11 +253,13 @@ page_fault (struct intr_frame *f)
   /* To implement virtual memory, delete the rest of the function
      body, and replace it with code that brings in the page to
      which fault_addr refers. */
+  /*
   printf ("Page fault at %p: %s error %s page in %s context.\n",
           fault_addr,
           not_present ? "not present" : "rights violation",
           write ? "writing" : "reading",
           user ? "user" : "kernel");
   kill (f);
+  */
 }
 

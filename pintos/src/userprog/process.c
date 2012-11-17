@@ -347,6 +347,8 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
     child_thread_marker* m = get_child_pointer_parent(t->parent, t->tid);
     m->exec_lock = file;
+    t->exec_lock = file;
+    t->exec_length = file_length(file);
     if (m->exec_lock != NULL)
     {
       file_deny_write(m->exec_lock);
@@ -364,6 +366,8 @@ load (const char *file_name, void (**eip) (void), void **esp)
       printf ("load: %s: error loading executable\n", file_name);
       goto done; 
     }
+
+
 
   /* Read program headers. */
   file_ofs = ehdr.e_phoff;
@@ -511,16 +515,58 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
   ASSERT (pg_ofs (upage) == 0);
   ASSERT (ofs % PGSIZE == 0);
 
-  file_seek (file, ofs);
+  off_t my_ofs;
+  while (read_bytes > 0 || zero_bytes > 0)
+  {
+     size_t page_read_bytes = read_bytes < PGSIZE ? read_bytes : PGSIZE;
+     size_t page_zero_bytes = PGSIZE - page_read_bytes;
+     
+     page *p = page_allocate((void *)upage, writable);
+     
+     if (p == NULL)
+     {
+       return false;
+     }
+     
+     p->read_bytes = page_read_bytes;
+     p->zero_bytes = page_zero_bytes;
+     p->ofs = my_ofs;
+     p->from_exec = true;
+
+     read_bytes -= page_read_bytes;
+     zero_bytes -= page_zero_bytes;
+     upage += PGSIZE;
+     my_ofs += PGSIZE;
+  }
+  return true;
+  /*
+  page *p = page_allocate((void *)upage, true);
+  
+  if (p != NULL)
+  {
+    size_t page_read_bytes = read_bytes < PGSIZE ? read_bytes : PGSIZE;
+    size_t page_zero_bytes = PGSIZE - page_read_bytes;
+    p->read_bytes = page_read_bytes;
+    p->zero_bytes = page_zero_bytes;
+    p->ofs = ofs;
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+  */
+  //file_seek (file, ofs);
+  /*
   while (read_bytes > 0 || zero_bytes > 0) 
     {
-      /* Calculate how to fill this page.
-         We will read PAGE_READ_BYTES bytes from FILE
-         and zero the final PAGE_ZERO_BYTES bytes. */
-      size_t page_read_bytes = read_bytes < PGSIZE ? read_bytes : PGSIZE;
+      // Calculate how to fill this page.
+      // We will read PAGE_READ_BYTES bytes from FILE
+      // and zero the final PAGE_ZERO_BYTES bytes. 
+      vsize_t page_read_bytes = read_bytes < PGSIZE ? read_bytes : PGSIZE;
       size_t page_zero_bytes = PGSIZE - page_read_bytes;
 
-      /* Get a page of memory. */
+      // Get a page of memory. 
       page *p = page_allocate(upage, true);
       if (p == NULL)
       {
@@ -535,7 +581,7 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
       memset(kaddr + page_read_bytes, 0, page_zero_bytes);
 
       //uint8_t *kpage = palloc_get_page (PAL_USER);
-      /*
+      
       if (kpage == NULL)
         return false;
 
@@ -553,14 +599,15 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
           palloc_free_page (kpage);
           return false; 
         }
-      */
+      
 
-      /* Advance. */
+      // Advance. 
       read_bytes -= page_read_bytes;
       zero_bytes -= page_zero_bytes;
       upage += PGSIZE;
+      
     }
-  return true;
+    */
 }
 
 /* Create a minimal stack by mapping a zeroed page at the top of
@@ -573,81 +620,84 @@ setup_stack (void **esp, char * file_name)
   void *userpage = ((uint8_t *) PHYS_BASE) - PGSIZE;
   struct thread *t = thread_current();
   kpage = page_allocate(userpage, false);
+  if (kpage == NULL || !page_in(userpage))
+  {
+    return false;
+  }
   uint8_t *kaddr = (uint8_t *)kpage->frame->base;
-  //kpage = install_user_page(t, userpage, 0);
-  //kpage = palloc_get_page (PAL_USER | PAL_ZERO);
-  if (kpage != NULL) 
+  if (kaddr != NULL) 
   {   
     success = true;
-      //success = install_page (userpage, kpage, true);
-      //if (success)
-      //{
-      	*esp = PHYS_BASE;
+    *esp = PHYS_BASE;
 
-        uint32_t cmd_len = strlen(file_name) + 1;
-        if (cmd_len > PGSIZE) {
-          return NULL;
-        }
+    uint32_t cmd_len = strlen(file_name) + 1;
+    if (cmd_len > PGSIZE) {
+      return NULL;
+    }
 
-        char *cpy = kaddr + PGSIZE - cmd_len;
-        memcpy((void *)cpy, file_name, cmd_len);
-        *esp -= cmd_len;
 
-        char *saveme;
+    char *cpy = kaddr + PGSIZE - cmd_len;
+    //char *mirror = cpy;
+    memcpy((void *)cpy, file_name, cmd_len);
+    *esp -= cmd_len;
+    //mirror -= cmd_len;
 
-        char *token;
-        const char *delim = " ";
-        int argc = 0;
-        bool first = true;
 
-        char *arg_locations[128];
+    char *saveme;
 
-        while (1) {
-          if (first) {
-            token = strtok_r(cpy, delim ,&saveme);
-            first = false;
-          } else{
-            token = strtok_r(NULL, delim, &saveme);
-          }
-          if (token != NULL) {
-            arg_locations[argc] = userpage + (token - (char *) kaddr);
-            argc++;
-          } else{
-            break;
-          }
-        }
-        
-        //TODO - WORD ALIGN NEEDED
+    char *token;
+    const char *delim = " ";
+    int argc = 0;
+    bool first = true;
 
-        uint8_t i;
-       
-        int zero = 0;
+    char *arg_locations[128];
 
-        first = true;
-        for (i = 0; i <= argc; i++) {
-          *esp -= sizeof(&token);
-          if (first) {
-            memcpy(*esp, &zero, sizeof(&token));
-            first = false;
-          } else {
-            memcpy(*esp, &(arg_locations[argc - i]), sizeof(&token));
-          }
-        }
-                
-        memcpy(*esp - sizeof(char **), esp, sizeof(char **));
-        *esp -= sizeof(char **);
-        memcpy(*esp - sizeof(int), &argc, sizeof(int));
-        *esp -= sizeof(int);
 
-        memcpy(*esp - sizeof(void (*)()), &zero, sizeof(void (*)()));
-        *esp -= sizeof(void (*)());
-    /*
-    }  
-     else
-     {
-       palloc_free_page (kpage);
-     }
-    */
+
+    while (1) {
+      if (first) {
+        token = strtok_r(cpy, delim ,&saveme);
+        first = false;
+      } else{
+        token = strtok_r(NULL, delim, &saveme);
+      }
+      if (token != NULL) {
+        arg_locations[argc] = userpage + (token - (char *) kaddr);
+        argc++;
+      } else{
+        break;
+      }
+    }
+   
+
+
+    uint8_t i;
+   
+    int zero = 0;
+
+    first = true;
+    for (i = 0; i <= argc; i++) {
+      
+      *esp -= sizeof(&token);
+      //mirror -= sizeof(&token);
+      if (first) {
+        memcpy(*esp, &zero, sizeof(&token));
+        first = false;
+      } else {
+        memcpy(*esp, &(arg_locations[argc - i]), sizeof(&token));
+      }
+    }
+    memcpy(*esp - sizeof(char **), esp, sizeof(char **));
+    *esp -= sizeof(char **);
+    //mirror -= sizeof(char **);
+
+    memcpy(*esp - sizeof(int), &argc, sizeof(int));
+    *esp -= sizeof(int);
+    //mirror -= sizeof(int);
+
+    memcpy(*esp - sizeof(void (*)()), &zero, sizeof(void (*)()));
+    *esp -= sizeof(void (*)());
+    //mirror -= sizeof(void (*)());
   }
   return success;
 }

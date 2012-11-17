@@ -27,6 +27,8 @@
    of thread.h for details. */
 #define THREAD_MAGIC 0xcd6abf4b
 
+
+
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
 static struct list ready_list;
@@ -276,8 +278,7 @@ thread_create_with_parent(tid_t parent,
 
   /* Initialize thread. */
   init_thread (t, name, priority);
-  t->pages = (struct hash *)malloc(sizeof(struct hash));
-  hash_init(t->pages, page_hash, page_less, NULL);
+  hash_init(&t->pages, page_hash, page_less, NULL);
   t->parent = parent;
   tid = t->tid = allocate_tid ();
   
@@ -601,7 +602,6 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
   list_push_back (&all_list, &t->allelem);
-  t->pages = NULL;  
 
   t->child_count = 0;
   t->parent = NULL;

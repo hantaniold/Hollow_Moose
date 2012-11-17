@@ -117,6 +117,7 @@ struct thread
     int child_count;
     tid_t parent;
     struct file *exec_lock;             /* Executable file */
+    uint32_t exec_length;               /* Length of executable */
 
     /* Threads status upon exit from a user process*/
     int retval;
@@ -127,7 +128,7 @@ struct thread
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
-    struct hash *pages;                 /* page table */
+    struct hash pages;                 /* page table */
     uint32_t stack_pages;               /* Number of pages allocateted to stack*/
     void *esp_for_switch;               /* Hold esp for user->kernel switch exception*/
 #endif

@@ -17,6 +17,12 @@ struct page {
   bool read_only;             /* Read-only page? */
   struct thread *thread;      /* Owning thread. */
 
+
+  uint32_t read_bytes;        /* for part of executable */
+  uint32_t zero_bytes;        /* only use when read_only = true*/
+  off_t ofs;
+  bool from_exec;
+
   /* Accessed only in owning process context. */
   struct hash_elem hash_elem; /* struct thread `pages' hash element. */
 
