@@ -12,6 +12,7 @@
 #include "threads/vaddr.h"
 #include "devices/shutdown.h"
 #include "devices/input.h"
+#include "vm/page.h"
 
 static void syscall_handler (struct intr_frame *);
 static int sys_open (const char * file);
@@ -125,7 +126,7 @@ static void syscall_handler (struct intr_frame *f UNUSED)
         break;
       case SYS_MMAP:
         if (show_syscall) printf("MMAP!\n");
-        retval = (int) sys_mmap ((int) args[0], (void *) args[0]);
+        retval = (int) sys_mmap ((int) args[0], (void *) args[1]);
         break;
       case SYS_MUNMAP:
         if (show_syscall) printf("MUNMAP!\n");
@@ -555,11 +556,47 @@ sys_exit (int status) {
   thread_exit();
 }
 
-
-
 static int sys_mmap (int fd, void * addr)
 {
-  return -1;
+  if (fd == 0 || fd == 1)
+  {
+    return -1;
+  }
+  if ((uint32_t) addr <= 0x08048000 || ((PHYS_BASE - 4) <= addr))
+  {
+    printf("INVALID ADDRESS\n");
+    sys_exit(-1);
+  }
+
+
+  struct file * fp;
+  if (NULL == (fp = thread_get_file (fd))) 
+  {  
+    printf("WHY EXIT HERE!!!!\n");
+    return -1;
+  }
+
+
+  int32_t byte_count = file_length(fp);
+  uint32_t offset = 0;
+  
+  while (byte_count > 0)
+  {
+    off_t file_bytes = byte_count > PGSIZE ? PGSIZE : byte_count; 
+    page *p = page_allocate((uint8_t *)addr + offset, false);
+
+    if (p == NULL)
+    {
+      return -1;
+    }
+    p->mmap = true;
+    p->file = fp;
+    p->file_offset = (off_t)offset;
+    p->file_bytes = file_bytes;
+    offset += PGSIZE;
+    byte_count -= PGSIZE;
+  }
+  return 1;
 }
 static void sys_munmap (int mapping)
 {
