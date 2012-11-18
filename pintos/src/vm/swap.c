@@ -1,10 +1,12 @@
 #include <stdbool.h>
+#include <stdio.h>
 #include <stddef.h>
 #include "vm/swap.h"
 #include "devices/block.h"
 #include "bitmap.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
+#include "vm/page.h"
 
 static struct bitmap * swap_table;
 static struct lock swap_lock;
@@ -12,15 +14,19 @@ static struct block * swap_block;
 
 #define PAGE_SECTORS (PGSIZE / BLOCK_SECTOR_SIZE)
 
-static void swap_write (size_t sector_nr, void * p);
+static void swap_write (size_t sector_nr, struct page * p);
+
 // Find space for the page on disk (8 sectors), write it to disk.
+// Update the swap table.
+// Needs to be called for a page being evicted.
+// After writing, remove page from frame table
 bool 
-swap_out (void * p) 
+swap_out (struct page * p) 
 {
   size_t swap_sector = 0;
 
   lock_acquire (&swap_lock);
-  if ((swap_sector == bitmap_scan (swap_table, 0, 1, false)) == SIZE_MAX) 
+  if ((swap_sector = bitmap_scan_and_flip (swap_table, 0, 1, false)) == SIZE_MAX) 
   {
     lock_release (&swap_lock);
     return false;
@@ -31,25 +37,30 @@ swap_out (void * p)
 }
 
 
-// Read data, clear swap and bitmap
-bool
-swap_read (void * p)
+// Read data, clear swap table, reset p's setctor n
+// You should update the global frame table after this
+void
+swap_read (struct page * p)
 {
+  int i;
+  for ( i = 0; i < PAGE_SECTORS; i++)
+  {
+    block_read (swap_block, p->sector_nr*PAGE_SECTORS + i, p->frame->base + BLOCK_SECTOR_SIZE*i);
+  }
+  bitmap_flip(swap_table,p->sector_nr); 
+  p->sector_nr = -1;
 }
 // Given a "sector_nr" (which is actually indexing groups of PAGE_SECTORS
 // sectors, write p's datap ortion to disk and set it
-//
 static void
-swap_write (size_t sector_nr, void * p)
+swap_write (size_t sector_nr, struct page * p)
 {
-  // Some attribute of p should have PAGE_SIZE bytes.
-  // p->sector_nr = sector_nr;
-  const void * data = p;
+  p->sector_nr = sector_nr;
   int i;
   for (i = 0; i < PAGE_SECTORS; i++) 
   {
     // There is internal synch.  in this call so we don't lock
-    block_write (swap_block, sector_nr*PAGE_SECTORS + i, data + BLOCK_SECTOR_SIZE*i);
+    block_write (swap_block, sector_nr*PAGE_SECTORS + i, p->frame->base + BLOCK_SECTOR_SIZE*i);
   }
 }
 

@@ -27,6 +27,8 @@ static bool sys_create (const char *file, unsigned initial_size);
 static int sys_filesize (int fd);
 static unsigned sys_tell (int fd);
 static void sys_seek (int fd, unsigned position);
+static int sys_mmap (int fd, void * addr);
+static void sys_munmap (int mapping);
 
 static void copy_in (void *dst_, const void *usrc_, size_t size);
 static char * copy_in_string (const char *us);
@@ -120,6 +122,14 @@ static void syscall_handler (struct intr_frame *f UNUSED)
       case SYS_REMOVE:
         if (show_syscall) printf( "REMOVE!\n");
         retval = (int) sys_remove((const char *) args[0]);
+        break;
+      case SYS_MMAP:
+        if (show_syscall) printf("MMAP!\n");
+        retval = (int) sys_mmap ((int) args[0], (void *) args[0]);
+        break;
+      case SYS_MUNMAP:
+        if (show_syscall) printf("MUNMAP!\n");
+        sys_munmap ((int) args[0]);
         break;
       default:
         break;
@@ -543,4 +553,15 @@ sys_exit (int status) {
   t->retval = status; 
   intr_set_level(old_level);
   thread_exit();
+}
+
+
+
+static int sys_mmap (int fd, void * addr)
+{
+  return -1;
+}
+static void sys_munmap (int mapping)
+{
+  return;
 }
