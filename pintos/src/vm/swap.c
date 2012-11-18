@@ -45,17 +45,17 @@ swap_read (struct page * p)
   int i;
   for ( i = 0; i < PAGE_SECTORS; i++)
   {
-    block_read (swap_block, p->sector_nr*PAGE_SECTORS + i, p->frame->base + BLOCK_SECTOR_SIZE*i);
+    block_read (swap_block, p->sector*PAGE_SECTORS + i, p->frame->base + BLOCK_SECTOR_SIZE*i);
   }
-  bitmap_flip(swap_table,p->sector_nr); 
-  p->sector_nr = -1;
+  bitmap_flip(swap_table,p->sector); 
+  p->sector = -1;
 }
 // Given a "sector_nr" (which is actually indexing groups of PAGE_SECTORS
 // sectors, write p's datap ortion to disk and set it
 static void
 swap_write (size_t sector_nr, struct page * p)
 {
-  p->sector_nr = sector_nr;
+  p->sector = sector_nr;
   int i;
   for (i = 0; i < PAGE_SECTORS; i++) 
   {

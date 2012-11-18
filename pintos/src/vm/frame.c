@@ -70,7 +70,20 @@ obtain_frame(page *p)
     lock_release(&scan_lock);
     return false;
   }
-  //TODO - Once paging works, we'll remove this panic
+  //TODO - Once swapping works, we'll remove this panic
   PANIC ("OUT OF MEMORY\n");
+  return false;
+}
+
+bool
+free_frame(frame *f)
+{
+  if (f != NULL)
+  {
+    lock_acquire(&f->lock);
+    f->page = NULL;
+    lock_release(&f->lock);
+    return true;
+  }
   return false;
 }

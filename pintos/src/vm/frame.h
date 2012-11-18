@@ -20,4 +20,9 @@ void frame_init (void);
 //Returns null if no empty frames 
 bool obtain_frame(struct page *p);
 
+//Frees a frame
+//Returns true if frame was freed
+bool free_frame(frame *f);
+
+
 #endif

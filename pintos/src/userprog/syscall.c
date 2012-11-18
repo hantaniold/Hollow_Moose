@@ -326,7 +326,7 @@ static int
 sys_write (int fd, const void * user_buf, unsigned size)
 {
   // Get the data to write from user memory
-
+  struct thread *t = thread_current();
   if (show_syscall)  printf ("WRITEINng to fd %d\n",fd);
 
   

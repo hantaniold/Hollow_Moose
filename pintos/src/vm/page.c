@@ -50,13 +50,30 @@ page_less(const struct hash_elem *a, const struct hash_elem *b, void *aux UNUSED
 static void 
 destroy_page (struct hash_elem *p_, void *aux UNUSED)  
 {
-  return;     
+  page *p = hash_entry(p_, page, hash_elem);
+
+  if (p != NULL)
+  {
+    if (p->frame != NULL)
+    {
+      free_frame(p->frame);
+    }
+      
+    struct thread *t = thread_current();
+    pagedir_clear_page(t->pagedir, p->addr);
+    
+    free(p);
+  }
+  return;
 }
 
-static struct page *page_for_addr (const void *address) 
+static struct page *
+page_for_addr (const void *address) 
 {
   struct thread *t = thread_current();
-  
+ 
+  //printf("TID: %d\n", t->tid);
+
   struct hash_iterator i;
   hash_first(&i, &t->pages);
   
@@ -137,9 +154,11 @@ set_page(struct thread *t, void * upage, void *frame)
 
 //global functions
 
-//??? What is this for
+//Called to free memory of a page upon process exit
 void page_exit (void)  
 {
+  struct thread *t = thread_current();
+  hash_destroy (&t->pages, destroy_page);
   return;
 }
 
@@ -182,6 +201,7 @@ bool page_in (void *fault_addr)
       }
       else
       {
+        printf("OBTAIN FRAME FAILURE\n");
         return false;
       } 
     }
@@ -226,32 +246,6 @@ struct page * page_allocate (void *vaddr, bool read_only)
     }
     
     return p;
-    /*
-    bool of = obtain_frame(p);
-    if (of)
-    {
-      p->addr = vaddr;
-      p->read_only = read_only;
-      p->thread = t; 
-      hash_insert(t->pages, &p->hash_elem);
-      if (set_page(t, vaddr, p->frame->base))
-      {
-        return p;
-      }
-      else
-      {
-        printf("SET_PAGE FAILED\n");
-        //TODO - deallocate frame
-        free(p);
-        return NULL;
-      }
-    }
-    else
-    {
-      free(p);
-      return NULL;
-    }
-    */
   }
   else
   {
@@ -261,7 +255,22 @@ struct page * page_allocate (void *vaddr, bool read_only)
 
 void page_deallocate (void *vaddr) 
 {
- return;   
+  page * p = page_for_addr (vaddr);
+
+  if (p != NULL)
+  {
+    if (p->frame != NULL)
+    {
+      free_frame(p->frame);
+    }
+      
+    struct thread *t = thread_current();
+    pagedir_clear_page(t->pagedir, p->addr);
+   
+    hash_delete(&t->pages, &p->hash_elem);
+
+    free(p);
+  }
 }
 
 bool page_lock (const void *addr, bool will_write) 

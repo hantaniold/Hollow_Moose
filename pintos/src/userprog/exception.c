@@ -200,6 +200,7 @@ page_fault (struct intr_frame *f)
   //printf("before stack check\n");
   if (user && is_on_stack(fault_addr, stack))
   {
+    //printf("IS ON STACK\n");
     uint32_t curr_base = (uint32_t)PHYS_BASE - (uint32_t)(t->stack_pages * PGSIZE);
     uint32_t calc_raw = curr_base - (uint32_t)f->esp;
 
@@ -218,7 +219,7 @@ page_fault (struct intr_frame *f)
     while (new_pages > 0) {
       upage = ((uint8_t *) PHYS_BASE - ((t->stack_pages + 1) * PGSIZE));
       page *p = page_allocate(upage, false);
-      
+      page_in(upage);
       //install_user_page(t, upage, 0); 
       new_pages--;
     }
