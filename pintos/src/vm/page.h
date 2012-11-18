@@ -39,6 +39,7 @@ struct page {
   struct file *file;          /* File. */
   off_t file_offset;          /* Offset in file. */
   off_t file_bytes;           /* Bytes to read/write, 1...PGSIZE. */
+  bool mmap;
 };
 
 typedef struct page page;
