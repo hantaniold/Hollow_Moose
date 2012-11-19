@@ -223,6 +223,10 @@ thread_create (const char *name, int priority,
   for (i = 0; i < FD_LIST_LEN; i++)
   {
     t->fd_list[i] = 0;
+    /*
+    t->mmap_list[i].fd = 0;
+    t->mmap_list[i].start = 0;
+    */
   }
 
   /* Prepare thread for first run by initializing its stack.
@@ -286,6 +290,10 @@ thread_create_with_parent(tid_t parent,
   for (i = 0; i < FD_LIST_LEN; i++)
   {
     t->fd_list[i] = 0;
+    /*
+    t->mmap_list[i].fd = 0;
+    t->mmap_list[i].start = 0;
+    */ 
   }
 
   /* Prepare thread for first run by initializing its stack.

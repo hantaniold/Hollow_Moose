@@ -58,6 +58,11 @@ destroy_page (struct hash_elem *p_, void *aux UNUSED)
   {
     if (p->frame != NULL)
     {
+      if (p->file != NULL && p->file_offset >= 0 && p->file_bytes >= 0)
+      {
+        file_seek(p->file, p->file_offset);
+        file_write(p->file,(char *)p->frame->base, p->file_bytes); 
+      }
       free_frame(p->frame);
     }
       
@@ -282,7 +287,8 @@ struct page * page_allocate (void *vaddr, bool read_only)
     } 
     else
     {
-      PANIC ("SOMETHING EQUAL IN TABLE PANIC!!!\n");
+      return NULL;
+      //PANIC ("SOMETHING EQUAL IN TABLE PANIC!!!\n");
     }
     
     return p;
@@ -293,14 +299,21 @@ struct page * page_allocate (void *vaddr, bool read_only)
   }
 }
 
-void page_deallocate (void *vaddr) 
+void 
+page_deallocate (void *vaddr) 
 {
   page * p = page_for_addr (vaddr);
 
   if (p != NULL)
   {
+   
     if (p->frame != NULL)
     {
+      if (p->file != NULL && p->file_offset >= 0 && p->file_bytes >= 0)
+      {
+        file_seek(p->file, p->file_offset);
+        file_write(p->file,(char *)p->frame->base, p->file_bytes); 
+      }
       free_frame(p->frame);
     }
       
@@ -312,6 +325,13 @@ void page_deallocate (void *vaddr)
     free(p);
   }
 }
+
+page *
+page_by_addr(void *vaddr)
+{
+  return page_for_addr (vaddr);
+}
+
 
 bool page_lock (const void *addr, bool will_write) 
 {

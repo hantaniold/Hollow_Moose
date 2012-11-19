@@ -100,6 +100,11 @@ typedef struct {
   struct file *exec_lock;
 } child_thread_marker;
 
+typedef struct {
+  int fd;
+  void *start;
+} mmap_marker; 
+
 
 
 struct thread
@@ -133,6 +138,7 @@ struct thread
     void *esp_for_switch;               /* Hold esp for user->kernel switch exception*/
 #endif
     uint32_t fd_list[128];              /* A list of file descriptors */
+    mmap_marker mmap_list[16];
 #define FD_LIST_LEN 128
 
     /* Owned by thread.c. */

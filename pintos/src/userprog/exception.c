@@ -204,6 +204,12 @@ page_fault (struct intr_frame *f)
     }
     else
     {
+      f->eip = (void (*) (void)) f->eax;
+      f->eax = 0;
+      t->retval = -1;
+      thread_exit();
+      return;
+/*
       printf("ESP: %x\n", stack); 
       printf ("Page fault at %p: %s error %s page in %s context.\n",
           fault_addr,
@@ -211,6 +217,7 @@ page_fault (struct intr_frame *f)
           write ? "writing" : "reading",
           user ? "user" : "kernel");
       PANIC("CODE PAGE IN FAILURE!!!\n");
+*/
     }
   }
   else

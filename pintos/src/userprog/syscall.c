@@ -562,6 +562,10 @@ static int sys_mmap (int fd, void * addr)
   {
     return -1;
   }
+  if ((uint32_t)addr % PGSIZE != 0)
+  {
+    return -1;
+  }
   if ((uint32_t) addr <= 0x08048000 || ((PHYS_BASE - 4) <= addr))
   {
     printf("INVALID ADDRESS\n");
@@ -579,7 +583,31 @@ static int sys_mmap (int fd, void * addr)
 
   int32_t byte_count = file_length(fp);
   uint32_t offset = 0;
-  
+ 
+  struct thread *t = thread_current();
+  int space_index = 0;
+  while (space_index < 128)
+  {
+    if (t->mmap_list[space_index].fd != 0)
+    {
+      space_index++;
+    }
+    else
+    {
+      t->mmap_list[space_index].fd = fd;
+      t->mmap_list[space_index].start = addr;
+      break;
+    }
+  }
+
+  if (space_index >= 128)
+  {
+    return -1;
+  }
+
+
+  struct file *f2 = file_reopen(fp);
+
   while (byte_count > 0)
   {
     off_t file_bytes = byte_count > PGSIZE ? PGSIZE : byte_count; 
@@ -590,15 +618,45 @@ static int sys_mmap (int fd, void * addr)
       return -1;
     }
     p->mmap = true;
-    p->file = fp;
+    p->file = f2;
     p->file_offset = (off_t)offset;
     p->file_bytes = file_bytes;
     offset += PGSIZE;
     byte_count -= PGSIZE;
   }
-  return 1;
+  return space_index;
 }
 static void sys_munmap (int mapping)
 {
+  struct thread *t = thread_current();
+
+  if (mapping >= 128 || mapping < 0)
+  {
+    return;   
+  }
+
+  int fd = t->mmap_list[mapping].fd;
+  void *location = t->mmap_list[mapping].start;
+
+  if (fd < 1)
+  {
+    return;
+  }
+  
+  struct file * fp = page_by_addr(location)-> file;
+  int32_t byte_count = file_length(fp);  
+  int32_t counter = 0;
+  while (byte_count > 0)
+  {
+    page_deallocate(location + counter);
+    counter += PGSIZE;
+    byte_count -= PGSIZE;
+  }
+
+  t->mmap_list[mapping].fd = 0;
+  t->mmap_list[mapping].start = 0;
+
   return;
+  //struct filethread_get_file()  
+
 }

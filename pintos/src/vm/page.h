@@ -58,5 +58,6 @@ unsigned page_hash (const struct hash_elem *e, void *aux);
 bool page_less (const struct hash_elem *a_, const struct hash_elem *b_, void *aux);
 bool page_lock (const void *addr, bool will_write);
 void page_unlock (const void *addr);
+page * page_by_addr(void *vaddr);
 
 #endif
