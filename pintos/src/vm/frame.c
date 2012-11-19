@@ -43,6 +43,31 @@ frame_init(void)
   }
 }
 
+// Pick a frame to evict, kick it out of its house,
+// send its children to adoption agency
+void
+frame_evict (void)
+{
+  lock_acquire (&scan_lock);
+  frame * f = &frames[1];
+
+  lock_acquire(&f->lock);
+
+  struct thread * t = thread_current ();
+  struct pagedir * pd = t->pagedir;
+  struct page * p = f->page;
+  p->frame = NULL;
+  f->page = NULL;
+  f->base = NULL;
+  // Write to swap or back to its file?
+  // update that metadata in the page's owner
+
+  // Somehow use pagedir_clear_page to remove hte mapping?
+  lock_release (&f->lock);
+  lock_release (&scan_lock);
+
+}
+
 bool 
 obtain_frame(page *p) 
 {

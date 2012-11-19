@@ -30,6 +30,7 @@ struct page {
      Cleared only with scan_lock and frame->frame_lock held. */
   struct frame *frame;        /* Page frame. */
 
+  bool in_memory;
   /* Swap information, protected by frame->frame_lock. */
   block_sector_t sector;       /* Starting sector of swap area, or -1. */
 

@@ -20,6 +20,7 @@ static bool do_page_in (struct page *p);
 static bool set_page(struct thread *t, void * upage, void *frame);
 static bool load_from_exec(page *p);
 
+static void page_do_evict (void);
 
 //Hash tables functions
 
@@ -61,7 +62,7 @@ destroy_page (struct hash_elem *p_, void *aux UNUSED)
       
     struct thread *t = thread_current();
     pagedir_clear_page(t->pagedir, p->addr);
-    
+
     free(p);
   }
   return;
@@ -201,6 +202,12 @@ bool page_in (void *fault_addr)
       }
       else
       {
+        // Couldn't obtain frame, need to evict.
+        page_do_evict ();
+        // Load in the frame via mmap or from swap (if either)
+        //   -update pagedir
+        //   -update frame table
+        //   -update pages in thread
         printf("OBTAIN FRAME FAILURE\n");
         return false;
       } 
@@ -212,6 +219,18 @@ bool page_in (void *fault_addr)
     printf("P WAS NULL\n");
     return false;
   }
+}
+
+static void 
+page_do_evict (void) 
+{
+  // We use "FNO" algorithm
+
+  frame_evict (); 
+
+  // Update frame table info, page dir mapping
+  // If mmap'd...
+  // otherwise swap to disk
 }
 
 bool page_out (struct page *p) 
