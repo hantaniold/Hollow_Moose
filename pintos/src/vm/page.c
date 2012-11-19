@@ -1,5 +1,5 @@
-#include "vm/page.h"
 #include <hash.h>
+#include "vm/page.h"
 #include <stdbool.h>
 #include <string.h>
 #include "threads/thread.h"
@@ -21,6 +21,7 @@ static bool set_page(struct thread *t, void * upage, void *frame);
 static bool load_from_exec(page *p);
 
 static void page_do_evict (void);
+static bool load_from_file(page *p);
 
 //Hash tables functions
 
@@ -104,6 +105,7 @@ static bool do_page_in (struct page *p)
 static bool 
 load_from_exec(page *p)
 {
+  //printf("LOADING FROM EXEC\n");
   struct file *f = p->thread->exec_lock;
 
   uint32_t read_bytes = p->read_bytes;
@@ -116,20 +118,22 @@ load_from_exec(page *p)
     ASSERT(p->ofs % PGSIZE == 0);
 
     file_seek(f, p->ofs);
-    while (read_bytes > 0 || zero_bytes > 0)
+    lock_acquire(&p->frame->lock);
+    void *base = p->frame->base;
+    
+    size_t page_read_bytes = read_bytes < PGSIZE ? read_bytes : PGSIZE;
+    size_t page_zero_bytes = PGSIZE - page_read_bytes;
+    
+    if (file_read (f, base, page_read_bytes) != (int) page_read_bytes)
     {
-      size_t page_read_bytes = read_bytes < PGSIZE ? read_bytes : PGSIZE;
-      size_t page_zero_bytes = PGSIZE - page_read_bytes;
-      
-      uint8_t *kaddr = (uint8_t *)p->frame->base;
-      if (file_read (f, kaddr, page_read_bytes) != (int) page_read_bytes)
-      {
-        return false;
-      }
-      memset(kaddr + page_read_bytes, 0, page_zero_bytes);
-      read_bytes -= page_read_bytes;
-      zero_bytes -= page_zero_bytes;
+      return false;
     }
+
+    memset(base + page_read_bytes, 0, page_zero_bytes);
+    //read_bytes -= page_read_bytes;
+    //zero_bytes -= page_zero_bytes;
+   
+    lock_release(&p->frame->lock);
     return true;
   }
   else
@@ -138,6 +142,19 @@ load_from_exec(page *p)
   }
 }
 
+static bool
+load_from_file(page *p)
+{
+  struct file *fp = p->file;
+  file_seek(fp, p->file_offset);
+  file_read(fp, p->frame->base, p->file_bytes);
+  if (p->file_bytes < PGSIZE)
+  {
+    uint32_t zero_count = PGSIZE - p->file_bytes;
+    memset(p->frame->base + p->file_bytes, 0, zero_count);
+  }
+  return true;
+}
 
 
 static bool
@@ -186,6 +203,10 @@ bool page_in (void *fault_addr)
             printf("LOAD FROM FILE FAILED\n");
             return false;
           }
+        }
+        if (p->mmap)
+        {
+         load_from_file(p); 
         }
         struct thread *t = thread_current();
         if (set_page(t, p->addr, p->frame->base))
