@@ -566,9 +566,12 @@ static int sys_mmap (int fd, void * addr)
   {
     return -1;
   }
+  if ((uint32_t) addr == 0)
+  {
+    return -1;
+  }
   if ((uint32_t) addr <= 0x08048000 || ((PHYS_BASE - 4) <= addr))
   {
-    printf("INVALID ADDRESS\n");
     sys_exit(-1);
   }
 
@@ -576,8 +579,7 @@ static int sys_mmap (int fd, void * addr)
   struct file * fp;
   if (NULL == (fp = thread_get_file (fd))) 
   {  
-    printf("WHY EXIT HERE!!!!\n");
-    return -1;
+    sys_exit(-1);
   }
 
 
@@ -621,6 +623,7 @@ static int sys_mmap (int fd, void * addr)
     p->file = f2;
     p->file_offset = (off_t)offset;
     p->file_bytes = file_bytes;
+    p->from_exec = false;
     offset += PGSIZE;
     byte_count -= PGSIZE;
   }

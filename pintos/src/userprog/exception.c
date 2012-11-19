@@ -172,6 +172,7 @@ page_fault (struct intr_frame *f)
   struct thread *t = thread_current();
   void *stack = user ? f->esp : t->esp_for_switch;
 
+
   if (user && is_on_stack(fault_addr, stack))
   {
     uint32_t curr_base = (uint32_t)PHYS_BASE - (uint32_t)(t->stack_pages * PGSIZE);

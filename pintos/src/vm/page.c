@@ -193,10 +193,11 @@ bool page_in (void *fault_addr)
   {
     if (p->frame != NULL)
     {
+      printf("FRAME IS SO GGGG\n");
       return true;
     }
     else
-    { 
+    {
       bool of = obtain_frame(p);
       if (of)
       {
@@ -211,7 +212,7 @@ bool page_in (void *fault_addr)
         }
         if (p->mmap)
         {
-         load_from_file(p); 
+          load_from_file(p); 
         }
         struct thread *t = thread_current();
         if (set_page(t, p->addr, p->frame->base))
@@ -242,7 +243,6 @@ bool page_in (void *fault_addr)
   }
   else
   {
-    printf("P WAS NULL\n");
     return false;
   }
 }
@@ -276,6 +276,7 @@ struct page * page_allocate (void *vaddr, bool read_only)
   page *p = (page *)malloc(sizeof(page));
   if (p != NULL)
   {
+    p->frame = NULL;
     p->addr = vaddr;
     p->read_only = read_only;
     p->thread = t;
