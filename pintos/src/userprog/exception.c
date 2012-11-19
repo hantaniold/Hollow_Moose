@@ -158,28 +158,7 @@ page_fault (struct intr_frame *f)
 
   /* Turn interrupts back on (they were only off so that we could
      be assured of reading CR2 before it changed). */
-  /*
-  if (!user) 
-  {
-    
-    f->eip = (void (*) (void)) f->eax;
-    f->eax = 0;
-    struct thread *t = thread_current();
-
-    if (is_on_stack(fault_addr, f->esp))
-    {
-      return;  
-    }
-    else
-    {
-    
-      t->retval = -1;
-      thread_exit();
-    }
-    //f->eax = 0xffffffff;    
-    return;
-  }
-  */
+  
   intr_enable ();
 
   /* Count page faults. */
@@ -190,17 +169,11 @@ page_fault (struct intr_frame *f)
   write = (f->error_code & PF_W) != 0;
   user = (f->error_code & PF_U) != 0;
 
-  //printf("USER %i\n", user);
-  //printf("WRITE %i\n", write);
-
   struct thread *t = thread_current();
-  //printf("f->esp %x , t->esp_for_switch %x\n", f->esp, t->esp_for_switch);
   void *stack = user ? f->esp : t->esp_for_switch;
 
-  //printf("before stack check\n");
   if (user && is_on_stack(fault_addr, stack))
   {
-    //printf("IS ON STACK\n");
     uint32_t curr_base = (uint32_t)PHYS_BASE - (uint32_t)(t->stack_pages * PGSIZE);
     uint32_t calc_raw = curr_base - (uint32_t)f->esp;
 
@@ -214,18 +187,13 @@ page_fault (struct intr_frame *f)
     {
       new_pages = (calc_raw % PGSIZE == 0) ? calc_raw / PGSIZE : (calc_raw / PGSIZE) + 1;
     }
-    //printf("NEW_PAGES %d\n", new_pages);
     void *upage;
     while (new_pages > 0) {
       upage = ((uint8_t *) PHYS_BASE - ((t->stack_pages + 1) * PGSIZE));
       page *p = page_allocate(upage, false);
       page_in(upage);
-      //install_user_page(t, upage, 0); 
       new_pages--;
     }
-    //printf("HAMBURGER\n");  
-    //t->retval = -1;
-    //thread_exit();
     return;  
   }
   else if (user && fault_addr <= stack) 
@@ -236,12 +204,17 @@ page_fault (struct intr_frame *f)
     }
     else
     {
+      printf("ESP: %x\n", stack); 
+      printf ("Page fault at %p: %s error %s page in %s context.\n",
+          fault_addr,
+          not_present ? "not present" : "rights violation",
+          write ? "writing" : "reading",
+          user ? "user" : "kernel");
       PANIC("CODE PAGE IN FAILURE!!!\n");
     }
   }
   else
   {  
-    //printf("STANDARD PAGE FAULT  with addr %x\n", fault_addr);
     f->eip = (void (*) (void)) f->eax;
     f->eax = 0;
     t->retval = -1;

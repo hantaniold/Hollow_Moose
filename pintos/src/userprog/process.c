@@ -113,6 +113,8 @@ start_process (void *file_name_)
   if_.eflags = FLAG_IF | FLAG_MBS;
   success = load (file_name, &if_.eip, &if_.esp);
 
+
+
   child_thread_marker* m = get_child_pointer_parent(t->parent, t->tid);
 
   if (success) {
@@ -127,6 +129,7 @@ start_process (void *file_name_)
     m->load_result = -1;
   }
 
+
   /* If load failed, quit. */
   palloc_free_page (file_name);
   if (!success)
@@ -134,6 +137,7 @@ start_process (void *file_name_)
     t->retval = -1;
     thread_exit ();
   }
+
 
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
@@ -422,7 +426,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
                   read_bytes = 0;
                   zero_bytes = ROUND_UP (page_offset + phdr.p_memsz, PGSIZE);
                 }
-              if (!load_segment (file, file_page, (void *) mem_page,
+              if (!load_segment (file, file_page, mem_page,
                                  read_bytes, zero_bytes, writable))
                 goto done;
             }
@@ -519,7 +523,7 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
   ASSERT (pg_ofs (upage) == 0);
   ASSERT (ofs % PGSIZE == 0);
 
-  off_t my_ofs;
+  off_t my_ofs = ofs;
   while (read_bytes > 0 || zero_bytes > 0)
   {
      size_t page_read_bytes = read_bytes < PGSIZE ? read_bytes : PGSIZE;
