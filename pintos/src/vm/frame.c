@@ -46,21 +46,33 @@ frame_init(void)
 // Pick a frame to evict, kick it out of its house,
 // send its children to adoption agency
 void
-frame_evict (void)
+frame_evict (page *p)
 {
   lock_acquire (&scan_lock);
+  
+  //our sweet algorithm
   frame * f = &frames[1];
 
   lock_acquire(&f->lock);
 
   struct thread * t = thread_current ();
   struct pagedir * pd = t->pagedir;
-  struct page * p = f->page;
-  p->frame = NULL;
+  struct page * p_evicted = f->page;
+  p_evicted->frame = NULL;
+  p_evicted->in_memory = false;
+
   f->page = NULL;
-  f->base = NULL;
+
   // Write to swap or back to its file?
+  swap_out(p_evicted);
+
   // update that metadata in the page's owner
+
+  pagedir_clear_page(pd, p->addr);
+
+  //hand the frame to its new owner
+  p->frame = f;
+  f->page = p;
 
   // Somehow use pagedir_clear_page to remove hte mapping?
   lock_release (&f->lock);
@@ -96,7 +108,7 @@ obtain_frame(page *p)
     return false;
   }
   //TODO - Once swapping works, we'll remove this panic
-  PANIC ("OUT OF MEMORY\n");
+  //PANIC ("OUT OF MEMORY\n");
   return false;
 }
 

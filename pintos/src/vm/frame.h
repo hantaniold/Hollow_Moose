@@ -18,7 +18,7 @@ void frame_init (void);
 
 // Evict a frame, update pagedir, frame table, send data
 // to whereever and update stuff
-void frame_evict (void);
+void frame_evict (struct page *p);
 //Get a frame from the frame table
 //Returns null if no empty frames 
 bool obtain_frame(struct page *p);

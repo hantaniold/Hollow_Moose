@@ -20,7 +20,7 @@ static bool do_page_in (struct page *p);
 static bool set_page(struct thread *t, void * upage, void *frame);
 static bool load_from_exec(page *p);
 
-static void page_do_evict (void);
+static void page_do_evict (page *p);
 static bool load_from_file(page *p);
 
 //Hash tables functions
@@ -104,6 +104,39 @@ page_for_addr (const void *address)
 
 static bool do_page_in (struct page *p) 
 {
+  if (!p->in_memory && p->sector != -1)
+  {
+    swap_read(p);
+  }
+  if (p->from_exec)
+  {
+    bool b = load_from_exec(p);
+    if (!b)
+    {
+      printf("LOAD FROM FILE FAILED\n");
+      return false;
+    }
+  }
+  if (p->mmap)
+  {
+    bool b = load_from_file(p);
+    if (!b)
+    {
+      return false;
+    }
+  }
+  struct thread *t = thread_current();
+  if (set_page(t, p->addr, p->frame->base))
+  {
+    return true;
+  }
+  else
+  {
+    printf("SET_PAGE FAILED\n");
+    //TODO - deallocate frame
+    free(p);
+    return false;
+  }
   return false;
 }
 
@@ -201,42 +234,36 @@ bool page_in (void *fault_addr)
       bool of = obtain_frame(p);
       if (of)
       {
-        if (p->from_exec)
+        bool b = do_page_in (p);
+        if (b)
         {
-          bool b = load_from_exec(p);
-          if (!b)
-          {
-            printf("LOAD FROM FILE FAILED\n");
-            return false;
-          }
-        }
-        if (p->mmap)
-        {
-          load_from_file(p); 
-        }
-        struct thread *t = thread_current();
-        if (set_page(t, p->addr, p->frame->base))
-        {
+          p->in_memory = true;
           return true;
         }
         else
         {
-          printf("SET_PAGE FAILED\n");
-          //TODO - deallocate frame
-          free(p);
+          p->in_memory = false;
           return false;
         }
       }
       else
       {
         // Couldn't obtain frame, need to evict.
-        page_do_evict ();
-        // Load in the frame via mmap or from swap (if either)
-        //   -update pagedir
-        //   -update frame table
-        //   -update pages in thread
-        printf("OBTAIN FRAME FAILURE\n");
-        return false;
+        // This call swaps out a frame and gives p the
+        // swapped out frame.
+        page_do_evict (p);
+        
+        bool b = do_page_in (p);
+        if (b)
+        {
+          p->in_memory = true;
+          return true;
+        }
+        else
+        {
+          p->in_memory = false;
+          return false;
+        } 
       } 
     }
     return true;
@@ -248,15 +275,10 @@ bool page_in (void *fault_addr)
 }
 
 static void 
-page_do_evict (void) 
+page_do_evict (page *p) 
 {
   // We use "FNO" algorithm
-
-  frame_evict (); 
-
-  // Update frame table info, page dir mapping
-  // If mmap'd...
-  // otherwise swap to disk
+  frame_evict (p); 
 }
 
 bool page_out (struct page *p) 
@@ -280,6 +302,8 @@ struct page * page_allocate (void *vaddr, bool read_only)
     p->addr = vaddr;
     p->read_only = read_only;
     p->thread = t;
+    p->in_memory = false;
+    p->sector = -1;
 
     struct hash_elem *h = hash_insert(&t->pages, &p->hash_elem);
     if (h == NULL)
