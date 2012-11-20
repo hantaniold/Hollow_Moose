@@ -105,7 +105,6 @@ main (void)
   malloc_init ();
   paging_init ();
   frame_init (); 
-  swap_init ();
 
   /* Segmentation. */
 #ifdef USERPROG
@@ -138,6 +137,8 @@ main (void)
   filesys_init (format_filesys);
 #endif
 
+  /* Init the swap in a non-stupid place.*/
+  swap_init ();
   printf ("Boot complete.\n");
   
   /* Run actions specified on kernel command line. */

@@ -29,6 +29,7 @@ swap_out (struct page * p)
   if ((swap_sector = bitmap_scan_and_flip (swap_table, 0, 1, false)) == SIZE_MAX) 
   {
     lock_release (&swap_lock);
+    PANIC("SWAP FULL!!!\n");
     return false;
   }
   lock_release (&swap_lock);
@@ -67,6 +68,7 @@ swap_write (size_t sector_nr, struct page * p)
 void
 swap_init(void) 
 {
+  printf ("Getting Block %d\n",BLOCK_SWAP);
   swap_block = block_get_role (BLOCK_SWAP);
   lock_init (&swap_lock);
   if (swap_block == NULL) 
@@ -78,6 +80,7 @@ swap_init(void)
   {
     block_sector_t nr_swap_sectors  = block_size (swap_block);
     // Dear god note that 8 block sectors = 1 page sector
+    printf ("nr swap sectors: %d, page_sectors: %d\n",nr_swap_sectors,PAGE_SECTORS);
     swap_table = bitmap_create (nr_swap_sectors / PAGE_SECTORS);
   }
 

@@ -109,7 +109,9 @@ static bool do_page_in (struct page *p)
   bool writable = true;
   if (!p->in_memory && p->sector != -1)
   {
+    printf("BEFORE SWAP READ\n");
     swap_read(p);
+    printf("AFTER SWAP READ\n");
   }
   if (p->from_exec)
   {
@@ -224,8 +226,9 @@ void page_exit (void)
 //TODO - finish this
 bool page_in (void *fault_addr) 
 {
-  //printf("PAGE_In FAULT ADDR %d\n", (uint32_t)fault_addr);
+//  printf("PAGE_In FAULT ADDR %x\n", (uint32_t)fault_addr);
   page *p = page_for_addr(fault_addr);
+ 
   if (p != NULL)
   {
     if (p->frame != NULL)
@@ -265,11 +268,13 @@ bool page_in (void *fault_addr)
         {
           p->in_memory = true;
           lock_release(&p->frame->lock);
+          printf("EXIT evict true\n");
           return true;
         }
         else
         {
           p->in_memory = false;
+          printf("EXIT evict false\n");
           lock_release(&p->frame->lock);
           return false;
         }
