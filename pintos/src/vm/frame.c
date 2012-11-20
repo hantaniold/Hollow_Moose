@@ -56,6 +56,7 @@ frame_evict (page *p)
   
   // Clock algorithm
   frame * f;
+  frame * last_good_frame;
   struct page * iter_p;
   size_t init_hand = hand;
   do 
@@ -64,13 +65,14 @@ frame_evict (page *p)
     (++hand >= frame_count) ? hand = 0 : 1 ;
     f = &frames[hand];
 
-    // If this page hasn't been accessed then break out
-    // of this do-while loop.
     if (f->page != NULL) 
     {
+      last_good_frame = f;
       lock_acquire(&f->lock);
       iter_p = f->page;
       lock_release (&f->lock);
+      // If this page hasn't been accessed then break out
+      // of this do-while loop.
       if (false == pagedir_is_accessed(iter_p->thread->pagedir,iter_p->addr)) 
       {
         hand = init_hand;
@@ -82,6 +84,13 @@ frame_evict (page *p)
   } while (init_hand != hand);
 
   // Victim picked, now acqurie its lock
+  f = last_good_frame;
+  if (f->page == NULL) 
+  {
+    printf ("THE PAGE OF THE FRAME TO EVICT IS NULL. NOT GOOD\n");
+    return;
+  }
+
   lock_acquire(&f->lock);
 
   struct thread * t = thread_current ();
