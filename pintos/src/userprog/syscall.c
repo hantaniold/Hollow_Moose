@@ -572,9 +572,8 @@ static int sys_mmap (int fd, void * addr)
   }
   if ((uint32_t) addr <= 0x08048000 || ((PHYS_BASE - 4) <= addr))
   {
-    sys_exit(-1);
+    return -1;
   }
-
 
   struct file * fp;
   if (NULL == (fp = thread_get_file (fd))) 

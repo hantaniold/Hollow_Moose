@@ -17,7 +17,7 @@
 static void destroy_page (struct hash_elem *p_, void *aux);
 static struct page *page_for_addr (const void *address);
 static bool do_page_in (struct page *p);
-static bool set_page(struct thread *t, void * upage, void *frame);
+static bool set_page(struct thread *t, void * upage, void *frame, bool writable);
 static bool load_from_exec(page *p);
 
 static void page_do_evict (page *p);
@@ -104,6 +104,7 @@ page_for_addr (const void *address)
 
 static bool do_page_in (struct page *p) 
 {
+  bool writable = true;
   if (!p->in_memory && p->sector != -1)
   {
     swap_read(p);
@@ -111,6 +112,7 @@ static bool do_page_in (struct page *p)
   if (p->from_exec)
   {
     bool b = load_from_exec(p);
+    writable = true;
     if (!b)
     {
       printf("LOAD FROM FILE FAILED\n");
@@ -126,7 +128,7 @@ static bool do_page_in (struct page *p)
     }
   }
   struct thread *t = thread_current();
-  if (set_page(t, p->addr, p->frame->base))
+  if (set_page(t, p->addr, p->frame->base, writable))
   {
     return true;
   }
@@ -190,18 +192,20 @@ load_from_file(page *p)
   if (p->file_bytes < PGSIZE)
   {
     uint32_t zero_count = PGSIZE - p->file_bytes;
+    lock_acquire(&p->frame->lock);  
     memset(p->frame->base + p->file_bytes, 0, zero_count);
+    lock_release(&p->frame->lock);
   }
   return true;
 }
 
 
 static bool
-set_page(struct thread *t, void * upage, void *frame)
+set_page(struct thread *t, void * upage, void *frame, bool writable)
 {
   if (pagedir_get_page (t->pagedir, upage) == NULL)
   {
-    return pagedir_set_page (t->pagedir, upage, frame, true);
+    return pagedir_set_page (t->pagedir, upage, frame, writable);
   }
   else
   {
@@ -228,7 +232,6 @@ bool page_in (void *fault_addr)
   {
     if (p->frame != NULL)
     {
-      printf("FRAME IS SO GGGG\n");
       return true;
     }
     else
@@ -335,18 +338,20 @@ page_deallocate (void *vaddr)
 
   if (p != NULL)
   {
-   
+    struct thread *t = thread_current();
     if (p->frame != NULL)
     {
       if (p->file != NULL && p->file_offset >= 0 && p->file_bytes >= 0)
       {
-        file_seek(p->file, p->file_offset);
-        file_write(p->file,(char *)p->frame->base, p->file_bytes); 
+       if (pagedir_is_dirty(t->pagedir, p->addr))
+       {
+         file_seek(p->file, p->file_offset);
+         file_write(p->file,(char *)p->frame->base, p->file_bytes); 
+        }
       }
       free_frame(p->frame);
     }
       
-    struct thread *t = thread_current();
     pagedir_clear_page(t->pagedir, p->addr);
    
     hash_delete(&t->pages, &p->hash_elem);

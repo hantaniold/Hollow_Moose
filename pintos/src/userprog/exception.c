@@ -175,6 +175,7 @@ page_fault (struct intr_frame *f)
 
   if (user && is_on_stack(fault_addr, stack))
   {
+    
     uint32_t curr_base = (uint32_t)PHYS_BASE - (uint32_t)(t->stack_pages * PGSIZE);
     uint32_t calc_raw = curr_base - (uint32_t)f->esp;
 
@@ -199,7 +200,6 @@ page_fault (struct intr_frame *f)
   }
   else if (fault_addr <= stack) 
   {
-    //printf("PAGE IN\n");
     if (page_in(fault_addr))
     {
       return;
