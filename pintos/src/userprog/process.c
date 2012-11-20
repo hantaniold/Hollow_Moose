@@ -632,6 +632,7 @@ setup_stack (void **esp, char * file_name)
   {
     return false;
   }
+  kpage->on_stack = true;
   uint8_t *kaddr = (uint8_t *)kpage->frame->base;
   if (kaddr != NULL) 
   {   

@@ -23,6 +23,8 @@ struct page {
   off_t ofs;
   bool from_exec;
 
+  bool on_stack;
+
   /* Accessed only in owning process context. */
   struct hash_elem hash_elem; /* struct thread `pages' hash element. */
 

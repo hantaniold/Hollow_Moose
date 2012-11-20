@@ -109,11 +109,13 @@ static bool do_page_in (struct page *p)
   bool writable = true;
   if (!p->in_memory && p->sector != -1)
   {
-    printf("BEFORE SWAP READ\n");
+    //printf("BEFORE SWAP READ with addr %x\n", p->addr);
     swap_read(p);
-    printf("AFTER SWAP READ\n");
+    //printf("AFTER SWAP READ\n");
+    p->in_memory = true;
+    p->sector == -1;
   }
-  if (p->from_exec)
+  else if (p->from_exec)
   {
     bool b = load_from_exec(p);
     writable = true;
@@ -123,7 +125,7 @@ static bool do_page_in (struct page *p)
       return false;
     }
   }
-  if (p->mmap)
+  else if (p->mmap)
   {
     bool b = load_from_file(p);
     if (!b)
@@ -131,6 +133,7 @@ static bool do_page_in (struct page *p)
       return false;
     }
   }
+  else {}
   struct thread *t = thread_current();
   if (set_page(t, p->addr, p->frame->base, writable))
   {
@@ -226,7 +229,7 @@ void page_exit (void)
 //TODO - finish this
 bool page_in (void *fault_addr) 
 {
-//  printf("PAGE_In FAULT ADDR %x\n", (uint32_t)fault_addr);
+  //printf("PAGE_In FAULT ADDR %x\n", (uint32_t)fault_addr);
   page *p = page_for_addr(fault_addr);
  
   if (p != NULL)
@@ -258,7 +261,7 @@ bool page_in (void *fault_addr)
       }
       else
       {
-        printf("EVICTING PAGE\n");
+        //printf("EVICTING PAGE\n");
         page_do_evict (p);
        
         lock_acquire(&p->frame->lock);
@@ -268,13 +271,13 @@ bool page_in (void *fault_addr)
         {
           p->in_memory = true;
           lock_release(&p->frame->lock);
-          printf("EXIT evict true\n");
+          //printf("EXIT evict true\n");
           return true;
         }
         else
         {
           p->in_memory = false;
-          printf("EXIT evict false\n");
+          //printf("EXIT evict false\n");
           lock_release(&p->frame->lock);
           return false;
         }
@@ -323,6 +326,7 @@ struct page * page_allocate (void *vaddr, bool read_only)
     p->from_exec = false;
     p->mmap = false;
     p->sector = -1;
+    p->on_stack = false;
 
     struct hash_elem *h = hash_insert(&t->pages, &p->hash_elem);
     if (h == NULL)

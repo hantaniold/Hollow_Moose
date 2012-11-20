@@ -65,7 +65,7 @@ frame_evict (page *p)
     (++hand >= frame_count) ? hand = 0 : 1 ;
     f = &frames[hand];
 
-    if (f->page != NULL && f->page->from_exec == false) 
+    if (f->page != NULL && f->page->from_exec == false && !f->page->on_stack) 
     {
       last_good_frame = f;
       lock_acquire(&f->lock);
@@ -83,32 +83,39 @@ frame_evict (page *p)
     }
   } while (init_hand != hand);
   (++hand >= frame_count) ? hand = 0 : 1 ;
-  printf ("FOUND FRAME AT %d\n",hand);
+  //printf ("FOUND FRAME AT %d\n",hand);
 
   // Victim picked, now acqurie its lock
-  f = last_good_frame;
+  //f = last_good_frame;
+  ASSERT(f != NULL);
+  ASSERT(f->page != NULL);
+  //printf("BEFORE IF\n");
+  /*
   if (f->page == NULL) 
   {
     printf ("THE PAGE OF THE FRAME TO EVICT IS NULL. NOT GOOD\n");
     return;
   }
-
+  */
+  //printf("BEFORE ACQUIRE LOCK\n");
   lock_acquire(&f->lock);
 
-  struct thread * t = thread_current ();
-  struct pagedir * pd = (struct pagedir *) t->pagedir;
-  struct page * p_evicted = f->page;
+  
+
+  //struct thread * t = thread_current ();
+  //struct pagedir * pd = (struct pagedir *) t->pagedir;
+  page * p_evicted = f->page;
   // Write to swap or back to its file?
+  //printf("BEFORE swap_out\n");
   swap_out(p_evicted);
 
   p_evicted->frame = NULL;
   p_evicted->in_memory = false;
 
-  f->page = NULL;
-
-
   // update that metadata in the page's owner
-  pagedir_clear_page((uint32_t *) pd, p->addr);
+  pagedir_clear_page(p_evicted->thread->pagedir, p_evicted->addr);
+
+  f->page = NULL;
 
   //hand the frame to its new owner
   p->frame = f;

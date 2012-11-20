@@ -175,32 +175,39 @@ page_fault (struct intr_frame *f)
 
   if (user && is_on_stack(fault_addr, stack))
   {
-    
-    uint32_t curr_base = (uint32_t)PHYS_BASE - (uint32_t)(t->stack_pages * PGSIZE);
-    uint32_t calc_raw = curr_base - (uint32_t)f->esp;
-
-    uint32_t new_pages;
-    if ((uint32_t)stack - (uint32_t)fault_addr <= 32)
+    if (page_in(fault_addr))
     {
-      //PUSHA instruction handling
-      new_pages = 1;
+      return;
     }
     else
     {
-      new_pages = (calc_raw % PGSIZE == 0) ? calc_raw / PGSIZE : (calc_raw / PGSIZE) + 1;
+      uint32_t curr_base = (uint32_t)PHYS_BASE - (uint32_t)(t->stack_pages * PGSIZE);
+      uint32_t calc_raw = curr_base - (uint32_t)f->esp;
+
+      uint32_t new_pages;
+      if ((uint32_t)stack - (uint32_t)fault_addr <= 32)
+      {
+        //PUSHA instruction handling
+        new_pages = 1;
+      }
+      else
+      {
+        new_pages = (calc_raw % PGSIZE == 0) ? calc_raw / PGSIZE : (calc_raw / PGSIZE) + 1;
+      }
+      void *upage;
+      while (new_pages > 0) {
+        upage = ((uint8_t *) PHYS_BASE - ((t->stack_pages + 1) * PGSIZE));
+        page *p = page_allocate(upage, false);
+        p->on_stack = true;
+        page_in(upage);
+        new_pages--;
+      }
+      return;
     }
-    void *upage;
-    while (new_pages > 0) {
-      upage = ((uint8_t *) PHYS_BASE - ((t->stack_pages + 1) * PGSIZE));
-      page *p = page_allocate(upage, false);
-      page_in(upage);
-      new_pages--;
-    }
-    return;  
   }
   else if (fault_addr <= stack) 
   {
-    printf("ESP: %x FAULT_ADDR %x USER %d\n", stack, fault_addr, (int)user);
+    //printf("ESP: %x FAULT_ADDR %x USER %d\n", stack, fault_addr, (int)user);
     if (fault_addr == 0x5a5a5a5a)
     {
       PANIC ("HOLY FUCKING SHIT\n");
