@@ -68,6 +68,7 @@ void
 swap_init(void) 
 {
   swap_block = block_get_role (BLOCK_SWAP);
+  lock_init (&swap_lock);
   if (swap_block == NULL) 
   {
     printf ("NO SWAP!!!! SWAP DISABLED\n");
@@ -78,7 +79,6 @@ swap_init(void)
     block_sector_t nr_swap_sectors  = block_size (swap_block);
     // Dear god note that 8 block sectors = 1 page sector
     swap_table = bitmap_create (nr_swap_sectors / PAGE_SECTORS);
-    lock_init (&swap_lock);
   }
 
 }
