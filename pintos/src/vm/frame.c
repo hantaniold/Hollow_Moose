@@ -66,17 +66,19 @@ frame_evict (page *p)
 
     // If this page hasn't been accessed then break out
     // of this do-while loop.
-    lock_acquire(&f->lock);
-    iter_p = f->page;
-    lock_release (&f->lock);
-    if (false == pagedir_is_accessed(iter_p->thread->pagedir,iter_p->addr)) 
+    if (f->page != NULL) 
     {
-      hand = init_hand;
+      lock_acquire(&f->lock);
+      iter_p = f->page;
+      lock_release (&f->lock);
+      if (false == pagedir_is_accessed(iter_p->thread->pagedir,iter_p->addr)) 
+      {
+        hand = init_hand;
+      }
+  
+      // In every case we want to set the access bit to false
+      pagedir_set_accessed(iter_p->thread->pagedir,iter_p->addr,false);
     }
-
-    // In every case we want to set the access bit to false
-    pagedir_set_accessed(iter_p->thread->pagedir,iter_p->addr,false);
-
   } while (init_hand != hand);
 
   // Victim picked, now acqurie its lock
