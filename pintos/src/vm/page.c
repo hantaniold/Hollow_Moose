@@ -235,9 +235,10 @@ bool page_in (void *fault_addr)
     else
     {
       bool of = obtain_frame(p);
-      lock_acquire(&p->frame->lock);
-      if (of)
+      if (of && p->frame != NULL)
       {
+        lock_acquire(&p->frame->lock);
+        
         bool b = do_page_in (p);
         if (b)
         {
@@ -254,11 +255,11 @@ bool page_in (void *fault_addr)
       }
       else
       {
-        // Couldn't obtain frame, need to evict.
-        // This call swaps out a frame and gives p the
-        // swapped out frame.
+        printf("EVICTING PAGE\n");
         page_do_evict (p);
-        
+       
+        lock_acquire(&p->frame->lock);
+
         bool b = do_page_in (p);
         if (b)
         {
@@ -271,8 +272,9 @@ bool page_in (void *fault_addr)
           p->in_memory = false;
           lock_release(&p->frame->lock);
           return false;
-        } 
-      } 
+        }
+      }
+       
     }
     return true;
   }
