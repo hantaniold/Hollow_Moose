@@ -6,6 +6,7 @@
 #include "userprog/pagedir.h"
 #include "vm/page.h"
 #include "vm/swap.h"
+#include <stdio.h>
 
 static frame *frames;
 static size_t frame_count;
@@ -53,11 +54,32 @@ frame_evict (page *p)
 {
   lock_acquire (&scan_lock);
   
-  //our sweet algorithm
-  frame * f = &frames[1];
-  // Cock algoreithm
-  //
+  // Clock algorithm
+  frame * f;
+  struct page * iter_p;
+  size_t init_hand = hand;
+  do 
+  {
+    // Increment the hand, grab the next frame.
+    (++hand >= frame_count) ? hand = 0 : 1 ;
+    f = &frames[hand];
 
+    // If this page hasn't been accessed then break out
+    // of this do-while loop.
+    lock_acquire(&f->lock);
+    iter_p = f->page;
+    lock_release (&f->lock);
+    if (false == pagedir_is_accessed(iter_p->thread->pagedir,iter_p->addr)) 
+    {
+      hand = init_hand;
+    }
+
+    // In every case we want to set the access bit to false
+    pagedir_set_accessed(iter_p->thread->pagedir,iter_p->addr,false);
+
+  } while (init_hand != hand);
+
+  // Victim picked, now acqurie its lock
   lock_acquire(&f->lock);
 
   struct thread * t = thread_current ();
@@ -72,14 +94,12 @@ frame_evict (page *p)
   swap_out(p_evicted);
 
   // update that metadata in the page's owner
-
   pagedir_clear_page((uint32_t *) pd, p->addr);
 
   //hand the frame to its new owner
   p->frame = f;
   f->page = p;
 
-  // Somehow use pagedir_clear_page to remove hte mapping?
   lock_release (&f->lock);
   lock_release (&scan_lock);
 
