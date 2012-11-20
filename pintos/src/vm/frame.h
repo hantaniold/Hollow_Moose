@@ -27,5 +27,8 @@ bool obtain_frame(struct page *p);
 //Returns true if frame was freed
 bool free_frame(frame *f);
 
+void acquire_scan_lock();
+void release_scan_lock();
+
 
 #endif

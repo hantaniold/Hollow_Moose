@@ -54,18 +54,27 @@ page_less(const struct hash_elem *a, const struct hash_elem *b, void *aux UNUSED
 static void 
 destroy_page (struct hash_elem *p_, void *aux UNUSED)  
 {
+  
   page *p = hash_entry(p_, page, hash_elem);
 
   if (p != NULL)
   {
     if (p->frame != NULL)
     {
+      if (!p->in_memory && p->sector != -1)
+      {
+        //printf("BEFORE SWAP READ with addr %x\n", p->addr);
+        swap_read(p);
+        //printf("AFTER SWAP READ\n");
+        p->in_memory = true;
+        p->sector == -1;
+      }
       if (p->file != NULL && p->file_offset >= 0 && p->file_bytes >= 0)
       {
         file_seek(p->file, p->file_offset);
         file_write(p->file,(char *)p->frame->base, p->file_bytes); 
       }
-      free_frame(p->frame);
+      free_frame(p->frame); 
     }
       
     struct thread *t = thread_current();
@@ -221,8 +230,10 @@ set_page(struct thread *t, void * upage, void *frame, bool writable)
 //Called to free memory of a page upon process exit
 void page_exit (void)  
 {
+  acquire_scan_lock();
   struct thread *t = thread_current();
   hash_destroy (&t->pages, destroy_page);
+  release_scan_lock();
   return;
 }
 

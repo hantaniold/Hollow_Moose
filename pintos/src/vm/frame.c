@@ -70,7 +70,6 @@ frame_evict (page *p)
       last_good_frame = f;
       lock_acquire(&f->lock);
       iter_p = f->page;
-      lock_release (&f->lock);
       // If this page hasn't been accessed then break out
       // of this do-while loop.
       if (false == pagedir_is_accessed(iter_p->thread->pagedir,iter_p->addr)) 
@@ -80,6 +79,7 @@ frame_evict (page *p)
   
       // In every case we want to set the access bit to false
       pagedir_set_accessed(iter_p->thread->pagedir,iter_p->addr,false);
+      lock_release (&f->lock);
     }
   } while (init_hand != hand);
   (++hand >= frame_count) ? hand = 0 : 1 ;
@@ -161,6 +161,7 @@ obtain_frame(page *p)
 bool
 free_frame(frame *f)
 {
+  used_frames--; 
   if (f != NULL)
   {
     lock_acquire(&f->lock);
@@ -169,4 +170,16 @@ free_frame(frame *f)
     return true;
   }
   return false;
+}
+
+void
+acquire_scan_lock()
+{
+  lock_acquire(&scan_lock);
+}
+
+void 
+release_scan_lock()
+{
+  lock_release(&scan_lock);
 }
