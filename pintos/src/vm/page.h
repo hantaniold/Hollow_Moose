@@ -32,7 +32,7 @@ struct page {
 
   bool in_memory;
   /* Swap information, protected by frame->frame_lock. */
-  block_sector_t sector;       /* Starting sector of swap area, or -1. */
+  int sector;       /* Starting sector of swap area, or -1. */
 
   /* Memory-mapped file information, protected by frame->frame_lock. */
   bool private;               /* False to write back to file,                  

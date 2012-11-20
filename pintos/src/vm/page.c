@@ -2,10 +2,12 @@
 #include "vm/page.h"
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 #include "threads/thread.h"
 #include "threads/vaddr.h"
 #include "threads/malloc.h"
 #include "vm/frame.h"
+#include "vm/swap.h"
 #include "filesys/directory.h"
 #include "filesys/file.h"
 #include "filesys/filesys.h"
@@ -288,11 +290,13 @@ page_do_evict (page *p)
 
 bool page_out (struct page *p) 
 {
+  p = p;
   return false;
 }
 
 bool page_accessed_recently (struct page *p) 
 {
+  p = p;
   return false;  
 }
 
@@ -369,10 +373,13 @@ page_by_addr(void *vaddr)
 
 bool page_lock (const void *addr, bool will_write) 
 {
+  addr = addr;
+  will_write = will_write;
   return false;  
 }
 void page_unlock (const void *addr) 
 {
+  addr = addr;
   return; 
 }
 

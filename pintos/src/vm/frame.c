@@ -3,8 +3,9 @@
 #include "threads/malloc.h"
 #include "threads/palloc.h"
 #include "threads/loader.h"
+#include "userprog/pagedir.h"
 #include "vm/page.h"
-
+#include "vm/swap.h"
 
 static frame *frames;
 static size_t frame_count;
@@ -14,12 +15,14 @@ static size_t used_frames;
 static struct lock scan_lock;
 static size_t hand;
 
+
 void
 frame_init(void)
 {
   void *base;
   
   lock_init(&scan_lock);
+  hand = 0;
   
   frame_count = 0;
   used_frames = 0;
@@ -52,11 +55,13 @@ frame_evict (page *p)
   
   //our sweet algorithm
   frame * f = &frames[1];
+  // Cock algoreithm
+  //
 
   lock_acquire(&f->lock);
 
   struct thread * t = thread_current ();
-  struct pagedir * pd = t->pagedir;
+  struct pagedir * pd = (struct pagedir *) t->pagedir;
   struct page * p_evicted = f->page;
   p_evicted->frame = NULL;
   p_evicted->in_memory = false;
@@ -68,7 +73,7 @@ frame_evict (page *p)
 
   // update that metadata in the page's owner
 
-  pagedir_clear_page(pd, p->addr);
+  pagedir_clear_page((uint32_t *) pd, p->addr);
 
   //hand the frame to its new owner
   p->frame = f;
@@ -87,7 +92,7 @@ obtain_frame(page *p)
   if (used_frames < frame_count)
   {
     lock_acquire(&scan_lock);
-    int i = 0;
+    unsigned i = 0;
     //printf("FRAME COUNT: %d\n", frame_count);
     while (i < frame_count)
     {

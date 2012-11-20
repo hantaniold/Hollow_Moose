@@ -327,7 +327,6 @@ static int
 sys_write (int fd, const void * user_buf, unsigned size)
 {
   // Get the data to write from user memory
-  struct thread *t = thread_current();
   if (show_syscall)  printf ("WRITEINng to fd %d\n",fd);
 
   
@@ -352,9 +351,8 @@ sys_write (int fd, const void * user_buf, unsigned size)
     }
     thread_fs_lock ();
     struct file *target = thread_get_file(fd);
-    struct thread *t = thread_current();
 
-    if (show_syscall) printf ("WRITE: file pointer is %x\n",target);
+    if (show_syscall) printf ("WRITE: file pointer is %p\n",target);
     if (target == NULL) return 0;
     
     unsigned write_count = size;

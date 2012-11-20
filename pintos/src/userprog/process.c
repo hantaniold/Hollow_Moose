@@ -168,7 +168,7 @@ process_wait (tid_t child_tid)
 
 
   while (on_ready_list(child_tid)){
-    bool t_b = on_ready_list(child_tid);
+    //bool t_b = on_ready_list(child_tid);
     thread_yield();
   }
   child_thread_marker m;
