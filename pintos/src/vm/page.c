@@ -151,6 +151,7 @@ load_from_exec(page *p)
   
   if (f != NULL && p->frame != NULL)
   {
+    //printf("READ_BYTES: %d ZERO_BYTES %d ADDR %d\n", read_bytes, zero_bytes, (uint32_t)p->addr);
     ASSERT((read_bytes + zero_bytes) % PGSIZE == 0);
     ASSERT(pg_ofs (p->addr) == 0);
     ASSERT(p->ofs % PGSIZE == 0);
@@ -221,6 +222,7 @@ void page_exit (void)
 //TODO - finish this
 bool page_in (void *fault_addr) 
 {
+  //printf("PAGE_In FAULT ADDR %d\n", (uint32_t)fault_addr);
   page *p = page_for_addr(fault_addr);
   if (p != NULL)
   {
@@ -303,6 +305,8 @@ struct page * page_allocate (void *vaddr, bool read_only)
     p->read_only = read_only;
     p->thread = t;
     p->in_memory = false;
+    p->from_exec = false;
+    p->mmap = false;
     p->sector = -1;
 
     struct hash_elem *h = hash_insert(&t->pages, &p->hash_elem);

@@ -197,14 +197,16 @@ page_fault (struct intr_frame *f)
     }
     return;  
   }
-  else if (user && fault_addr <= stack) 
+  else if (fault_addr <= stack) 
   {
+    //printf("PAGE IN\n");
     if (page_in(fault_addr))
     {
       return;
     }
     else
     {
+      //printf("FAILED PAGE IN\n");
       f->eip = (void (*) (void)) f->eax;
       f->eax = 0;
       t->retval = -1;
@@ -222,7 +224,7 @@ page_fault (struct intr_frame *f)
     }
   }
   else
-  {  
+  { 
     f->eip = (void (*) (void)) f->eax;
     f->eax = 0;
     t->retval = -1;
