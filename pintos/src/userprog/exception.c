@@ -200,6 +200,7 @@ page_fault (struct intr_frame *f)
   }
   else if (fault_addr <= stack) 
   {
+    //printf("ESP: %x FAULT_ADDR %x USER %d\n", stack, fault_addr, (int)user);
     if (page_in(fault_addr))
     {
       return;

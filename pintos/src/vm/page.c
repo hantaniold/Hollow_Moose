@@ -93,10 +93,10 @@ page_for_addr (const void *address)
     uint8_t *addr_cmp = (uint8_t *)address;
     uint8_t *vaddr_cmp = (uint8_t *)p->addr;
     
-    //printf("addr_cmp %x , vaddr_cmp %x\m , address %x\n", addr_cmp, vaddr_cmp, address);
+    //printf("addr_cmp %x , vaddr_cmp %x\ , address %x\n", addr_cmp, vaddr_cmp, address);
 
 
-    if (addr_cmp >= vaddr_cmp && addr_cmp <= (vaddr_cmp + PGSIZE))
+    if (addr_cmp >= vaddr_cmp && addr_cmp < (vaddr_cmp + PGSIZE))
     {
       return p;
     }
@@ -161,7 +161,6 @@ load_from_exec(page *p)
     ASSERT(p->ofs % PGSIZE == 0);
 
     file_seek(f, p->ofs);
-    lock_acquire(&p->frame->lock);
     void *base = p->frame->base;
     
     size_t page_read_bytes = read_bytes < PGSIZE ? read_bytes : PGSIZE;
@@ -176,7 +175,6 @@ load_from_exec(page *p)
     //read_bytes -= page_read_bytes;
     //zero_bytes -= page_zero_bytes;
    
-    lock_release(&p->frame->lock);
     return true;
   }
   else
@@ -194,9 +192,7 @@ load_from_file(page *p)
   if (p->file_bytes < PGSIZE)
   {
     uint32_t zero_count = PGSIZE - p->file_bytes;
-    lock_acquire(&p->frame->lock);  
     memset(p->frame->base + p->file_bytes, 0, zero_count);
-    lock_release(&p->frame->lock);
   }
   return true;
 }
@@ -239,17 +235,20 @@ bool page_in (void *fault_addr)
     else
     {
       bool of = obtain_frame(p);
+      lock_acquire(&p->frame->lock);
       if (of)
       {
         bool b = do_page_in (p);
         if (b)
         {
           p->in_memory = true;
+          lock_release(&p->frame->lock);
           return true;
         }
         else
         {
           p->in_memory = false;
+          lock_release(&p->frame->lock);
           return false;
         }
       }
@@ -264,11 +263,13 @@ bool page_in (void *fault_addr)
         if (b)
         {
           p->in_memory = true;
+          lock_release(&p->frame->lock);
           return true;
         }
         else
         {
           p->in_memory = false;
+          lock_release(&p->frame->lock);
           return false;
         } 
       } 
