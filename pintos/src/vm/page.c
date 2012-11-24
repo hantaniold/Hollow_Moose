@@ -77,7 +77,8 @@ destroy_page (struct hash_elem *p_, void *aux UNUSED)
       free_frame(p->frame); 
     }
       
-    pagedir_clear_page(p->thread->pagedir, p->addr);
+    struct thread *t = thread_current();
+    pagedir_clear_page(t->pagedir, p->addr);
 
     free(p);
   }

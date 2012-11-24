@@ -1,25 +1,17 @@
-       	       	    +---------------------------+
-		    |		CS 140		|
+   	    +---------------------------+
+		    |		CS 140		              |
 		    | PROJECT 3: VIRTUAL MEMORY	|
-		    |	   DESIGN DOCUMENT	|
+		    |	   DESIGN DOCUMENT	      |
 		    +---------------------------+
 
 ---- GROUP ----
 
->> Fill in the names and email addresses of your group members.
-
-FirstName LastName <email@domain.example>
-FirstName LastName <email@domain.example>
-FirstName LastName <email@domain.example>
+Sean Hogan <seanhogan@uchicago.edu>
+Charles Cary <cioc@uchicago.edu>
 
 ---- PRELIMINARIES ----
 
->> If you have any preliminary comments on your submission, notes for the
->> TAs, or extra credit, please give them here.
-
->> Please cite any offline or online sources you consulted while
->> preparing your submission, other than the Pintos documentation, course
->> text, lecture notes, and course staff.
+None
 
 			PAGE TABLE MANAGEMENT
 			=====================
@@ -29,6 +21,53 @@ FirstName LastName <email@domain.example>
 >> A1: Copy here the declaration of each new or changed `struct' or
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
+
+frame.h
+*******
+
+struct frame {
+  struct lock lock; // Synch for reading this data.
+  void *base;  // Base of the frame in physical memory
+  struct page *page; // Points to the virtual page for this frame.
+};
+
+typedef struct frame frame;
+
+frame.c
+*******
+
+static frame * frames; // ARray of pointers to frames (frame taple)
+static size_t frame_count; // # of frames in frame table
+static size_t used_frames; // # of currently used frames
+
+static struct lock scan_lock; // Lock for searching through frames array
+static size_hand; // Next frame t inspect for clock algorithm for page evition
+
+page.h
+******
+
+struct page {
+  void * addr; // The user virtual address.
+  bool read_only; // Is this page read only?
+  struct thread * thread; // The thread that owns this page.
+
+  uint32_t read_bytes;
+  uint32_t zero_bytes;
+  off_t ofs;
+
+  bool from_exec; // Is this page's data from an executable?
+  bool on_stack; // Is this page in the stack of a thread?
+
+  struct hash_elem hash_elem;
+
+  struct frame * frame; // Points to the frame this page's data resides in.
+
+  bool in_memory; // Whether this page is in memory or not.
+
+   ...
+
+};
+typedef struct page page;
 
 ---- ALGORITHMS ----
 
@@ -51,17 +90,33 @@ FirstName LastName <email@domain.example>
 
 		       PAGING TO AND FROM DISK
 		       =======================
-
 ---- DATA STRUCTURES ----
 
->> B1: Copy here the declaration of each new or changed `struct' or
->> `struct' member, global or static variable, `typedef', or
->> enumeration.  Identify the purpose of each in 25 words or less.
+page.c
+
+struct page {
+  ...
+  int sector; // The starting sector, divided by 8, of the swap area. Or -1 if not in swap
+  ..
+
+}
+
+static struct bitmap * swap_table; // A bitmap marking whether or not a certain portion of the swap table is in use.
+static struct lock swap_lock; // For synch when scanning the swap_table
+static struct block * swap_block; // Used for accessing swap.
+
 
 ---- ALGORITHMS ----
 
 >> B2: When a frame is required but none is free, some frame must be
 >> evicted.  Describe your code for choosing a frame to evict.
+
+****
+We keep a clock hand at some frame table index (starts at zero). Since there is an access bit set when a page is used, we iterate over all of the frames until we find a used frame that doesn't have its access bit set. We choose that frame to evict.
+
+When a frame is checked and has been accessed, we flip the access bit to 0. If all frames have been accessed, then the frame at the start of the clock hand is chosen.
+
+The state of the clock hand stays the same from fault to fault - so if it moves to 5, then on the next page fault requiring an evict, the clock hand will still be at 5.
 
 >> B3: When a process P obtains a frame that was previously used by a
 >> process Q, how do you adjust the page table (and any other data
@@ -112,6 +167,18 @@ FirstName LastName <email@domain.example>
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
+struct page {
+...
+  /* Memory-mapped file information, protected by frame->frame_lock. */
+  bool private;               /* False to write back to file,                  
+				 true to write back to swap. */
+  struct file *file;          /* File. */
+  off_t file_offset;          /* Offset in file. */
+  off_t file_bytes;           /* Bytes to read/write, 1...PGSIZE. */
+  bool mmap; // Is this page mmap'd?
+...
+};
+
 ---- ALGORITHMS ----
 
 >> C2: Describe how memory mapped files integrate into your virtual
@@ -142,14 +209,24 @@ the quarter.
 >> In your opinion, was this assignment, or any one of the three problems
 >> in it, too easy or too hard?  Did it take too long or too little time?
 
+A little too hard, and took a little too long. Race conditions are terrible things.
+
 >> Did you find that working on a particular part of the assignment gave
 >> you greater insight into some aspect of OS design?
+
+Yes, the complexity. This stuff is hard.
 
 >> Is there some particular fact or hint we should give students in
 >> future quarters to help them solve the problems?  Conversely, did you
 >> find any of our guidance to be misleading?
 
+No.
+
 >> Do you have any suggestions for the TAs to more effectively assist
 >> students, either for future quarters or the remaining projects?
 
+No.
+
 >> Any other comments?
+
+No.
