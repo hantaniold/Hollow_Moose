@@ -107,7 +107,16 @@ frame_evict (page *p)
   page * p_evicted = f->page;
   // Write to swap or back to its file?
   //printf("BEFORE swap_out\n");
-  swap_out(p_evicted);
+  if (p_evicted->mmap == true)
+  {
+    struct file *fp = p_evicted->file;
+    file_seek (fp, p_evicted->file_offset);
+    file_write (fp, p_evicted->frame->base, p_evicted->file_bytes);
+  } 
+  else 
+  {
+    swap_out(p_evicted);
+  }
 
   p_evicted->frame = NULL;
   p_evicted->in_memory = false;
