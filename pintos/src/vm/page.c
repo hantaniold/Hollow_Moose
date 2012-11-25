@@ -127,7 +127,7 @@ static bool do_page_in (struct page *p)
   else if (p->from_exec)
   {
     bool b = load_from_exec(p);
-    writable = true;
+    writable = p->read_only;
     if (!b)
     {
       printf("LOAD FROM FILE FAILED\n");
@@ -137,6 +137,7 @@ static bool do_page_in (struct page *p)
   else if (p->mmap)
   {
     bool b = load_from_file(p);
+    writable = true;
     if (!b)
     {
       return false;
