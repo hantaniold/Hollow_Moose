@@ -627,7 +627,7 @@ setup_stack (void **esp, char * file_name)
   bool success = false;
   void *userpage = ((uint8_t *) PHYS_BASE) - PGSIZE;
   struct thread *t = thread_current();
-  kpage = page_allocate(userpage, false);
+  kpage = page_allocate(userpage, true);
   if (kpage == NULL || !page_in(userpage))
   {
     return false;

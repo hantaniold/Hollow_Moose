@@ -169,10 +169,20 @@ page_fault (struct intr_frame *f)
   write = (f->error_code & PF_W) != 0;
   user = (f->error_code & PF_U) != 0;
 
+ 
+
   struct thread *t = thread_current();
   void *stack = user ? f->esp : t->esp_for_switch;
-
-
+  
+  if (!not_present)
+  {
+    f->eip = (void (*) (void)) f->eax;
+    f->eax = 0;
+    t->retval = -1;
+    thread_exit();
+    return;
+  }
+  
   if (user && is_on_stack(fault_addr, stack))
   {
     if (page_in(fault_addr))
