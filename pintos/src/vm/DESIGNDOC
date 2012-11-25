@@ -74,19 +74,34 @@ typedef struct page page;
 >> A2: In a few paragraphs, describe your code for locating the frame,
 >> if any, that contains the data of a given page.
 
+Locating the frame on a page fault:
+
+call page_for_addr, use a hash table to find all base virtual addresses
+of current pages, if one is found, then we return that page.
+
+From there the page has a pointer to its frame, if it's in memory.
+
 >> A3: How does your code coordinate accessed and dirty bits between
 >> kernel and user virtual addresses that alias a single frame, or
 >> alternatively how do you avoid the issue?
+
+I think we don't allow aliasing, every frame only points to one page.
 
 ---- SYNCHRONIZATION ----
 
 >> A4: When two user processes both need a new frame at the same time,
 >> how are races avoided?
 
+We use a lock, scan_lock, around the frame table, so only one thread can iterate through it at a time.
+
 ---- RATIONALE ----
 
 >> A5: Why did you choose the data structure(s) that you did for
 >> representing virtual-to-physical mappings?
+
+A hash table is a convenient way to store a dynamically sized set of page structures.
+
+Within the pages, pointers to frames seemed the logical way to go.
 
 		       PAGING TO AND FROM DISK
 		       =======================
@@ -122,9 +137,19 @@ The state of the clock hand stays the same from fault to fault - so if it moves 
 >> process Q, how do you adjust the page table (and any other data
 >> structures) to reflect the frame Q no longer has?
 
+We remove the mapping from the thread's page directory.
+That page's page struct is not removed, but we set its frame poitner to null as it no longer references a physical frame, and set its "in_memory" bool to false.
+
+If the page's data was swapped out, we set the sector number of the page so we know it is swapped.
+
+The frame is readjusted to point to the page that was referenced, and the page that was referenced also points to the frame.
+
+
 >> B4: Explain your heuristic for deciding whether a page fault for an
 >> invalid virtual address should cause the stack to be extended into
 >> the page that faulted.
+
+We check if the faulting address is within 32 bytes of the stack. If it is then we allocate a new page since it was probably a PUSHA instruction.
 
 ---- SYNCHRONIZATION ----
 
@@ -133,21 +158,39 @@ The state of the clock hand stays the same from fault to fault - so if it moves 
 >> textbook for an explanation of the necessary conditions for
 >> deadlock.)
 
+
+scan_lock - one for the entire frame table
+
+frame_lock - each frame has one
+
+swap_lock - one for the entire swap table. Done to make sure changes to the bitmap swap_table are atomic.
+
 >> B6: A page fault in process P can cause another process Q's frame
 >> to be evicted.  How do you ensure that Q cannot access or modify
 >> the page during the eviction process?  How do you avoid a race
 >> between P evicting Q's frame and Q faulting the page back in?
+
+For the former, we use a frame lock on the frame, only one thread can touch the page at a time since pages are per-thread.
+
+for the latter issue, we use a frame lock around modifying the frame data - so the eviction and then faulting cannot happen at the same time, since frame metadata (such as what page the frame references) has a lock around it.
 
 >> B7: Suppose a page fault in process P causes a page to be read from
 >> the file system or swap.  How do you ensure that a second process Q
 >> cannot interfere by e.g. attempting to evict the frame while it is
 >> still being read in?
 
+
+Frame lock.
+
 >> B8: Explain how you handle access to paged-out pages that occur
 >> during system calls.  Do you use page faults to bring in pages (as
 >> in user programs), or do you have a mechanism for "locking" frames
 >> into physical memory, or do you use some other design?  How do you
 >> gracefully handle attempted accesses to invalid virtual addresses?
+
+No, we use page faults.
+
+We kill the process if there is a bad access.
 
 ---- RATIONALE ----
 
@@ -158,6 +201,9 @@ The state of the clock hand stays the same from fault to fault - so if it moves 
 >> where your design falls along this continuum and why you chose to
 >> design it this way.
 
+
+Well, we have locks for each frame and one for the frame table. This is a little extreme but lets us have locks around each frame.
+
 			 MEMORY MAPPED FILES
 			 ===================
 
@@ -166,6 +212,25 @@ The state of the clock hand stays the same from fault to fault - so if it moves 
 >> C1: Copy here the declaration of each new or changed `struct' or
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
+
+thread.h
+-------
+
+typedef struct {
+  int fd;
+  void *start;
+} mmap_marker;
+
+
+in thread struct:
+
+struct has hpages; // Page table for thread
+uint32_t stack_pages; // # of stack pages allocated to stack
+
+
+
+page.c
+------
 
 struct page {
 ...
@@ -185,8 +250,21 @@ struct page {
 >> memory subsystem.  Explain how the page fault and eviction
 >> processes differ between swap pages and other pages.
 
+A mmap'd file's data will reside in one or more pages, with the correct state in the pages set to indicate it represents a mmap'd file's data.
+
+Eviction for a swap page just writes the entire page to swap. 
+
+Eviction for a mmap'd page will overwrite the file on disk in that section of the page.
+
+If the evicted page is all zeros then we don't do anything except remove the frame metadata.
+
 >> C3: Explain how you determine whether a new file mapping overlaps
 >> any existing segment.
+
+With the provided address to mmap, we call a helper function called page_allocate which returns null.
+
+We can then check if the new address for the mmap is in an existing page and if it is, there will be overlap.
+
 
 ---- RATIONALE ----
 
@@ -196,6 +274,8 @@ struct page {
 >> that much of their implementation can be shared.  Explain why your
 >> implementation either does or does not share much of the code for
 >> the two situations.
+
+It shares the eviction process code - the algorithm doesn't differ except for the eivction part, at which we check the state of the page and determine whethe ror not it was mmap'd or swaped
 
 			   SURVEY QUESTIONS
 			   ================
