@@ -67,7 +67,7 @@ destroy_page (struct hash_elem *p_, void *aux UNUSED)
         swap_read(p);
         //printf("AFTER SWAP READ\n");
         p->in_memory = true;
-        p->sector == -1;
+        p->sector = -1;
       }
       if (p->file != NULL && p->file_offset >= 0 && p->file_bytes >= 0)
       {
@@ -122,7 +122,7 @@ static bool do_page_in (struct page *p)
     swap_read(p);
     //printf("AFTER SWAP READ\n");
     p->in_memory = true;
-    p->sector == -1;
+    p->sector = -1;
   }
   else if (p->from_exec)
   {
