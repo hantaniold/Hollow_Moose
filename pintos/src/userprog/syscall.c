@@ -196,7 +196,7 @@ sys_wait(pid_t pid)
 static bool
 sys_create (const char *file, unsigned initial_size) 
 {
-  if ((uint32_t) file <= 0x08048000 || ((PHYS_BASE - 4) <= file ))
+  if ((uint32_t) file <= (uint32_t) 0x08048000 || ((uint32_t) (PHYS_BASE - 4) <= (uint32_t) file ))
   {
     sys_exit(-1);
   }
@@ -222,7 +222,8 @@ sys_halt (void)
 static int 
 sys_open (const char * file)
 {
-  if ((uint32_t) file <= 0x08048000 || ((PHYS_BASE - 4) <= file ))
+  if ((uint32_t) file <= (uint32_t) 0x08048000 || ((uint32_t) (PHYS_BASE - 4) <= (uint32_t) file ))
+  //if ((uint32_t) file <= 0x08048000 || ((PHYS_BASE - 4) <= file ))
   {
     sys_exit(-1);
   }
@@ -532,7 +533,8 @@ copy_in_string (const char *us)
 static int 
 sys_remove (const char * file)
 {
-   if ((uint32_t) file <= 0x08048000 || ((PHYS_BASE - 4) <= file ))
+   if ((uint32_t) file <= (uint32_t) 0x08048000 || ((uint32_t) (PHYS_BASE - 4) <= (uint32_t) file ))
+  // if ((uint32_t) file <= 0x08048000 || ((PHYS_BASE - 4) <= file ))
    {
      sys_exit(-1);         
    } 

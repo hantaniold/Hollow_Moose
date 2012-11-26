@@ -205,7 +205,7 @@ process_exit (void)
 
   size_t len = strcspn(cur->name, " ");
   char name[16];
-  strlcpy(&name, cur->name, len + 1); 
+  strlcpy((char *) &name, cur->name, len + 1); 
  
   printf ("%s: exit(%d)\n", name, cur->retval);
 
@@ -345,7 +345,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
   size_t len = strcspn(file_name, " ");
   char name[16];
-  strlcpy(&name, file_name, len + 1);
+  strlcpy((char *) &name, file_name, len + 1);
   file = filesys_open (name);
   if (file == NULL) 
     {
@@ -426,7 +426,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
                   read_bytes = 0;
                   zero_bytes = ROUND_UP (page_offset + phdr.p_memsz, PGSIZE);
                 }
-              if (!load_segment (file, file_page, mem_page,
+              if (!load_segment (file, file_page, (uint8_t *) mem_page,
                                  read_bytes, zero_bytes, writable))
                 goto done;
             }
@@ -438,7 +438,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
   /* Set up stack. */
   t->stack_pages = 1;
-  if (!setup_stack (esp,file_name))
+  if (!setup_stack (esp,(char *) file_name))
     goto done;
 
   /* Start address. */
@@ -516,7 +516,7 @@ validate_segment (const struct Elf32_Phdr *phdr, struct file *file)
    Return true if successful, false if a memory allocation error
    or disk read error occurs. */
 static bool
-load_segment (struct file *file, off_t ofs, uint8_t *upage,
+load_segment (struct file *file UNUSED, off_t ofs, uint8_t *upage,
               uint32_t read_bytes, uint32_t zero_bytes, bool writable) 
 {
   ASSERT ((read_bytes + zero_bytes) % PGSIZE == 0);
@@ -626,7 +626,7 @@ setup_stack (void **esp, char * file_name)
   page *kpage;
   bool success = false;
   void *userpage = ((uint8_t *) PHYS_BASE) - PGSIZE;
-  struct thread *t = thread_current();
+  //struct thread *t = thread_current();
   kpage = page_allocate(userpage, true);
   if (kpage == NULL || !page_in(userpage))
   {
@@ -645,7 +645,7 @@ setup_stack (void **esp, char * file_name)
     }
 
 
-    char *cpy = kaddr + PGSIZE - cmd_len;
+    char *cpy = (char *) kaddr + PGSIZE - cmd_len;
     //char *mirror = cpy;
     memcpy((void *)cpy, file_name, cmd_len);
     *esp -= cmd_len;
@@ -704,8 +704,8 @@ setup_stack (void **esp, char * file_name)
     *esp -= sizeof(int);
     //mirror -= sizeof(int);
 
-    memcpy(*esp - sizeof(void (*)()), &zero, sizeof(void (*)()));
-    *esp -= sizeof(void (*)());
+    memcpy(*esp - sizeof(void (*)(void)), &zero, sizeof(void (*)(void)));
+    *esp -= sizeof(void (*)(void));
     //mirror -= sizeof(void (*)());
   }
   return success;
