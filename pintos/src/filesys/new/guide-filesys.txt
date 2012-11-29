@@ -1,0 +1,64 @@
+
+Project 4 Guideline
+
+
+To obtain all the files, please go to:
+http://www.classes.cs.uchicago.edu/archive/2012/fall/23000-1/proj/p4
+
+In this directory, we provide some code segments to speed you up with the
+project.  It is totally permissible to simply copy the code segments bit by
+bit.  DON'T COPY THE WHOLE FILE DIRECTLY -- these files are not compilable.
+Please add new features bit by bit!
+
+As usual, you are NOT required to follow our guideline.  You can design and
+implement your own solution in anyway you like as long as you pass the
+tests.
+
+Please IGNORE the readahead and periodic flush requirements.  I believe you
+can get 100% score without implementing these features.  (If I'm wrong,
+please let me know).  If you want to add these features for fun, please
+feel free to do so.
+
+You should use two inode structures: in-memory (struct inode) and on-disk
+inode (struct inode_disk). In-memory inode can have more information (as
+many as you want) compared to on-disk inode.
+
+Skim through all the test files, so you can create your own implementation
+roadmap.
+
+The first couple of test files do not need persistence. Hence, you can
+create a simple buffer cache layer that does not perform eviction.
+
+Implement directory first, don't try to implement multi-level indexed
+until it's needed.
+
+Do NOT try to manually write your block to the disk on file close, etc.
+Writes to disk only happen under sync(), eviction, and shut down.
+Initially, you will fail all the tests that create big files, big
+directories, and big working set. Later, you can add the necessary features
+bit by bit.
+
+Again, add new features bit by bit, commit, then repeat.  Don't try to
+implement all the requirements all together.
+
+In this project, you will also use condition variables.  For more, please
+read the Appendix A.3.4 Monitors.
+
+C programming language allows you to write 'goto' construct.
+If you have a complex logic (e.g. in cache_lock), you can 
+use 'goto' like this:
+
+int func () {
+
+ try_again:
+   // ...
+   if (someCondition) { 
+     goto try_again;
+   }
+   else {
+     goto done;
+   }
+
+ done:
+   return result;
+}
