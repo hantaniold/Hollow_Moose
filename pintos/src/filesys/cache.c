@@ -29,16 +29,21 @@ struct cache_block cache[CACHE_CNT];
 struct lock cache_sync;
 static uint32_t hand = 0;
 
-
+//TODO - VERIFY THAT OUR TIMER WORKS AND POTENTIALLY BRING IN PROJECT 1 CODE
 static void flushd_init (void);
+
+//TODO - IMPLEMENT THESE
 static void readaheadd_init (void);
 static void readaheadd_submit (block_sector_t sector);
 
 static struct cache_block *in_cache(block_sector_t sector);
-static struct cache_block *find_empty();
-static struct cache_block *try_to_empty();
+static struct cache_block *find_empty(void);
+static struct cache_block *try_to_empty(void);
 static void flush_block(struct cache_block *cb);
 static void clear_block(struct cache_block *cb);
+static bool add_exclusive_lock(struct cache_block *cb);
+static bool add_nonexclusive_lock(struct cache_block *cb);
+static bool add_lock(struct cache_block *cb, enum lock_type t);
 
 /* Initializes cache. */
 void
@@ -61,50 +66,62 @@ cache_init (void)
 struct cache_block * 
 in_cache(block_sector_t sector)
 {
-  int i;
+  uint8_t i;
   for (i = 0; i < CACHE_CNT; ++i){
-   struct cache_block *cb = &cache[i];
-   if (cb->sector == sector) {
-     return cb;
-   }
+    struct cache_block *cb = &cache[i];
+    if (!lock_held_by_current_thread(&cb->block_lock) && 
+         lock_try_acquire(&cb->block_lock)) {
+      if (cb->sector == sector) {
+        return cb;
+      }
+      lock_release(&cb->block_lock); 
+    }
   }
   return NULL;
 }
 
 //cache_sync must already be acquired
 struct cache_block *
-find_empty()
+find_empty(void)
 {
-  int i;
+  uint8_t i;
   for (i = 0; i < CACHE_CNT; ++i){
-   struct cache_block *cb = &cache[i];
-   if (cb->sector == -1) {
-     return cb;
-   }
+    struct cache_block *cb = &cache[i];
+    if (!lock_held_by_current_thread(&cb->block_lock) && 
+         lock_try_acquire(&cb->block_lock)) {
+      if (cb->sector == INVALID_SECTOR) {
+        return cb;
+      }
+      lock_release(&cb->block_lock); 
+    }
   }
   return NULL; 
 }
 
 //cache_sync must already be acquired
+//TODO - NEED TO MAKE THIS TRY ACQUIRE CODE
 //TODO - NEED TO ACCOUNT FOR value of metadata versus data
 struct cache_block *
-try_to_empty()
+try_to_empty(void)
 {
   uint32_t hand_start = hand;
    
   for (; hand < CACHE_CNT; ++hand){
-   struct cache_block *cb = &cache[hand];
-   if ( cb->readers == 0 &&
-        cb->read_waiters == 0 &&
-        cb->writers == 0 &&
-        cb->write_waiters == 0) {
-    flush_block(cb); 
-    return cb;
-   }
+    struct cache_block *cb = &cache[hand];
+    lock_acquire(&cb->block_lock);
+    if ( cb->readers == 0 &&
+         cb->read_waiters == 0 &&
+         cb->writers == 0 &&
+         cb->write_waiters == 0) {
+     flush_block(cb); 
+     return cb;
+    }
+    lock_release(&cb->block_lock);
   }
   hand = 0;
   for (; hand < hand_start; ++hand) {
     struct cache_block *cb = &cache[hand];
+    lock_acquire(&cb->block_lock);
     if ( cb->readers == 0 &&
         cb->read_waiters == 0 &&
         cb->writers == 0 &&
@@ -112,10 +129,44 @@ try_to_empty()
       flush_block(cb); 
       return cb;
     }
+    lock_release(&cb->block_lock);
   }
   return NULL;  
 }
 
+//cache_sync must already be held
+//cb->block_lock must already be held
+bool 
+add_lock(struct cache_block *cb, enum lock_type t)
+{
+  if (t == EXCLUSIVE) {
+    return add_exclusive_lock(cb);
+  } else {
+    return add_nonexclusive_lock(cb);
+  }
+}
+
+
+//cache_sync must already be acquired
+//exclusive block_locks are not released
+bool 
+add_exclusive_lock(struct cache_block *cb)
+{
+  cb->writers += 1;
+  return true;
+}
+
+//cache_sync must already be acquired
+//non_exclusive will release block_lock
+bool 
+add_nonexclusive_lock(struct cache_block *cb)
+{
+  cb->readers += 1;
+  lock_release(&cb->block_lock);
+  return true;
+}
+
+//cache_sync must already be acquired
 void 
 flush_block(struct cache_block *cb)
 {
@@ -135,7 +186,7 @@ clear_block(struct cache_block *cb)
   cb->read_waiters = 0;
   cb->writers = 0;
   cb->write_waiters = 0;
-  cb->sector = -1;
+  cb->sector = INVALID_SECTOR;
   cb->up_to_date = true;
   cb->dirty = false;
 }
@@ -164,29 +215,27 @@ cache_flush (void)
 struct cache_block *
 cache_lock (block_sector_t sector, enum lock_type type) 
 {
-  int i;
-
   try_again:
   lock_acquire(&cache_sync);
   /* Is the block already in-cache? */
   struct cache_block *cb;
   cb = in_cache(sector);
   if (cb != NULL) {
-    //TODO - LOCKS AND SUCH
+    add_lock(cb, type);
     lock_release(&cache_sync); 
     return cb;
   } else {
     /* Not in cache.  Find empty slot. */
     cb = find_empty(); 
     if (cb != NULL) {
-      //TODO - LOCKS AND SUCH
+      add_lock(cb, type); 
       lock_release(&cache_sync);
       return cb;
     } else {
       /* No empty slots.  Evict something. */
       cb = try_to_empty();
       if (cb != NULL) {
-        //TODO - LOCKS AND SUCH
+        add_lock(cb, type);
         lock_release(&cache_sync);
         return cb;
       } else {
@@ -214,9 +263,10 @@ cache_lock (block_sector_t sector, enum lock_type type)
 void *
 cache_read (struct cache_block *b) 
 {
-  // ...
-  //      block_read (fs_device, b->sector, b->data);
-  // ...
+  lock_acquire(&b->data_lock);
+  block_read(fs_device, b->sector, b->data);
+  lock_release(&b->data_lock);
+  return b->data;
 }
 
 /* Zero out block B, without reading it from disk, and return a
@@ -225,10 +275,12 @@ cache_read (struct cache_block *b)
 void *
 cache_zero (struct cache_block *b) 
 {
-  // ...
-  //  memset (b->data, 0, BLOCK_SECTOR_SIZE);
-  // ...
-
+  if (lock_held_by_current_thread(&b->block_lock)) {
+    lock_acquire(&b->data_lock);
+    memset(b->data, 0, BLOCK_SECTOR_SIZE);    
+    lock_release(&b->data_lock);
+  }
+  return NULL;
 }
 
 /* Marks block B as dirty, so that it will be written back to
@@ -238,7 +290,9 @@ cache_zero (struct cache_block *b)
 void
 cache_dirty (struct cache_block *b) 
 {
-  // ...
+  lock_acquire(&b->block_lock);
+  b->dirty = true;
+  lock_release(&b->block_lock);
 }
 
 /* Unlocks block B.
@@ -247,7 +301,11 @@ cache_dirty (struct cache_block *b)
 void
 cache_unlock (struct cache_block *b) 
 {
-  // ...
+  if (!lock_held_by_current_thread(&b->block_lock)) {
+    //non-exclusive lock
+  } else {
+    //exclusive lock
+  }
 }
 
 /* If SECTOR is in the cache, evicts it immediately without
@@ -256,7 +314,12 @@ cache_unlock (struct cache_block *b)
 void
 cache_free (block_sector_t sector) 
 {
-  // ...
+  struct cache_block *cb =  in_cache(sector);
+  if (cb != NULL) {
+    lock_acquire(&cb->block_lock);
+    clear_block(cb);
+    lock_release(&cb->block_lock);
+  }
 }
 
 
@@ -275,10 +338,9 @@ flushd_init (void)
 static void
 flushd (void *aux UNUSED) 
 {
-  for (;;) 
-    {
-      timer_msleep (30 * 1000);
-      cache_flush ();
-    }
+  for (;;) {
+    timer_msleep (30 * 1000);
+    cache_flush ();
+  }
 }
 
