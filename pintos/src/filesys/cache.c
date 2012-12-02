@@ -29,6 +29,8 @@ struct cache_block cache[CACHE_CNT];
 struct lock cache_sync;
 static uint32_t hand = 0;
 
+static bool DEBUG = false;
+
 //TODO - VERIFY THAT OUR TIMER WORKS AND POTENTIALLY BRING IN PROJECT 1 CODE
 static void flushd_init (void);
 
@@ -187,7 +189,9 @@ clear_block(struct cache_block *cb)
   cb->writers = 0;
   cb->write_waiters = 0;
   cb->sector = INVALID_SECTOR;
-  cb->up_to_date = true;
+  lock_acquire(&cb->data_lock);
+  cb->up_to_date = false;
+  lock_release(&cb->data_lock);
   cb->dirty = false;
 }
 
@@ -215,6 +219,9 @@ cache_flush (void)
 struct cache_block *
 cache_lock (block_sector_t sector, enum lock_type type) 
 {
+  if (DEBUG) {
+    printf("ENTER cache_lock\n");
+  }
   try_again:
   lock_acquire(&cache_sync);
   /* Is the block already in-cache? */
@@ -222,6 +229,7 @@ cache_lock (block_sector_t sector, enum lock_type type)
   cb = in_cache(sector);
   if (cb != NULL) {
     add_lock(cb, type);
+    cb->sector = sector;
     lock_release(&cache_sync); 
     return cb;
   } else {
@@ -229,6 +237,7 @@ cache_lock (block_sector_t sector, enum lock_type type)
     cb = find_empty(); 
     if (cb != NULL) {
       add_lock(cb, type); 
+      cb->sector = sector;
       lock_release(&cache_sync);
       return cb;
     } else {
@@ -236,6 +245,7 @@ cache_lock (block_sector_t sector, enum lock_type type)
       cb = try_to_empty();
       if (cb != NULL) {
         add_lock(cb, type);
+        cb->sector = sector;
         lock_release(&cache_sync);
         return cb;
       } else {
@@ -263,10 +273,19 @@ cache_lock (block_sector_t sector, enum lock_type type)
 void *
 cache_read (struct cache_block *b) 
 {
+  if (DEBUG) {
+    printf("ENTER CACHE_READ\n");
+  }
   lock_acquire(&b->data_lock);
-  block_read(fs_device, b->sector, b->data);
-  lock_release(&b->data_lock);
-  return b->data;
+  if (b->up_to_date) {
+    lock_release(&b->data_lock);
+    return &b->data;
+  } else {
+    b->up_to_date = true; 
+    block_read(fs_device, b->sector, b->data);
+    lock_release(&b->data_lock);
+    return &b->data;
+  }
 }
 
 /* Zero out block B, without reading it from disk, and return a

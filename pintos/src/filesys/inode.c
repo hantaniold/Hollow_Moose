@@ -5,6 +5,7 @@
 #include <string.h>
 #include "filesys/filesys.h"
 #include "filesys/free-map.h"
+#include "filesys/cache.h"
 #include "threads/malloc.h"
 
 /* Identifies an inode. */
@@ -256,6 +257,54 @@ inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset)
 
   return bytes_read;
 }
+
+off_t 
+inode_read_at_buffer_cache_test ( struct inode *inode, 
+                                  void *buffer_, 
+                                  off_t size, 
+                                  off_t offset)
+{
+  //printf("inode_read_at_buffer_cache_test\n");
+  uint8_t *buffer = buffer_;
+  off_t bytes_read = 0;
+  uint8_t *bounce = NULL;
+
+  while (size > 0) 
+    {
+      /* Disk sector to read, starting byte offset within sector. */
+      block_sector_t sector_idx = byte_to_sector (inode, offset);
+      int sector_ofs = offset % BLOCK_SECTOR_SIZE;
+
+      /* Bytes left in inode, bytes left in sector, lesser of the two. */
+      off_t inode_left = inode_length (inode) - offset;
+      int sector_left = BLOCK_SECTOR_SIZE - sector_ofs;
+      int min_left = inode_left < sector_left ? inode_left : sector_left;
+
+      /* Number of bytes to actually copy out of this sector. */
+      int chunk_size = size < min_left ? size : min_left;
+      if (chunk_size <= 0)
+        break;
+      
+      struct cache_block *cb = cache_lock(sector_idx, NON_EXCLUSIVE);
+      if (cb != NULL) {
+        memcpy(buffer + bytes_read, cache_read(cb) + sector_ofs , chunk_size);  
+      } else {
+        PANIC("OH MY GOD NO BUFFER CACHE VERY BROKEN 1\n");
+      }
+      
+      /* Advance. */
+      size -= chunk_size;
+      offset += chunk_size;
+      bytes_read += chunk_size;
+    }
+  free (bounce);
+
+  return bytes_read;
+
+}
+
+
+
 
 /* Writes SIZE bytes from BUFFER into INODE, starting at OFFSET.
    Returns the number of bytes actually written, which may be

@@ -86,6 +86,15 @@ file_read (struct file *file, void *buffer, off_t size)
   return bytes_read;
 }
 
+off_t 
+file_read_buffer_cache_test (struct file *file, void *buffer, off_t size)
+{
+  //printf("file_read_buffer_cache_test\n");
+  off_t bytes_read = inode_read_at_buffer_cache_test (file->inode, buffer, size, file->pos);
+  file->pos += bytes_read;
+  return bytes_read;
+}
+
 /* Reads SIZE bytes from FILE into BUFFER,
    starting at offset FILE_OFS in the file.
    Returns the number of bytes actually read,
