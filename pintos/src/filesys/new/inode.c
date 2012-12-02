@@ -14,12 +14,17 @@
 /* Identifies an inode. */
 #define INODE_MAGIC 0x494e4f44
 
+// Index into sectors for an inode_disk
+#define INDIRECT_IDX 123
+#define DBL_INDIRECT_IDX 124
+
 #define DIRECT_CNT 123
 #define INDIRECT_CNT 1
 #define DBL_INDIRECT_CNT 1
 #define SECTOR_CNT (DIRECT_CNT + INDIRECT_CNT + DBL_INDIRECT_CNT)
 
 #define PTRS_PER_SECTOR ((off_t) (BLOCK_SECTOR_SIZE / sizeof (block_sector_t)))
+// How much data one inode can point to
 #define INODE_SPAN ((DIRECT_CNT                                              \
                      + PTRS_PER_SECTOR * INDIRECT_CNT                        \
                      + PTRS_PER_SECTOR * PTRS_PER_SECTOR * DBL_INDIRECT_CNT) \
@@ -29,6 +34,8 @@
    Must be exactly BLOCK_SECTOR_SIZE bytes long. */
 struct inode_disk
   {
+    // Index this myself for the direct/indirect blocks
+    // Querying the FS needs to somehow find this.  
     block_sector_t sectors[SECTOR_CNT]; /* Sectors. */
     enum inode_type type;               /* FILE_INODE or DIR_INODE. */
     off_t length;                       /* File size in bytes. */
@@ -84,7 +91,14 @@ struct inode *
 inode_create (block_sector_t sector, enum inode_type type) 
 {
 
+  // Use the free map to get a block to store the on-disk inode.
+  // fill in the inode data
   // ... 
+
+  // Figure out:
+  // How does asking for a file find that file (where is filename stored?)
+  // Where is the entry point for filesystem stored? 
+  
   // remember don't write to the disk .. 
   // please write to buffer cache
 
@@ -194,6 +208,7 @@ get_data_block (struct inode *inode, off_t offset, bool allocate,
                 struct cache_block **data_block) 
 {
 
+  
   // calculate_indices ...
   
 
@@ -273,7 +288,7 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
     {
       /* Sector to write, starting byte offset within sector, sector data. */
       int sector_ofs = offset % BLOCK_SECTOR_SIZE;
-      struct cache_block *block;
+//      struct cache_block *block;
       uint8_t *sector_data;
 
       /* Bytes to max inode size, bytes left in sector, lesser of the two. */
@@ -284,13 +299,16 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
       /* Number of bytes to actually write into this sector. */
       int chunk_size = size < min_left ? size : min_left;
 
-      if (chunk_size <= 0 || !get_data_block (inode, offset, true, &block))
+      // Chunk_size will be less than 0 if we run out of space in INODE 
+      // so we don't have to error check in get_data_block or calculate_indices
+      int temp_block_nr;
+      if (chunk_size <= 0 || !get_data_block (inode, offset, true, &block,&temp_block_nr))
         break;
 
-      sector_data = cache_read (block);
+//      sector_data = cache_read (block);
       memcpy (sector_data + sector_ofs, buffer + bytes_written, chunk_size);
-      cache_dirty (block);
-      cache_unlock (block);
+ //     cache_dirty (block);
+ //     cache_unlock (block);
 
       /* Advance. */
       size -= chunk_size;

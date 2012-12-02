@@ -10,14 +10,38 @@
 /* Identifies an inode. */
 #define INODE_MAGIC 0x494e4f44
 
+// Index into sectors for an inode_disk
+#define INDIRECT_IDX 123
+#define DBL_INDIRECT_IDX 124
+
+#define DIRECT_CNT 123
+#define INDIRECT_CNT 1
+#define DBL_INDIRECT_CNT 1
+#define SECTOR_CNT (DIRECT_CNT + INDIRECT_CNT + DBL_INDIRECT_CNT)
+
+#define PTRS_PER_SECTOR ((off_t) (BLOCK_SECTOR_SIZE / sizeof (block_sector_t)))
+// How much data one inode can point to
+#define INODE_SPAN ((DIRECT_CNT                                              \
+                     + PTRS_PER_SECTOR * INDIRECT_CNT                        \
+                     + PTRS_PER_SECTOR * PTRS_PER_SECTOR * DBL_INDIRECT_CNT) \
+                    * BLOCK_SECTOR_SIZE)
+static void
+calculate_indices (off_t sector_idx, size_t offsets[], size_t *offset_cnt);
+
+static bool 
+get_data_block (struct inode *inode, off_t offset, bool allocate,
+                struct cache_block **data_block, int * temp_block_nr);
+
+
 /* On-disk inode.
    Must be exactly BLOCK_SECTOR_SIZE bytes long. */
 struct inode_disk
   {
     block_sector_t start;               /* First data sector. */
-    off_t length;                       /* File size in bytes. */
+    enum inode_type type;
+    off_t length;                       /* File size in bytes. */ // DEPRECATED
     unsigned magic;                     /* Magic number. */
-    uint32_t unused[125];               /* Not used. */
+    block_sector_t sectors[SECTOR_CNT]; 
   };
 
 /* Returns the number of sectors to allocate for an inode SIZE
@@ -37,6 +61,8 @@ struct inode
     bool removed;                       /* True if deleted, false otherwise. */
     int deny_write_cnt;                 /* 0: writes ok, >0: deny writes. */
     struct inode_disk data;             /* Inode content. */
+
+
   };
 
 /* Returns the block device sector that contains byte offset POS
@@ -200,6 +226,75 @@ inode_remove (struct inode *inode)
 {
   ASSERT (inode != NULL);
   inode->removed = true;
+}
+
+/* Translates SECTOR_IDX into a sequence of block indexes in
+   OFFSETS and sets *OFFSET_CNT to the number of offsets. */
+// Assumes offsets has at least 3 spaces allocated to it
+// Assumes error checking for sector_idx hapens before this
+static void
+calculate_indices (off_t sector_idx, size_t offsets[], size_t *offset_cnt)
+{
+  /* Handle direct blocks. */
+  if (sector_idx <  DIRECT_CNT)
+  {
+    offsets[0] = sector_idx;    
+    *offset_cnt = 1;
+    return;
+  } 
+
+  // Somewhere in the indirect block
+  if (sector_idx < DIRECT_CNT + PTRS_PER_SECTOR)
+  {
+    offsets[0] = INDIRECT_IDX;
+    offsets[1] = sector_idx - DIRECT_CNT;
+    *offset_cnt = 2;
+    return;
+  }
+
+  offsets[0] = DBL_INDIRECT_IDX;
+  // Gosh I hope this does the floor function.
+  offsets[1] = ( sector_idx - DIRECT_CNT - PTRS_PER_SECTOR ) / PTRS_PER_SECTOR;
+  offsets[2] = ( sector_idx - DIRECT_CNT - PTRS_PER_SECTOR ) % PTRS_PER_SECTOR;
+  *offset_cnt = 3;
+}
+/* Retrieves the data block for the given byte OFFSET in INODE,
+   setting *DATA_BLOCK to the block.
+   Returns true if successful, false on failure.
+   If ALLOCATE is false, then missing blocks will be successful
+   with *DATA_BLOCk set to a null pointer.
+   If ALLOCATE is true, then missing blocks will be allocated.
+   The block returned will be locked, normally non-exclusively,
+   but a newly allocated block will have an exclusive lock. */
+static bool 
+get_data_block (struct inode *inode, off_t offset, bool allocate,
+                struct cache_block **data_block, int * temp_block_nr)
+{
+
+  // For now, just call calculate indices to grab the block number until we get
+  // cache working.
+  size_t offsets[3];
+  size_t offset_cnt;
+  calculate_indices (offset /  BLOCK_SECTOR_SIZE,offsets,&offset_cnt);
+  struct inode_disk * inode_disk = ...
+  
+  if (offset_cnt == 1) 
+  {
+    *temp_block_nr = inode_disk->sectors[offsets[0]];
+  } else if (offset_cnt == 2)
+  {
+    // Get data in indirect table
+    // grab the correct thingy
+  } else if (offset_cnt == 3)
+  {
+    //do the same as above,
+    //but then do it again (two reads)
+  }
+  inode_disk->sectors[offsets[0]];
+
+
+  return true;
+
 }
 
 /* Reads SIZE bytes from INODE into BUFFER, starting at position OFFSET.

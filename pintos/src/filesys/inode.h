@@ -5,6 +5,12 @@
 #include "filesys/off_t.h"
 #include "devices/block.h"
 
+
+enum inode_type
+{
+  FILE_INODE,
+  DIR_INODE
+};
 struct bitmap;
 
 void inode_init (void);
