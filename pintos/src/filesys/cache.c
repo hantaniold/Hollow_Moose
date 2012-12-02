@@ -74,6 +74,9 @@ in_cache(block_sector_t sector)
     if (!lock_held_by_current_thread(&cb->block_lock) && 
          lock_try_acquire(&cb->block_lock)) {
       if (cb->sector == sector) {
+        if (DEBUG) {
+          printf("in_cache returning %d\n", i);
+        }
         return cb;
       }
       lock_release(&cb->block_lock); 
@@ -92,6 +95,9 @@ find_empty(void)
     if (!lock_held_by_current_thread(&cb->block_lock) && 
          lock_try_acquire(&cb->block_lock)) {
       if (cb->sector == INVALID_SECTOR) {
+        if (DEBUG) {
+          printf("find_empty returning %d\n", i);
+        }
         return cb;
       }
       lock_release(&cb->block_lock); 
@@ -106,6 +112,7 @@ find_empty(void)
 struct cache_block *
 try_to_empty(void)
 {
+  printf("ENTER TRY TO EMPTY\n");
   uint32_t hand_start = hand;
    
   for (; hand < CACHE_CNT; ++hand){
@@ -273,14 +280,18 @@ cache_lock (block_sector_t sector, enum lock_type type)
 void *
 cache_read (struct cache_block *b) 
 {
-  if (DEBUG) {
-    printf("ENTER CACHE_READ\n");
-  }
+  
   lock_acquire(&b->data_lock);
   if (b->up_to_date) {
+    if (DEBUG) {
+      printf("cache_read from memory\n");
+    }
     lock_release(&b->data_lock);
     return &b->data;
   } else {
+    if (DEBUG) {
+      printf("cache_read from disk\n");
+    }
     b->up_to_date = true; 
     block_read(fs_device, b->sector, b->data);
     lock_release(&b->data_lock);
