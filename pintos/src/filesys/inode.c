@@ -25,6 +25,9 @@
                      + PTRS_PER_SECTOR * INDIRECT_CNT                        \
                      + PTRS_PER_SECTOR * PTRS_PER_SECTOR * DBL_INDIRECT_CNT) \
                     * BLOCK_SECTOR_SIZE)
+static bool
+extend_file (struct inode *inode, off_t length);
+
 static void
 calculate_indices (off_t sector_idx, size_t offsets[], size_t *offset_cnt);
 
@@ -38,7 +41,7 @@ get_data_block (struct inode *inode, off_t offset, bool allocate,
 struct inode_disk
   {
     block_sector_t start;               /* First data sector. */
-    enum inode_type type;
+//    enum inode_type type;
     off_t length;                       /* File size in bytes. */ // DEPRECATED
     unsigned magic;                     /* Magic number. */
     block_sector_t sectors[SECTOR_CNT]; 
@@ -60,8 +63,13 @@ struct inode
     int open_cnt;                       /* Number of openers. */
     bool removed;                       /* True if deleted, false otherwise. */
     int deny_write_cnt;                 /* 0: writes ok, >0: deny writes. */
-    struct inode_disk data;             /* Inode content. */
+    struct inode_disk data;             /* Inode content. DEPRECATED */
 
+    /* Denying writes. */
+    struct lock deny_write_lock;        /* Protects members below. */
+    struct condition no_writers_cond;   /* Signaled when no writers. */ 
+    int deny_write_cnt;                 /* 0: writes ok, >0: deny writes. */
+    int writer_cnt;                     /* Number of writers. */
 
   };
 
@@ -271,27 +279,33 @@ get_data_block (struct inode *inode, off_t offset, bool allocate,
                 struct cache_block **data_block, int * temp_block_nr)
 {
 
-  // For now, just call calculate indices to grab the block number until we get
-  // cache working.
   size_t offsets[3];
   size_t offset_cnt;
+  struct inode_disk * inode_disk = inode->data; // Needed for sectors table
+  block_sector_t buf[PTRS_PER_SECTOR];
+  block_sector_t next_sector; // dbl-indirect ptr
+
+  // For now, just call calculate indices to grab the block number until we get
+  // cache working.
   calculate_indices (offset /  BLOCK_SECTOR_SIZE,offsets,&offset_cnt);
-  struct inode_disk * inode_disk = ...
   
   if (offset_cnt == 1) 
   {
     *temp_block_nr = inode_disk->sectors[offsets[0]];
-  } else if (offset_cnt == 2)
-  {
-    // Get data in indirect table
-    // grab the correct thingy
-  } else if (offset_cnt == 3)
-  {
-    //do the same as above,
-    //but then do it again (two reads)
   }
-  inode_disk->sectors[offsets[0]];
-
+  else if (offset_cnt == 2)
+  {
+    block_read (fs_device, inode_disk->sectors[INDIRECT_IDX], (void *) buf);
+    *temp_block_nr =  buf[offsets[1]];
+  }
+  else if (offset_cnt == 3)
+  {
+    // Get data in sector the dbl indirect ptr points to.
+    block_read (fs_device, inode_disk->sectors[DBL_INDIRECT_IDX], (void *) buf);
+    // Using our 2nd offset, find the sector nr of the sector we want.
+    block_read (fs_device,  buf[offsets[1]], (void *) buf);
+    *temp_block_nr = buf[offsets[2]];
+  }
 
   return true;
 
@@ -352,74 +366,133 @@ inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset)
   return bytes_read;
 }
 
+/* Extends INODE to be at least LENGTH bytes long. */
+// Returns FALSE if some allocation fails, TRUE on success 
+static bool
+extend_file (struct inode *inode, off_t length) 
+{
+  // Bad length arg
+  if (length > INODE_SPAN || length < 0) 
+  {
+    return;
+  }
+
+  struct inode_disk inode_disk;
+  block_read(fs_device,inode->sector,&inode_disk);
+
+  // Index of the last new sector to create, index of the last 
+  // allocated sector of current inode
+  block_t last_new_sector = ((length - 1) / BLOCK_SECTOR_SIZE);
+  block_t last_old_sector = ((inode_disk->length - 1) / BLOCK_SECTOR_SIZE);
+  if (last_new_sector <= last_old_sector) 
+  {
+    return;
+  }
+
+  // Otherwise need to allocate new sectors
+  block_t next_sector_idx = last_old_sector + 1;
+  block_t sector_nr;
+  block_t buf[PTRS_PER_SECTOR];
+  size_t offsets[3];
+  size_t offset_cnt;
+  while (next_sector_idx <= last_new_sector)
+  {
+    // TODO update args when get cache
+    calculate_indices ((size_t) next_sector_idx, offsets, size_t &offset_cnt);
+    if (false == free_map_allocate (1, &sector_nr)) return false;
+
+    // Find the right place to put the idx -> sector_nr mapping.
+    if (next_sector_idx < DIRECT_CNT) 
+    {
+      inode_disk->sectors[next_sector_idx] = sector_nr; 
+    } 
+    else if (next_sector_idx < DIRECT_CNT + PTRS_PER_SECTOR)
+    {
+      // TODO
+      block_read(fs_device,inode_disk->sectors[INDIRECT_IDX],(void *) buf);
+      buf[offsets[1]] = sector_nr;
+      block_write(fs_device,inode_disk->sectors[INDIRECT_IDX],(void *) buf);
+    } 
+    else 
+    {
+      // TODO
+      // Get table of ptrs pointed to by dbl_indirect
+      block_read (fs_device,inode_disk->sectors[DBL_INDIRECT_IDX], (void *) buf);
+      block_t dbl_indirect_first = (block_t) buf[offsets[1]];
+      block_read (fs_device,dbl_indirect_first, (void *) buf);
+      // Overwrite this table of pointers
+      buf[offsets[2]] = sector_nr; 
+      block_write (fs_device, dbl_indirect_first, (void *) buf);
+    }
+
+    next_sector_idx += 1;
+  }
+}
+
 /* Writes SIZE bytes from BUFFER into INODE, starting at OFFSET.
    Returns the number of bytes actually written, which may be
-   less than SIZE if end of file is reached or an error occurs.
-   (Normally a write at end of file would extend the inode, but
-   growth is not yet implemented.) */
+   less than SIZE if an error occurs. */
 off_t
 inode_write_at (struct inode *inode, const void *buffer_, off_t size,
                 off_t offset) 
 {
   const uint8_t *buffer = buffer_;
   off_t bytes_written = 0;
-  uint8_t *bounce = NULL;
 
-  if (inode->deny_write_cnt)
-    return 0;
+  /* Don't write if writes are denied. */
+  lock_acquire (&inode->deny_write_lock);
+  if (inode->deny_write_cnt) 
+    {
+      lock_release (&inode->deny_write_lock);
+      return 0;
+    }
+  inode->writer_cnt++;
+  lock_release (&inode->deny_write_lock);
+
+  // We might need to allocate new sectors for the inode.
+  extend_file (inode, offset);
 
   while (size > 0) 
     {
-      /* Sector to write, starting byte offset within sector. */
-      block_sector_t sector_idx = byte_to_sector (inode, offset);
+      /* Sector to write, starting byte offset within sector, sector data. */
       int sector_ofs = offset % BLOCK_SECTOR_SIZE;
+//      struct cache_block *block;
+      uint8_t *sector_data;
 
-      /* Bytes left in inode, bytes left in sector, lesser of the two. */
-      off_t inode_left = inode_length (inode) - offset;
+      /* Bytes to max inode size, bytes left in sector, lesser of the two. */
+      off_t inode_left = INODE_SPAN - offset;
       int sector_left = BLOCK_SECTOR_SIZE - sector_ofs;
       int min_left = inode_left < sector_left ? inode_left : sector_left;
 
       /* Number of bytes to actually write into this sector. */
       int chunk_size = size < min_left ? size : min_left;
-      if (chunk_size <= 0)
+
+      // Chunk_size will be less than 0 if we run out of space in INODE 
+      // so we don't have to error check in get_data_block or calculate_indices
+      int temp_block_nr;
+      if (chunk_size <= 0 || !get_data_block (inode, offset, true, &block,&temp_block_nr))
         break;
-
-      if (sector_ofs == 0 && chunk_size == BLOCK_SECTOR_SIZE)
-        {
-          /* Write full sector directly to disk. */
-          block_write (fs_device, sector_idx, buffer + bytes_written);
-        }
-      else 
-        {
-          /* We need a bounce buffer. */
-          if (bounce == NULL) 
-            {
-              bounce = malloc (BLOCK_SECTOR_SIZE);
-              if (bounce == NULL)
-                break;
-            }
-
-          /* If the sector contains data before or after the chunk
-             we're writing, then we need to read in the sector
-             first.  Otherwise we start with a sector of all zeros. */
-          if (sector_ofs > 0 || chunk_size < sector_left) 
-            block_read (fs_device, sector_idx, bounce);
-          else
-            memset (bounce, 0, BLOCK_SECTOR_SIZE);
-          memcpy (bounce + sector_ofs, buffer + bytes_written, chunk_size);
-          block_write (fs_device, sector_idx, bounce);
-        }
+       
+      block_write (fs_device, temp_block_nr, buffer + bytes_written);
+//    sector_data = cache_read (block);
+//    memcpy (sector_data + sector_ofs, buffer + bytes_written, chunk_size);
+//    cache_dirty (block);
+//    cache_unlock (block);
 
       /* Advance. */
       size -= chunk_size;
       offset += chunk_size;
       bytes_written += chunk_size;
     }
-  free (bounce);
+
+
+  lock_acquire (&inode->deny_write_lock);
+  if (--inode->writer_cnt == 0)
+    cond_signal (&inode->no_writers_cond, &inode->deny_write_lock);
+  lock_release (&inode->deny_write_lock);
 
   return bytes_written;
 }
-
 /* Disables writes to INODE.
    May be called at most once per inode opener. */
 void

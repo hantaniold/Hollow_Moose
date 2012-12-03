@@ -258,10 +258,41 @@ inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset)
 }
 
 /* Extends INODE to be at least LENGTH bytes long. */
-static void
+// Returns FALSE if some allocation fails, TRUE on success 
+static bool
 extend_file (struct inode *inode, off_t length) 
 {
-  // ...
+  // Bad length arg
+  if (length > INODE_SPAN || length < 0) 
+  {
+    return;
+  }
+
+  struct inode_disk inode_disk;
+  block_read(fs_device,inode->sector,&inode_disk);
+
+  // Index of the last new sector to create, index of the last 
+  // allocated sector of current inode
+  block_t last_new_sector = ((length - 1) / BLOCK_SECTOR_SIZE);
+  block_t last_old_sector = ((inode_disk->length - 1) / BLOCK_SECTOR_SIZE);
+  if (last_new_sector <= last_old_sector) 
+  {
+    return;
+  }
+
+  // Otherwise need to allocate new sectors
+  block_t next_sector = last_old_sector + 1;
+  block_t next_sector_idx;
+  while (next_sector <= last_new_sector)
+  {
+    // TODO update args when get cache
+    if (false == free_map_allocate (1, &next_sector_idx)) return false;
+
+
+    next_sector += 1;
+  }
+
+
 }
 
 /* Writes SIZE bytes from BUFFER into INODE, starting at OFFSET.
@@ -284,6 +315,9 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
   inode->writer_cnt++;
   lock_release (&inode->deny_write_lock);
 
+  // We might need to allocate new sectors for the inode.
+  extend_file (inode, offset);
+
   while (size > 0) 
     {
       /* Sector to write, starting byte offset within sector, sector data. */
@@ -304,11 +338,12 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
       int temp_block_nr;
       if (chunk_size <= 0 || !get_data_block (inode, offset, true, &block,&temp_block_nr))
         break;
-
-//      sector_data = cache_read (block);
-      memcpy (sector_data + sector_ofs, buffer + bytes_written, chunk_size);
- //     cache_dirty (block);
- //     cache_unlock (block);
+       
+      block_write (fs_device, temp_block_nr, buffer + bytes_written);
+//    sector_data = cache_read (block);
+//    memcpy (sector_data + sector_ofs, buffer + bytes_written, chunk_size);
+//    cache_dirty (block);
+//    cache_unlock (block);
 
       /* Advance. */
       size -= chunk_size;
@@ -316,7 +351,6 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
       bytes_written += chunk_size;
     }
 
-  extend_file (inode, offset);
 
   lock_acquire (&inode->deny_write_lock);
   if (--inode->writer_cnt == 0)
