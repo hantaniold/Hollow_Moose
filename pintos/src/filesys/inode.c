@@ -410,10 +410,12 @@ inode_write_at_buffer_cache_test (struct inode *inode, const void *buffer_, off_
       struct cache_block *cb = cache_lock(sector_idx, EXCLUSIVE);
       if (cb != NULL) {
         if (sector_ofs == 0 && chunk_size == BLOCK_SECTOR_SIZE){
+          printf("IN 1\n");
           cache_write(cb, buffer, BLOCK_SECTOR_SIZE, offset);  
         } else {
+          printf("IN 2\n");
           cache_read(cb);
-          cache_write(cb, buffer_, chunk_size, offset);
+          cache_write(cb, buffer, chunk_size, offset);
         }
         cache_unlock(cb);
       } else {

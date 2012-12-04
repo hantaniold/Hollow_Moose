@@ -135,7 +135,7 @@ file_write_buffer_cache_test (struct file *file, const void *buffer, off_t size)
 off_t
 file_clear (struct file *file, off_t size)
 {
-  printf("FILE CLEAR with size %d\n", size);
+  //printf("FILE CLEAR with size %d\n", size);
   char buf[1024];
   
   int write_size = 1024;

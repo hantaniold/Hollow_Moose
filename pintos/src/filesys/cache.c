@@ -59,6 +59,10 @@ cache_init (void)
     lock_init(&cb->data_lock);
     cond_init(&cb->no_readers_or_writers);
     cond_init(&cb->no_writers);
+    cb->readers = 0;
+    cb->read_waiters = 0;
+    cb->writers = 0;
+    cb->write_waiters = 0;
     clear_block(cb);
   }
   flushd_init();
@@ -205,10 +209,6 @@ flush_block(struct cache_block *cb)
 void 
 clear_block(struct cache_block *cb)
 {
-  cb->readers = 0;
-  cb->read_waiters = 0;
-  cb->writers = 0;
-  cb->write_waiters = 0;
   cb->sector = INVALID_SECTOR;
   lock_acquire(&cb->data_lock);
   cb->up_to_date = false;
@@ -220,6 +220,9 @@ clear_block(struct cache_block *cb)
 void
 cache_flush (void) 
 {
+  if (DEBUG) {
+    printf("!!!cache_flush!!!\n");
+  }
   lock_acquire(&cache_sync);
   int i;
   for (i = 0; i < CACHE_CNT; ++i) {
@@ -249,24 +252,24 @@ cache_lock (block_sector_t sector, enum lock_type type)
   struct cache_block *cb;
   cb = in_cache(sector);
   if (cb != NULL) {
-    add_lock(cb, type);
     cb->sector = sector;
+    add_lock(cb, type);
     lock_release(&cache_sync); 
     return cb;
   } else {
     /* Not in cache.  Find empty slot. */
     cb = find_empty(); 
     if (cb != NULL) {
-      add_lock(cb, type); 
       cb->sector = sector;
+      add_lock(cb, type); 
       lock_release(&cache_sync);
       return cb;
     } else {
       /* No empty slots.  Evict something. */
       cb = try_to_empty();
       if (cb != NULL) {
-        add_lock(cb, type);
         cb->sector = sector;
+        add_lock(cb, type);
         lock_release(&cache_sync);
         return cb;
       } else {
@@ -306,7 +309,7 @@ cache_read (struct cache_block *b)
       printf("cache_read from disk\n");
     }
     b->up_to_date = true; 
-    block_read(fs_device, b->sector, b->data);
+    block_read(fs_device, b->sector, &b->data);
     lock_release(&b->data_lock);
     return &b->data;
   }
@@ -321,7 +324,7 @@ cache_write(struct cache_block *b, void *data, off_t size, off_t offset)
   }
   lock_acquire(&b->data_lock);
   b->dirty = true; 
-  memcpy(b->data + offset, data, size); 
+  memcpy((void *)&b->data + offset, data, size); 
   lock_release(&b->data_lock);
 }
 
@@ -362,10 +365,12 @@ cache_unlock (struct cache_block *b)
     //non-exclusive lock
     lock_acquire(&b->block_lock);
     b->readers -= 1;
+    clear_block(b);
     lock_release(&b->block_lock);
   } else {
     //exclusive lock
     b->writers -= 1;
+    clear_block(b);
     lock_release(&b->block_lock);
   }
 }
