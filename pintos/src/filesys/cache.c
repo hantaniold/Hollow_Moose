@@ -29,7 +29,7 @@ struct cache_block cache[CACHE_CNT];
 struct lock cache_sync;
 static uint32_t hand = 0;
 
-static bool DEBUG = false;
+static bool DEBUG = true;
 
 //TODO - VERIFY THAT OUR TIMER WORKS AND POTENTIALLY BRING IN PROJECT 1 CODE
 static void flushd_init (void);
@@ -72,6 +72,9 @@ cache_init (void)
 struct cache_block * 
 in_cache(block_sector_t sector)
 {
+  if (DEBUG) {
+    printf("in_cache looking for sector %d\n", sector);
+  }
   uint8_t i;
   for (i = 0; i < CACHE_CNT; ++i){
     struct cache_block *cb = &cache[i];
@@ -198,8 +201,11 @@ void
 flush_block(struct cache_block *cb)
 {
   lock_acquire(&cb->data_lock);
-  if (cb->dirty && cb->sector > INVALID_SECTOR)
+  if (cb->dirty && cb->sector != INVALID_SECTOR)
   {
+    if (DEBUG) {
+      printf("cache_flush flushing sector %d\n", cb->sector);
+    }
     block_write(fs_device, cb->sector, cb->data);
   }
   lock_release(&cb->data_lock);
@@ -365,12 +371,12 @@ cache_unlock (struct cache_block *b)
     //non-exclusive lock
     lock_acquire(&b->block_lock);
     b->readers -= 1;
-    clear_block(b);
+    //clear_block(b);
     lock_release(&b->block_lock);
   } else {
     //exclusive lock
     b->writers -= 1;
-    clear_block(b);
+    //clear_block(b);
     lock_release(&b->block_lock);
   }
 }
