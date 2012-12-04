@@ -20,6 +20,7 @@ off_t file_clear (struct file *, off_t size);
 
 //ADDED TO DEBUG buffer cache
 off_t file_read_buffer_cache_test (struct file *, void *, off_t);
+off_t file_write_buffer_cache_test (struct file *, const void *, off_t);
 
 /* Preventing writes. */
 void file_deny_write (struct file *);

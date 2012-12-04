@@ -264,7 +264,7 @@ sys_read (int fd, void * buffer, unsigned size)
     {
       sys_exit(-1);         
     } 
-    int bytes = file_read(fp, buffer, size);
+    int bytes = file_read_buffer_cache_test(fp, buffer, size);
     return bytes;
     /*
     else

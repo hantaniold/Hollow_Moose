@@ -117,28 +117,42 @@ try_to_empty(void)
    
   for (; hand < CACHE_CNT; ++hand){
     struct cache_block *cb = &cache[hand];
-    lock_acquire(&cb->block_lock);
-    if ( cb->readers == 0 &&
-         cb->read_waiters == 0 &&
-         cb->writers == 0 &&
-         cb->write_waiters == 0) {
-     flush_block(cb); 
-     return cb;
+    if (!lock_held_by_current_thread(&cb->block_lock) && 
+         lock_try_acquire(&cb->block_lock))
+    {
+      printf("ENTER 1 - %d\n", hand);
+      printf("r: %d rw: %d w: %d ww: %d\n", 
+              cb->readers, 
+              cb->read_waiters, 
+              cb->writers, 
+              cb->write_waiters);
+      if ( cb->readers == 0 &&
+           cb->read_waiters == 0 &&
+           cb->writers == 0 &&
+           cb->write_waiters == 0) {
+        flush_block(cb); 
+        return cb;
+      }
+      lock_release(&cb->block_lock);
     }
-    lock_release(&cb->block_lock);
   }
   hand = 0;
   for (; hand < hand_start; ++hand) {
     struct cache_block *cb = &cache[hand];
-    lock_acquire(&cb->block_lock);
-    if ( cb->readers == 0 &&
-        cb->read_waiters == 0 &&
-        cb->writers == 0 &&
-        cb->write_waiters == 0) {
-      flush_block(cb); 
-      return cb;
+    if (!lock_held_by_current_thread(&cb->block_lock) && 
+         lock_try_acquire(&cb->block_lock))
+    {
+      printf("ENTER 2 - %d\n", hand);
+      if ( cb->readers == 0 &&
+           cb->read_waiters == 0 &&
+           cb->writers == 0 &&
+           cb->write_waiters == 0) {
+        flush_block(cb); 
+        return cb;
+      }
+      lock_release(&cb->block_lock);
     }
-    lock_release(&cb->block_lock);
+
   }
   return NULL;  
 }
@@ -279,8 +293,7 @@ cache_lock (block_sector_t sector, enum lock_type type)
    B. */
 void *
 cache_read (struct cache_block *b) 
-{
-  
+{  
   lock_acquire(&b->data_lock);
   if (b->up_to_date) {
     if (DEBUG) {
@@ -299,6 +312,19 @@ cache_read (struct cache_block *b)
   }
 }
 
+//Must have exclusive lock on block
+void
+cache_write(struct cache_block *b, void *data, off_t size, off_t offset) 
+{
+  if (DEBUG) {
+    printf("cache_write sector %d\n", b->sector);
+  }
+  lock_acquire(&b->data_lock);
+  b->dirty = true; 
+  memcpy(b->data + offset, data, size); 
+  lock_release(&b->data_lock);
+}
+
 /* Zero out block B, without reading it from disk, and return a
    pointer to the zeroed data.
    The caller must have an exclusive lock on B. */
@@ -309,6 +335,7 @@ cache_zero (struct cache_block *b)
     lock_acquire(&b->data_lock);
     memset(b->data, 0, BLOCK_SECTOR_SIZE);    
     lock_release(&b->data_lock);
+    return b->data;
   }
   return NULL;
 }
@@ -333,8 +360,13 @@ cache_unlock (struct cache_block *b)
 {
   if (!lock_held_by_current_thread(&b->block_lock)) {
     //non-exclusive lock
+    lock_acquire(&b->block_lock);
+    b->readers -= 1;
+    lock_release(&b->block_lock);
   } else {
     //exclusive lock
+    b->writers -= 1;
+    lock_release(&b->block_lock);
   }
 }
 

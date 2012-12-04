@@ -121,12 +121,22 @@ file_write (struct file *file, const void *buffer, off_t size)
   return bytes_written;
 }
 
+off_t
+file_write_buffer_cache_test (struct file *file, const void *buffer, off_t size) 
+{
+  printf("file_write_buffer_cache_test\n");
+  off_t bytes_written = inode_write_at_buffer_cache_test (file->inode, buffer, size, file->pos);
+  file->pos += bytes_written;
+  return bytes_written;
+}
+
+
 /* Zero out the firstt SIZE bytes of FILE */
 off_t
 file_clear (struct file *file, off_t size)
 {
+  printf("FILE CLEAR with size %d\n", size);
   char buf[1024];
-  
   
   int write_size = 1024;
   int i;
@@ -143,7 +153,8 @@ file_clear (struct file *file, off_t size)
     {
       write_size = size;
     } 
-    bytes_written += file_write (file, buf, write_size);
+    bytes_written += file_write_buffer_cache_test(file, buf, write_size);
+    //file_write (file, buf, write_size);
     if (bytes_written == 0) break;
     bytes_to_write -= bytes_written;
 
