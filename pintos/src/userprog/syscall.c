@@ -5,6 +5,7 @@
 #include <string.h>
 #include <syscall-nr.h>
 #include "filesys/file.h"
+#include "filesys/inode.h"
 #include "filesys/filesys.h"
 #include "threads/interrupt.h"
 #include "threads/palloc.h"
@@ -183,7 +184,7 @@ sys_create (const char *file, unsigned initial_size)
   bool retval = false;
   char *new_filename =  copy_in_string (file);
   thread_fs_lock ();
-  retval = filesys_create (new_filename,initial_size);
+  retval = filesys_create (new_filename,initial_size,FILE_INODE);
   thread_fs_unlock ();
   palloc_free_page (new_filename);
   return retval;

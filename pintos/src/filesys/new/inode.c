@@ -91,14 +91,15 @@ struct inode *
 inode_create (block_sector_t sector, enum inode_type type) 
 {
 
+  struct inode_disk * disk_inode = NULL;
+  bool success = false;
+  ASSERT (length >= 0);
+  ASSERT (sizeof *disk_inode == BLOCK_SECTOR_SIZE);
+  // TODO use type
+  
   // Use the free map to get a block to store the on-disk inode.
   // fill in the inode data
-  // ... 
 
-  // Figure out:
-  // How does asking for a file find that file (where is filename stored?)
-  // Where is the entry point for filesystem stored? 
-  
   // remember don't write to the disk .. 
   // please write to buffer cache
 

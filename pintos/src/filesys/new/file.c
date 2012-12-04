@@ -12,7 +12,9 @@ struct file
     bool deny_write;            /* Has file_deny_write() been called? */
   };
 
+// What the fuck is this for ?
 /* Creates a file in the given SECTOR,
+ *
    initially LENGTH bytes long. 
    Returns inode for the file on success, null pointer on failure.
    On failure, SECTOR is released in the free map. */
