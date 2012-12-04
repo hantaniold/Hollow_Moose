@@ -133,8 +133,8 @@ main (void)
   usb_storage_init ();
   ide_init ();
   locate_block_devices ();
-  filesys_init (format_filesys);
   cache_init();
+  filesys_init (format_filesys);
 #endif
 
   printf ("Boot complete.\n");
