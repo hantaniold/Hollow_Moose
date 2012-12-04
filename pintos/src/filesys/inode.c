@@ -50,9 +50,6 @@ get_data_block (struct inode *inode, off_t offset, bool allocate,
 //                struct cache_block **data_block, int * temp_block_nr);
 
 static void
-deallocate_recursive (block_sector_t sector, int level);
-
-static void
 deallocate_inode (const struct inode *inode);
 
 /* List of open inodes, so that opening a single inode twice
@@ -88,7 +85,6 @@ struct inode
 
   };
 
-// TODO FIX!!!
 /* Returns the block device sector that contains byte offset POS
    within INODE.
    Returns -1 if INODE does not contain data for a byte at offset
@@ -97,11 +93,41 @@ static block_sector_t
 byte_to_sector (const struct inode *inode, off_t pos) 
 {
   ASSERT (inode != NULL);
-  pos = pos;
-//  if (pos < inode->data.length)
-//    return inode->data.start + pos / BLOCK_SECTOR_SIZE;
-//  else
+  struct inode_disk * disk_inode = NULL;
+  disk_inode = calloc(1,sizeof * disk_inode);
+  block_read (fs_device, inode->sector, disk_inode);
+  if (pos > disk_inode->length) 
+  {
+    free (disk_inode);
     return -1;
+  }
+
+  uint32_t offsets[3];
+  block_sector_t buf[PTRS_PER_SECTOR];
+  uint32_t offset_cnt;
+  calculate_indices (pos / BLOCK_SECTOR_SIZE, offsets, &offset_cnt);
+
+  if (offset_cnt == 1) 
+  {
+    free (disk_inode);
+    return disk_inode->sectors[offsets[0]];
+  }
+  else if (offset_cnt == 2)
+  {
+    block_read (fs_device, disk_inode->sectors[INDIRECT_IDX], (void *) buf);
+    free (disk_inode);
+    return buf[offsets[1]];
+  }
+  else if (offset_cnt == 3)
+  {
+    block_read (fs_device, disk_inode->sectors[DBL_INDIRECT_IDX], (void *) buf);
+    block_read (fs_device,  buf[offsets[1]], (void *) buf);
+    free (disk_inode);
+    return buf[offsets[2]];
+  }
+
+  free (disk_inode);
+  return -1;
 }
 
 bool
@@ -148,7 +174,14 @@ inode_create (block_sector_t sector, off_t length, enum inode_type type)
       disk_inode->magic = INODE_MAGIC;
       block_write (fs_device, sector, disk_inode);
       // Implicitly writes all the new blocks does not zero them yet
-      extend_file ( NULL, length, disk_inode);
+      if (false == extend_file ( NULL, length, disk_inode))
+      {
+        struct inode * an_inode = (struct inode *) malloc(sizeof(struct inode));
+        an_inode->sector = sector;
+        deallocate_inode (an_inode);
+        free (an_inode);
+        PANIC ("HOLY SHIT INODE CREATE FAILED\n");
+      }
       
       free (disk_inode);
     }
@@ -202,7 +235,9 @@ struct inode *
 inode_reopen (struct inode *inode)
 {
   if (inode != NULL)
+    lock_acquire (&open_inodes_lock);
     inode->open_cnt++;
+    lock_release (&open_inodes_lock);
   return inode;
 }
 
@@ -247,37 +282,80 @@ inode_close (struct inode *inode)
       /* Deallocate blocks if removed. */
       if (inode->removed) 
         {
-          free_map_release (inode->sector, 1);
-          //TODO NO!!!! USE DEALLOCAT ERECURSVIE
-          // fuck!
-//          free_map_release (inode->data.start,
-//                            bytes_to_sectors (inode->data.length)); 
+          deallocate_inode (inode);
         }
 
       free (inode); 
     }
 }
 
-// TODO IMPLEMENT!!!
-/* Deallocates SECTOR and anything it points to recursively.
-   LEVEL is 2 if SECTOR is doubly indirect,
-   or 1 if SECTOR is indirect,
-   or 0 if SECTOR is a data sector. */
-static void
-deallocate_recursive (block_sector_t sector, int level) 
-{
-  sector = sector;
-  level = level;
-  // cache_Read, deallocate_recursive, .....
-}
-// TODO IMPLEMENT!!
 /* Deallocates the blocks allocated for INODE. */
 static void
 deallocate_inode (const struct inode *inode)
 {
-  inode = inode;
+  struct inode_disk * disk_inode = NULL;
+  bool do_indirect_release = false;
+  bool do_dbl_release = false;
 
-  // deallocate recursive .. 
+  disk_inode = calloc(1, sizeof *disk_inode);
+  block_read (fs_device, inode->sector, disk_inode);
+  block_sector_t * indirect_buf = NULL;
+  block_sector_t * dbl_buf = NULL;
+
+  uint32_t nr_sectors = 1 + ((disk_inode->length -1) / BLOCK_SECTOR_SIZE);
+
+  uint32_t next = 0;
+
+  while (next < nr_sectors)
+  {
+    // Release first DIRECT_CNT sectors
+    if (next < DIRECT_CNT) 
+    {
+      free_map_release (disk_inode->sectors[next],1);
+    } 
+    // Traverse ptrs in indirect table, release them
+    else if (next < DIRECT_CNT + PTRS_PER_SECTOR)
+    {
+      do_indirect_release = true;
+      if (indirect_buf == NULL)
+      {
+        indirect_buf = (block_sector_t *) malloc(BLOCK_SECTOR_SIZE);
+        block_read (fs_device, disk_inode->sectors[INDIRECT_IDX], indirect_buf);
+      }
+      free_map_release(indirect_buf[next - DIRECT_CNT],1);
+    }
+    else 
+    {
+      // Next index into an indirect table, which indirect table.
+      block_sector_t rel_next = (next - DIRECT_CNT - PTRS_PER_SECTOR) % PTRS_PER_SECTOR;
+      block_sector_t ind_nr = (next - DIRECT_CNT - PTRS_PER_SECTOR) / PTRS_PER_SECTOR;
+
+      // First get the table of indrt ptrs
+      if (dbl_buf == NULL) 
+      {
+        dbl_buf = (block_sector_t *) malloc (BLOCK_SECTOR_SIZE);
+        block_read (fs_device, disk_inode->sectors[DBL_INDIRECT_IDX], dbl_buf);
+      }
+
+      // Read in next indirect table when at its first entry
+      if ((next - DIRECT_CNT - PTRS_PER_SECTOR) % PTRS_PER_SECTOR == 0)
+      {
+        // deallocate this indirect ptr table 
+        free_map_release(dbl_buf[ind_nr],1);
+        block_read (fs_device, dbl_buf[ind_nr], indirect_buf);
+      }
+
+      free_map_release(indirect_buf[rel_next],1);
+
+      do_dbl_release = true;
+    }
+    next += 1;
+  }
+
+  // Possibly release the 1st indirect and dbl tables
+  if (do_indirect_release == true) free_map_release(disk_inode->sectors[INDIRECT_IDX],1);
+  if (do_dbl_release == true) free_map_release (disk_inode->sectors[DBL_INDIRECT_IDX],1);
+  free (disk_inode);
 
 }
 
@@ -344,6 +422,17 @@ get_data_block (struct inode *inode, off_t offset, bool allocate,
   disk_inode = calloc (1, sizeof *disk_inode);
   ASSERT (disk_inode != NULL);
   //TODO BLOCK
+  if (offset > disk_inode->length)
+  {
+    if (false == allocate)
+    {
+      return true;
+    }
+    else 
+    {
+      return false;
+    }
+  }
   block_read (fs_device,inode->sector,&disk_inode); // Get the inode data
   block_sector_t buf[PTRS_PER_SECTOR];
 
@@ -369,6 +458,7 @@ get_data_block (struct inode *inode, off_t offset, bool allocate,
     *temp_block_nr = buf[offsets[2]];
   }
 
+  free (disk_inode);
   return true;
 
 }
@@ -391,6 +481,7 @@ inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset)
       int sector_ofs = offset % BLOCK_SECTOR_SIZE;
       //TODO
 //      struct cache_block *block;
+      struct inode * block = NULL;    
 
       /* Bytes left in inode, bytes left in sector, lesser of the two. */
       off_t inode_left = inode_length (inode) - offset;
@@ -405,18 +496,18 @@ inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset)
       if (chunk_size <= 0 || !get_data_block (inode, offset, false, NULL, &sector_nr))
         break;
 
-      // WHAT IS THIS FOR??
-     // if (block == NULL) 
-     //   memset (buffer + bytes_read, 0, chunk_size);
-     // else 
-     //   {
+      // If the read fails, still set this to 0??
+      if (block == NULL) 
+        memset (buffer + bytes_read, 0, chunk_size);
+      else 
+        {
           // change to block read
           // TODO
 //          const uint8_t *sector_data = cache_read (block);
           block_read (fs_device, sector_nr, sector_data);
           memcpy (buffer + bytes_read, sector_data + sector_ofs, chunk_size);
         //  cache_unlock (block);
-//        }
+        }
       
       /* Advance. */
       size -= chunk_size;
