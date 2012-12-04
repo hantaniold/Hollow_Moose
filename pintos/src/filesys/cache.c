@@ -390,6 +390,48 @@ cache_free (block_sector_t sector)
 }
 
 
+
+bool 
+full_read(block_sector_t sector,uint8_t *buffer, off_t size, off_t offset)
+{
+  if (DEBUG) {
+    printf("full_read sector %d\n", sector);
+  }
+  struct cache_block *cb = cache_lock(sector, NON_EXCLUSIVE);
+  if (cb != NULL) {
+    memcpy(buffer, cache_read(cb) + offset, size);
+    cache_unlock(cb);
+    return true;
+  } else {
+    PANIC("buffer cache full_read failure\n");
+  }
+}
+
+bool 
+full_write(block_sector_t sector,uint8_t *buffer, off_t size, off_t offset)
+{
+  if (DEBUG) {
+    printf("full_write sector %d\n", sector);
+  }
+  struct cache_block *cb = cache_lock(sector, EXCLUSIVE);
+  if (cb != NULL) {
+    if (offset == 0 && size == BLOCK_SECTOR_SIZE) {
+      cache_write(cb, buffer, BLOCK_SECTOR_SIZE, offset); 
+    } else {
+      cache_read(cb);
+      cache_write(cb, buffer, size, offset);
+    }
+    cache_unlock(cb);
+    return true;
+  } else {
+    PANIC("buffer cache full_write failure\n"); 
+  }
+}
+
+
+
+
+
 /* Flush daemon. */
 
 static void flushd (void *aux);

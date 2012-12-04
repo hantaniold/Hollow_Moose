@@ -284,14 +284,8 @@ inode_read_at_buffer_cache_test ( struct inode *inode,
       int chunk_size = size < min_left ? size : min_left;
       if (chunk_size <= 0)
         break;
-      
-      struct cache_block *cb = cache_lock(sector_idx, NON_EXCLUSIVE);
-      if (cb != NULL) {
-        memcpy(buffer + bytes_read, cache_read(cb) + sector_ofs , chunk_size);  
-        cache_unlock(cb);
-      } else {
-        PANIC("OH MY GOD NO BUFFER CACHE VERY BROKEN 1\n");
-      }
+     
+      full_read(sector_idx, buffer + bytes_read, chunk_size, sector_ofs);
       
       /* Advance. */
       size -= chunk_size;
@@ -407,21 +401,8 @@ inode_write_at_buffer_cache_test (struct inode *inode, const void *buffer_, off_
       if (chunk_size <= 0)
         break;
 
-      struct cache_block *cb = cache_lock(sector_idx, EXCLUSIVE);
-      if (cb != NULL) {
-        if (sector_ofs == 0 && chunk_size == BLOCK_SECTOR_SIZE){
-          printf("IN 1\n");
-          cache_write(cb, buffer, BLOCK_SECTOR_SIZE, offset);  
-        } else {
-          printf("IN 2\n");
-          cache_read(cb);
-          cache_write(cb, buffer, chunk_size, offset);
-        }
-        cache_unlock(cb);
-      } else {
-        PANIC("OH MY GOD NO BUFFER CACHE VERY BROKEN 1\n");
-      }
-     
+      full_write(sector_idx, buffer, chunk_size, sector_ofs);
+    
       /* Advance. */
       size -= chunk_size;
       offset += chunk_size;

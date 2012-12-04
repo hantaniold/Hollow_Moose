@@ -23,4 +23,7 @@ void cache_readahead (block_sector_t);
 
 void cache_write(struct cache_block *b, void *data, off_t size, off_t offset);
 
+bool full_read(block_sector_t, uint8_t *, off_t, off_t);
+bool full_write(block_sector_t, uint8_t *, off_t, off_t);
+
 #endif /* filesys/cache.h */
