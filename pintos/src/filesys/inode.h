@@ -20,11 +20,6 @@ void inode_deny_write (struct inode *);
 void inode_allow_write (struct inode *);
 off_t inode_length (const struct inode *);
 
-//ADDED TO DEBUG buffer cache
-off_t inode_read_at_buffer_cache_test (struct inode *, void *, off_t size, off_t offset);
-off_t inode_write_at_buffer_cache_test(struct inode *, const void *, off_t size, off_t offset);
-
-
 /* Added for checking file descriptors pointer to same file */
 bool same_sector(struct inode *, struct inode *);
 

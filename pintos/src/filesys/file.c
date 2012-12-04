@@ -86,15 +86,6 @@ file_read (struct file *file, void *buffer, off_t size)
   return bytes_read;
 }
 
-off_t 
-file_read_buffer_cache_test (struct file *file, void *buffer, off_t size)
-{
-  //printf("file_read_buffer_cache_test\n");
-  off_t bytes_read = inode_read_at_buffer_cache_test (file->inode, buffer, size, file->pos);
-  file->pos += bytes_read;
-  return bytes_read;
-}
-
 /* Reads SIZE bytes from FILE into BUFFER,
    starting at offset FILE_OFS in the file.
    Returns the number of bytes actually read,
@@ -121,16 +112,6 @@ file_write (struct file *file, const void *buffer, off_t size)
   return bytes_written;
 }
 
-off_t
-file_write_buffer_cache_test (struct file *file, const void *buffer, off_t size) 
-{
-  printf("file_write_buffer_cache_test\n");
-  off_t bytes_written = inode_write_at_buffer_cache_test (file->inode, buffer, size, file->pos);
-  file->pos += bytes_written;
-  return bytes_written;
-}
-
-
 /* Zero out the firstt SIZE bytes of FILE */
 off_t
 file_clear (struct file *file, off_t size)
@@ -153,7 +134,7 @@ file_clear (struct file *file, off_t size)
     {
       write_size = size;
     } 
-    bytes_written += file_write_buffer_cache_test(file, buf, write_size);
+    bytes_written += file_write(file, buf, write_size);
     //file_write (file, buf, write_size);
     if (bytes_written == 0) break;
     bytes_to_write -= bytes_written;
