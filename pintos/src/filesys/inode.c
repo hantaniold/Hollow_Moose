@@ -114,6 +114,7 @@ inode_create (block_sector_t sector, off_t length)
         } 
       free (disk_inode);
     }
+  cache_flush();
   return success;
 }
 

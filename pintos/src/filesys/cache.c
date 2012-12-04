@@ -29,7 +29,7 @@ struct cache_block cache[CACHE_CNT];
 struct lock cache_sync;
 static uint32_t hand = 0;
 
-static bool DEBUG = true;
+static bool DEBUG = false;
 
 //TODO - VERIFY THAT OUR TIMER WORKS AND POTENTIALLY BRING IN PROJECT 1 CODE
 static void flushd_init (void);
@@ -119,7 +119,9 @@ find_empty(void)
 struct cache_block *
 try_to_empty(void)
 {
-  printf("ENTER TRY TO EMPTY\n");
+  if (DEBUG) {
+    printf("ENTER TRY TO EMPTY\n");
+  }
   uint32_t hand_start = hand;
    
   for (; hand < CACHE_CNT; ++hand){
@@ -127,12 +129,14 @@ try_to_empty(void)
     if (!lock_held_by_current_thread(&cb->block_lock) && 
          lock_try_acquire(&cb->block_lock))
     {
-      printf("ENTER 1 - %d\n", hand);
-      printf("r: %d rw: %d w: %d ww: %d\n", 
-              cb->readers, 
-              cb->read_waiters, 
-              cb->writers, 
-              cb->write_waiters);
+      if (DEBUG) {
+        printf("ENTER 1 - %d\n", hand);
+        printf("r: %d rw: %d w: %d ww: %d\n", 
+                cb->readers, 
+                cb->read_waiters, 
+                cb->writers, 
+                cb->write_waiters);
+      }
       if ( cb->readers == 0 &&
            cb->read_waiters == 0 &&
            cb->writers == 0 &&
@@ -149,7 +153,9 @@ try_to_empty(void)
     if (!lock_held_by_current_thread(&cb->block_lock) && 
          lock_try_acquire(&cb->block_lock))
     {
-      printf("ENTER 2 - %d\n", hand);
+      if (DEBUG) {
+        printf("ENTER 2 - %d\n", hand);
+      }
       if ( cb->readers == 0 &&
            cb->read_waiters == 0 &&
            cb->writers == 0 &&
@@ -207,6 +213,7 @@ flush_block(struct cache_block *cb)
       printf("cache_flush flushing sector %d\n", cb->sector);
     }
     block_write(fs_device, cb->sector, cb->data);
+    clear_block(cb);
   }
   lock_release(&cb->data_lock);
 }
@@ -216,9 +223,7 @@ void
 clear_block(struct cache_block *cb)
 {
   cb->sector = INVALID_SECTOR;
-  lock_acquire(&cb->data_lock);
   cb->up_to_date = false;
-  lock_release(&cb->data_lock);
   cb->dirty = false;
 }
 
@@ -329,6 +334,7 @@ cache_write(struct cache_block *b, void *data, off_t size, off_t offset)
     printf("cache_write sector %d\n", b->sector);
   }
   lock_acquire(&b->data_lock);
+  b->up_to_date = true;
   b->dirty = true; 
   memcpy((void *)&b->data + offset, data, size); 
   lock_release(&b->data_lock);
