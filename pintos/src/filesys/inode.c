@@ -299,7 +299,7 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
       if (chunk_size <= 0)
         break;
 
-      full_write(sector_idx, buffer, chunk_size, sector_ofs);
+      full_write(sector_idx, buffer + bytes_written, chunk_size, sector_ofs);
 
 
       /*
