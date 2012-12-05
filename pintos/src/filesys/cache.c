@@ -280,6 +280,7 @@ cache_lock (block_sector_t sector, enum lock_type type)
       cb = try_to_empty();
       if (cb != NULL) {
         cb->sector = sector;
+        cb->up_to_date = false;
         add_lock(cb, type);
         lock_release(&cache_sync);
         return cb;
