@@ -140,6 +140,7 @@ main (void)
   run_actions (argv);
 
   /* Finish up. */
+  intr_enable();
   shutdown ();
   thread_exit ();
 }
