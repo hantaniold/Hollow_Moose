@@ -27,7 +27,7 @@
                      + PTRS_PER_SECTOR * INDIRECT_CNT                        \
                      + PTRS_PER_SECTOR * PTRS_PER_SECTOR * DBL_INDIRECT_CNT) \
                     * BLOCK_SECTOR_SIZE)
-static bool gd = false;
+static bool gd = false; 
 /* On-disk inode.
    Must be exactly BLOCK_SECTOR_SIZE bytes long. */
 struct inode_disk
@@ -158,7 +158,7 @@ inode_init (void)
 bool
 inode_create (block_sector_t sector, off_t length, enum inode_type type)
 {
-  if (gd) printf(":::inode_create to sector %d\n",sector);
+  if (gd) printf(":::inode_create to sector %d length %d\n",sector,length);
   struct inode_disk *disk_inode = NULL;
   bool success = false;
 
@@ -172,8 +172,6 @@ inode_create (block_sector_t sector, off_t length, enum inode_type type)
   if (disk_inode != NULL)
     {
       // aughhhh TODO BLOCK
-//      NO!!!!!!!!!!!
-//      disk_inode->length = length;
       disk_inode->length = -1;
       disk_inode->type = type;
       disk_inode->magic = INODE_MAGIC;
@@ -537,7 +535,7 @@ inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset)
           // TODO
 //          const uint8_t *sector_data = cache_read (block);
 
-if (gd)          printf ("Reading %d bytes sector off %d into buffer off %d\n",chunk_size,sector_ofs,bytes_read);
+if (gd)    printf ("Reading %d bytes sector off %d into buffer off %d\n",chunk_size,sector_ofs,bytes_read);
           block_read (fs_device, sector_nr, sector_data);
           memcpy (buffer + bytes_read, sector_data + sector_ofs, chunk_size);
         //  cache_unlock (block);
@@ -602,7 +600,6 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
   }
 
   // Otherwise need to allocate new sectors
-  // TODO maybe zero out each block???
   block_sector_t next_sector_idx = last_old_sector + 1;
   if (inode_disk->length == -1) next_sector_idx = 0; // EDGE CASE!!
   block_sector_t sector_nr;
@@ -612,18 +609,20 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
   size_t offset_cnt;
   while (next_sector_idx <= last_new_sector)
   {
-      if (gd)printf("Adding new sector INDEX %d to disk inode\n",next_sector_idx);
+    if (gd)printf("Adding new sector INDEX %d to disk inode, byte off %d",next_sector_idx,512*next_sector_idx);
     // TODO update args when get cache
     calculate_indices ((size_t) next_sector_idx, offsets, &offset_cnt);
 
     if (false == free_map_allocate (1, &sector_nr))
     {
-    if (gd)  printf("WHAT THE FUCK FREE MAP FAILED AGAIN!?!?!\n");
+    if (gd)  printf("file_extend: free_map_allocate failed\n");
       return false;
     }
     // Zero out the new sector.
+    memset(buf, 0, BLOCK_SECTOR_SIZE);
     block_write (fs_device, sector_nr, buf);
 
+    block_sector_t new_sector;
     // Find the right place to put the idx -> sector_nr mapping.
     if (next_sector_idx < DIRECT_CNT) 
     {
@@ -632,13 +631,11 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
     } 
     else if (next_sector_idx < DIRECT_CNT + PTRS_PER_SECTOR)
     {
-      if (gd)printf("INDIRECT SECTOR!!! %d\n",sector_nr);
       // TODO
       
-      // Need to init indirect ptr
+      // Allocate indirect-table.
       if (next_sector_idx == DIRECT_CNT) 
       {
-        block_sector_t new_sector;
         if (gd)printf("**** MAKING NEW SPOT FOR INDRECT PAGE\n");
         if (false == free_map_allocate (1, &new_sector)) 
         {
@@ -649,6 +646,7 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
         inode_disk->sectors[INDIRECT_IDX] = new_sector;
         if (gd)printf("****  DONE NEW SPOT FOR INDRECT PAGE\n");
       }
+      if (gd)printf("INDIRECT SECTOR!!! %d, into %d, indtab at %d\n",sector_nr,offsets[1],inode_disk->sectors[INDIRECT_IDX]);
       block_read(fs_device,inode_disk->sectors[INDIRECT_IDX],(void *) buf);
       buf[offsets[1]] = sector_nr;
       block_write(fs_device,inode_disk->sectors[INDIRECT_IDX],(void *) buf);
@@ -656,19 +654,46 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
     else 
     {
       if (gd)printf("DBL SECTOR!!! %d\n",sector_nr);
-      // TODO
-      // NEED TO CHECK if need to make new blks
-      // FUCK!
+
+      // Allocate the dbl-indirect-table
+      if (next_sector_idx == DIRECT_CNT + PTRS_PER_SECTOR) 
+      {
+        if (false == free_map_allocate (1, &new_sector)) 
+        {
+          if (inode != NULL) free (inode_disk);
+          return false;
+        }
+        inode_disk->sectors[DBL_INDIRECT_IDX] = new_sector;
+      }
+
+      // Allocate a new indirect table
+      bool new_indirect = false;
+      if (offsets[2] == 0) 
+      {
+        if (false == free_map_allocate (1, &new_sector))
+        {
+          if (inode != NULL) free(inode_disk);
+          return false;
+        }
+        new_indirect = true;
+      }
       
-      // Get table of ptrs pointed to by dbl_indirect
+      // Get dbl-indirect-table
       block_read (fs_device,inode_disk->sectors[DBL_INDIRECT_IDX], (void *) buf);
+      // Maybe update the dbl-indirect-table with a new ptr to an indirect table
+      if (new_indirect == true)
+      {
+        buf[offsets[1]] = new_sector;
+        block_write (fs_device, inode_disk->sectors[DBL_INDIRECT_IDX],(void *) buf);
+      }
+      // Get pointer to indirect-table
       block_sector_t dbl_indirect_first = (block_sector_t) buf[offsets[1]];
+      // Get indirect-table
       block_read (fs_device,dbl_indirect_first, (void *) buf);
-      // Overwrite this table of pointers
+      // Add sector entry to indirect-table
       buf[offsets[2]] = sector_nr; 
       block_write (fs_device, dbl_indirect_first, (void *) buf);
     }
-
 
     next_sector_idx += 1;
   }
@@ -782,7 +807,6 @@ inode_allow_write (struct inode *inode)
 off_t
 inode_length (const struct inode *inode)
 {
-  if (gd) printf (":::inode_length - inode at sector %d\n",inode->sector);
   struct inode_disk * disk_inode = NULL;
   disk_inode = calloc(1, sizeof *disk_inode);
   ASSERT (disk_inode != NULL);
