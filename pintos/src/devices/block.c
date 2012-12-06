@@ -137,6 +137,7 @@ block_read (struct block *block, block_sector_t sector, void *buffer)
 void
 block_write (struct block *block, block_sector_t sector, const void *buffer)
 {
+  printf("::::::::: WRITING TO SECTOR %d\n",sector);
   check_sector (block, sector);
   ASSERT (block->type != BLOCK_FOREIGN);
   block->ops->write (block->aux, sector, buffer);

@@ -1,17 +1,22 @@
 #include "filesys/free-map.h"
 #include <bitmap.h>
 #include <debug.h>
+#include <stdio.h>
+#include "threads/synch.h"
 #include "filesys/file.h"
 #include "filesys/filesys.h"
 #include "filesys/inode.h"
 
 static struct file *free_map_file;   /* Free map file. */
 static struct bitmap *free_map;      /* Free map, one bit per sector. */
+static struct lock free_map_lock;    /* Mutual exclusion. */
 
 /* Initializes the free map. */
 void
 free_map_init (void) 
 {
+  lock_init (&free_map_lock);
+
   free_map = bitmap_create (block_size (fs_device));
   if (free_map == NULL)
     PANIC ("bitmap creation failed--file system device is too large");
@@ -35,8 +40,10 @@ free_map_allocate (size_t cnt, block_sector_t *sectorp)
       bitmap_set_multiple (free_map, sector, cnt, false); 
       sector = BITMAP_ERROR;
     }
-  if (sector != BITMAP_ERROR)
+  if (sector != BITMAP_ERROR) {
     *sectorp = sector;
+    printf("-------freemapallocate: ALLOCATED %d\n",*sectorp);
+  }
   return sector != BITMAP_ERROR;
 }
 
@@ -44,6 +51,7 @@ free_map_allocate (size_t cnt, block_sector_t *sectorp)
 void
 free_map_release (block_sector_t sector, size_t cnt)
 {
+  printf(":::FREE MAP RELEASE: %d\n",sector);
   ASSERT (bitmap_all (free_map, sector, cnt));
   bitmap_set_multiple (free_map, sector, cnt, false);
   bitmap_write (free_map, free_map_file);
@@ -64,7 +72,11 @@ free_map_open (void)
 void
 free_map_close (void) 
 {
+  printf(":::FREE_MAP_CLOSE\n");
+  if (!bitmap_write (free_map, free_map_file))
+    PANIC ("can't write free map");
   file_close (free_map_file);
+  printf("---FREE_MAP_CLOSE\n");
 }
 
 /* Creates a new free map file on disk and writes the free map to
@@ -75,6 +87,7 @@ free_map_create (void)
   /* Create inode. */
   if (!inode_create (FREE_MAP_SECTOR, bitmap_file_size (free_map),FILE_INODE))
     PANIC ("free map creation failed");
+
 
   /* Write bitmap to file. */
   free_map_file = file_open (inode_open (FREE_MAP_SECTOR));
