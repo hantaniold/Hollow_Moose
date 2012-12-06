@@ -209,7 +209,7 @@ thread_create (const char *name, int priority,
   /* Initialize thread. */
   init_thread (t, name, priority);
   tid = t->tid = allocate_tid ();
-  printf ("NEW THREAD!!!! %d\n",tid);
+  //printf ("NEW THREAD!!!! %d\n",tid);
 
   /* init FD list */
   int i;

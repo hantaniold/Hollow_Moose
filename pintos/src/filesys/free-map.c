@@ -42,7 +42,6 @@ free_map_allocate (size_t cnt, block_sector_t *sectorp)
     }
   if (sector != BITMAP_ERROR) {
     *sectorp = sector;
-    printf("-------freemapallocate: ALLOCATED %d\n",*sectorp);
   }
   return sector != BITMAP_ERROR;
 }
@@ -72,11 +71,9 @@ free_map_open (void)
 void
 free_map_close (void) 
 {
-  printf(":::FREE_MAP_CLOSE\n");
   if (!bitmap_write (free_map, free_map_file))
     PANIC ("can't write free map");
   file_close (free_map_file);
-  printf("---FREE_MAP_CLOSE\n");
 }
 
 /* Creates a new free map file on disk and writes the free map to
