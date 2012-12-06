@@ -283,7 +283,7 @@ inode_close (struct inode *inode)
   if (gd) printf (":::inode_close with inode at %d\n",inode->sector);
   /* Ignore null pointer. */
   if (inode == NULL) {
-    printf("---inode_close inode is null\n");
+if (gd)    printf("---inode_close inode is null\n");
     return;
   }
 
@@ -536,6 +536,8 @@ inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset)
           // change to block read
           // TODO
 //          const uint8_t *sector_data = cache_read (block);
+
+if (gd)          printf ("Reading %d bytes sector off %d into buffer off %d\n",chunk_size,sector_ofs,bytes_read);
           block_read (fs_device, sector_nr, sector_data);
           memcpy (buffer + bytes_read, sector_data + sector_ofs, chunk_size);
         //  cache_unlock (block);
@@ -575,7 +577,6 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
   {
     if (gd)printf("The inode to be extended has data at sector %d\n",inode->sector);
     inode_disk = calloc (1, sizeof (struct inode_disk));
-    // TODO TODO TODO TODO TODO TODO 
     if (inode_disk == NULL) {
       if (gd)printf("CALLOC FAILED EXTEND_FILE\n");
       return  false;
@@ -606,6 +607,7 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
   if (inode_disk->length == -1) next_sector_idx = 0; // EDGE CASE!!
   block_sector_t sector_nr;
   block_sector_t * buf = (block_sector_t *) malloc(BLOCK_SECTOR_SIZE);
+  memset(buf, 0, BLOCK_SECTOR_SIZE);
   size_t offsets[3];
   size_t offset_cnt;
   while (next_sector_idx <= last_new_sector)
@@ -619,6 +621,8 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
     if (gd)  printf("WHAT THE FUCK FREE MAP FAILED AGAIN!?!?!\n");
       return false;
     }
+    // Zero out the new sector.
+    block_write (fs_device, sector_nr, buf);
 
     // Find the right place to put the idx -> sector_nr mapping.
     if (next_sector_idx < DIRECT_CNT) 
@@ -705,12 +709,13 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
   // We might need to allocate new sectors for the inode.
   extend_file (inode, offset, NULL);
 
+  // We need to get a copy of the sector to change a small part of it possibly
+  uint8_t *sector_data = malloc(BLOCK_SECTOR_SIZE);
   while (size > 0) 
     {
       /* Sector to write, starting byte offset within sector, sector data. */
       int sector_ofs = offset % BLOCK_SECTOR_SIZE;
 //      struct cache_block *block;
-//      uint8_t *sector_data;
 
       /* Bytes to max inode size, bytes left in sector, lesser of the two. */
       off_t inode_left = INODE_SPAN - offset;
@@ -727,10 +732,13 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
       if (chunk_size <= 0 || !get_data_block (inode, offset, true, NULL,temp_block_nr))
         break;
        
-      if (gd)printf("Tryin to write to sector %d\n",temp_block_nr[0]);
-      block_write (fs_device, temp_block_nr[0], buffer + bytes_written);
+      if (gd)printf("To sector %d ",temp_block_nr[0]);
+      if (gd) printf("Write %d bytes from buffer off %d into sector off %d\n",chunk_size,bytes_written,sector_ofs);
+      // Get copy of sector
+      block_read (fs_device, temp_block_nr[0], sector_data);
+      memcpy (sector_data + sector_ofs, buffer + bytes_written, chunk_size);
+      block_write (fs_device, temp_block_nr[0], sector_data);
 //    sector_data = cache_read (block);
-//    memcpy (sector_data + sector_ofs, buffer + bytes_written, chunk_size);
 //    cache_dirty (block);
 //    cache_unlock (block);
 

@@ -6,6 +6,7 @@
 #include "filesys/inode.h"
 #include "threads/malloc.h"
 
+static bool db = false;
 /* A directory. */
 struct dir 
   {
@@ -98,16 +99,20 @@ lookup (const struct dir *dir, const char *name,
   ASSERT (dir != NULL);
   ASSERT (name != NULL);
 
+ 
+  if (db) printf("::::lookup START::::\n");
   for (ofs = 0; inode_read_at (dir->inode, &e, sizeof e, ofs) == sizeof e;
        ofs += sizeof e) 
     if (e.in_use && !strcmp (name, e.name)) 
       {
+        if (db) printf("---lookup MATCH: %s\n",e.name);
         if (ep != NULL)
           *ep = e;
         if (ofsp != NULL)
           *ofsp = ofs;
         return true;
       }
+  if (db) printf("---lookup NOMATCH end::::\n");
   return false;
 }
 
@@ -119,6 +124,7 @@ bool
 dir_lookup (const struct dir *dir, const char *name,
             struct inode **inode) 
 {
+  if (db) printf (":::DIR_LOOKUP (called from filesys_open, prolly)\n");
   struct dir_entry e;
 
   ASSERT (dir != NULL);
@@ -141,6 +147,7 @@ dir_lookup (const struct dir *dir, const char *name,
 bool
 dir_add (struct dir *dir, const char *name, block_sector_t inode_sector)
 {
+  if (db) printf ("::: DIR_ADD\n");
   struct dir_entry e;
   off_t ofs;
   bool success = false;
@@ -163,10 +170,16 @@ dir_add (struct dir *dir, const char *name, block_sector_t inode_sector)
      inode_read_at() will only return a short read at end of file.
      Otherwise, we'd need to verify that we didn't get a short
      read due to something intermittent such as low memory. */
+if (db)  printf(":::::DIRECTORY...read:::::\n");
   for (ofs = 0; inode_read_at (dir->inode, &e, sizeof e, ofs) == sizeof e;
-       ofs += sizeof e) 
-    if (!e.in_use)
+       ofs += sizeof e)  {
+    if (!e.in_use) {
       break;
+    } else {
+      if(db) printf("name %s\n",e.name);
+    }
+  }
+if (db)  printf(":::::DIRECTORY READ DONE\n");
 
   /* Write slot. */
   e.in_use = true;
@@ -184,6 +197,7 @@ dir_add (struct dir *dir, const char *name, block_sector_t inode_sector)
 bool
 dir_remove (struct dir *dir, const char *name) 
 {
+  if (db) printf ("::: DIR_REMOVE\n");
   struct dir_entry e;
   struct inode *inode = NULL;
   bool success = false;
