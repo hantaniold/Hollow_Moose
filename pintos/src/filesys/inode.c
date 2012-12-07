@@ -159,6 +159,7 @@ bool
 inode_create (block_sector_t sector, off_t length, enum inode_type type)
 {
   if (gd) printf(":::inode_create to sector %d length %d\n",sector,length);
+//  if (gd) printf(":::inode_create to sector %d length %d\n",sector,length);
   struct inode_disk *disk_inode = NULL;
   bool success = false;
 
@@ -307,6 +308,7 @@ if (gd)    printf("---inode_close inode is null\n");
 static void
 deallocate_inode (const struct inode *inode)
 {
+  
   if (gd) printf(":::deallocate_inode\n");
   struct inode_disk * disk_inode = NULL;
   bool do_indirect_release = false;
@@ -318,6 +320,7 @@ deallocate_inode (const struct inode *inode)
   block_sector_t * dbl_buf = NULL;
 
   uint32_t nr_sectors = 1 + ((disk_inode->length -1) / BLOCK_SECTOR_SIZE);
+  if (disk_inode->length == 0) nr_sectors = 0;
 
   uint32_t next = 0;
 
@@ -326,6 +329,7 @@ deallocate_inode (const struct inode *inode)
     // Release first DIRECT_CNT sectors
     if (next < DIRECT_CNT) 
     {
+      if (gd) printf("free_map_release sector %d\n",disk_inode->sectors[next]);
       free_map_release (disk_inode->sectors[next],1);
     } 
     // Traverse ptrs in indirect table, release them
@@ -337,8 +341,8 @@ deallocate_inode (const struct inode *inode)
         indirect_buf = (block_sector_t *) malloc(BLOCK_SECTOR_SIZE);
         block_read (fs_device, disk_inode->sectors[INDIRECT_IDX], indirect_buf);
       }
+      if (gd) printf("free_map_release sector %d\n",indirect_buf[next-DIRECT_CNT]);
       free_map_release(indirect_buf[next - DIRECT_CNT],1);
-      free(indirect_buf);
     }
     else 
     {
@@ -361,9 +365,6 @@ deallocate_inode (const struct inode *inode)
         block_read (fs_device, dbl_buf[ind_nr], indirect_buf);
       }
       
-      //added for SYN_READ
-      free(dbl_buf);
-      
       free_map_release(indirect_buf[rel_next],1);
 
       do_dbl_release = true;
@@ -371,6 +372,8 @@ deallocate_inode (const struct inode *inode)
     next += 1;
   }
 
+  if (indirect_buf != NULL) free(indirect_buf);
+  if (dbl_buf != NULL) free(dbl_buf);
   // Possibly release the 1st indirect and dbl tables
   if (do_indirect_release == true) free_map_release(disk_inode->sectors[INDIRECT_IDX],1);
   if (do_dbl_release == true){
@@ -453,7 +456,8 @@ get_data_block (struct inode *inode, off_t offset, bool allocate,
   // then just return true
   if (offset > disk_inode->length)
   {
- if (gd)   printf( "Offset is longer than inode!!\n");
+    if (gd)   printf( "Offset is longer than inode!! This better be on a read or this is a bug.\n");
+    printf("Offset: %d Length: %d\n",offset,disk_inode->length);
     if (false == allocate)
     {
       if (gd)printf( "...but not allocating, so exit!\n");
@@ -568,7 +572,7 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
 {
   // Bad length arg
   
-  if (gd) printf (":::extend_file %p %d %p\n",inode,length,in_inode_disk);
+  if (gd) printf ("\e[1;31m:::extend_file %p %d %p\n\e[1;37m",inode,length,in_inode_disk);
   if (length > INODE_SPAN || length < 0) 
   {
    if (gd) printf("BAD LENGTH EXTEND FILE\n");
@@ -577,11 +581,12 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
 
   ASSERT (inode != NULL || in_inode_disk != NULL);
 
+  bool id_alloc = false;
   struct inode_disk * inode_disk = NULL;
   if (in_inode_disk == NULL) 
   {
-    if (gd)printf("The inode to be extended has data at sector %d\n",inode->sector);
     inode_disk = calloc (1, sizeof (struct inode_disk));
+    id_alloc = true;
     if (inode_disk == NULL) {
       if (gd)printf("CALLOC FAILED EXTEND_FILE\n");
       return  false;
@@ -601,8 +606,8 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
   block_sector_t last_old_sector = ((inode_disk->length - 1) / BLOCK_SECTOR_SIZE);
   if (inode_disk->length != -1 && last_new_sector <= last_old_sector) 
   {
-      if (gd)printf("---extend_file:EXITING ( cur_length: %d, offset: %d \n",inode_disk->length,length);
-    if (inode != NULL) free (inode_disk);
+      if (gd)printf("\e[1;31m----extend_file:EXITING ( cur_length: %d, offset: %d \n\e[1;37m",inode_disk->length,length);
+    if (id_alloc) free (inode_disk);
     return true;
   }
 
@@ -624,6 +629,7 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
     {
       if (gd)  printf("file_extend: free_map_allocate failed\n");
       free(buf);
+      if (id_alloc) free(inode_disk);
       return false;
     }
     // Zero out the new sector.
@@ -647,8 +653,8 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
         if (gd)printf("**** MAKING NEW SPOT FOR INDRECT PAGE\n");
         if (false == free_map_allocate (1, &new_sector)) 
         {
-          if (inode != NULL) free (inode_disk);
           if (gd)printf("FREE MAP ALLOCATE FAILED IN EXTEND FILE\n");
+          if (id_alloc) free(inode_disk);
           free(buf);
           return false;
         }
@@ -669,8 +675,8 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
       {
         if (false == free_map_allocate (1, &new_sector)) 
         {
-          if (inode != NULL) free (inode_disk);
           free(buf);
+          if (id_alloc) free (inode_disk);
           return false;
         }
         inode_disk->sectors[DBL_INDIRECT_IDX] = new_sector;
@@ -682,8 +688,8 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
       {
         if (false == free_map_allocate (1, &new_sector))
         {
-          if (inode != NULL) free(inode_disk);
           free(buf);
+          if (id_alloc) free (inode_disk);
           return false;
         }
         new_indirect = true;
@@ -709,14 +715,14 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
     next_sector_idx += 1;
   }
 
-  // Write to disk ONLY if we have the in-memory inode
-  if (inode != NULL)
+  // Write to disk ONLY if we were passed an inode struct (rather than inode_disk)
+  inode_disk->length = length;
+  if (id_alloc)
   {
     block_write (fs_device, inode->sector, inode_disk);
     free (inode_disk);
   }
-  inode_disk->length = length;
- if (gd) printf ("Exiting at end of exttend ffile\n");
+ if (gd) printf ("\e[1;31m---extend_file: success - new len %d\n\e[1;37m",length);
   free(buf);
   return true;
 }
@@ -728,7 +734,8 @@ off_t
 inode_write_at (struct inode *inode, const void *buffer_, off_t size,
                 off_t offset) 
 {
-  if (gd) printf ("\e[1;34m:::inode_write_at - writing %d bytes at off %d to disk inode in sector %d\n\e[1;37m",size,offset,inode->sector);
+//  if (gd) printf ("\e[1;34m:::inode_write_at - writing %d bytes at off %d to disk inode in sector %d\n\e[1;37m",size,offset,inode->sector);
+  if (gd) printf ("\e[1;34m:::inode_write_at - writing %d bytes at off %d to disk inode (metadata at) %d\n\e[1;37m",size,offset,inode->sector);
   const uint8_t *buffer = buffer_;
 //  printf("%d %d %d %d\n",buffer[0],buffer[1],buffer[2],buffer[3]);
   off_t bytes_written = 0;
@@ -744,10 +751,11 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
   lock_release (&inode->deny_write_lock);
 
   // We might need to allocate new sectors for the inode.
-  extend_file (inode, offset, NULL);
+  extend_file (inode, offset + size, NULL);
 
   // We need to get a copy of the sector to change a small part of it possibly
   uint8_t *sector_data = malloc(BLOCK_SECTOR_SIZE);
+  int * temp_block_nr = calloc (1, sizeof(int));
   while (size > 0) 
     {
       /* Sector to write, starting byte offset within sector, sector data. */
@@ -764,8 +772,7 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
 
       // Chunk_size will be less than 0 if we run out of space in INODE 
       // so we don't have to error check in get_data_block or calculate_indices
-      int * temp_block_nr = calloc(1,sizeof(int));
-      //if (chunk_size <= 0 || !get_data_block (inode, offset, true, &block,&temp_block_nr))
+
       if (chunk_size <= 0 || !get_data_block (inode, offset, true, NULL,temp_block_nr))
         break;
        
@@ -780,11 +787,12 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
 //    cache_unlock (block);
 
       /* Advance. */
-      free (temp_block_nr);
       size -= chunk_size;
       offset += chunk_size;
       bytes_written += chunk_size;
     }
+
+    free (temp_block_nr);
 
 
   lock_acquire (&inode->deny_write_lock);
