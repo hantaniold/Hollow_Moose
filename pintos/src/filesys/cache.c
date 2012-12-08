@@ -29,7 +29,7 @@ struct cache_block cache[CACHE_CNT];
 struct lock cache_sync;
 static uint32_t hand = 0;
 
-static bool DEBUG = true;
+static bool DEBUG = false;
 
 //TODO - VERIFY THAT OUR TIMER WORKS AND POTENTIALLY BRING IN PROJECT 1 CODE
 static void flushd_init (void);
