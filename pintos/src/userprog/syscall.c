@@ -331,12 +331,33 @@ sys_open (const char * file)
     dir_close(curr_root);
     curr_root = dir_open_root();
   }
+  
+  if (strcmp(kfile, "/") == 0) {
+    //printf("JUMPED HERE\n");
+    thread_fs_lock();
+    
+    struct directory *d = dir_open_root();
+    
+    thread_fs_lock();
+    struct file *f = file_open(inode_reopen(dir_get_inode(d)));
+    thread_fs_unlock();
+
+    int fd = thread_get_new_fd(f);
+
+    dir_close(d);
+    dir_close(curr_root);
+    palloc_free_page (kfile_cp);
+    palloc_free_page (kfile);
+    return fd;
+  }
+  
+  
   char *token;
   const char *delim = "/";
   char *saveme;
   bool first = true;
   
-  //printf("CREATING DIR %s\n", kdir);
+  //printf("OPEN FILE %s\n", kfile);
   int count = 0;
   while (1) {
     if (first) {
@@ -346,7 +367,8 @@ sys_open (const char * file)
       token = strtok_r(NULL, delim, &saveme);
     }
     if (token != NULL) {
-      count += 1; 
+      count += 1;
+      //printf("I GOT TOKEN %s\n", token);
     } else {
       break;
     }
@@ -410,8 +432,7 @@ sys_open (const char * file)
           palloc_free_page (kfile_cp);
           palloc_free_page (kfile);
           return fd;
-        } 
-                
+        }             
         struct file * f;
         thread_fs_lock();
         f = filesys_open_with_dir(curr_root, token);
@@ -1116,18 +1137,22 @@ sys_readdir (int fd, char *name)
 static bool 
 sys_isdir (int fd)
 {
+  //printf("ENTER ISDIR\n");
   thread_fs_lock ();
   struct file *target = thread_get_file(fd);
   if (target == NULL) {
     thread_fs_unlock();
     return false;
   }  
+   
   struct inode *check_inode = file_get_inode(target);
  
   if (check_inode == NULL) {
     thread_fs_unlock();
     return false;
   }
+
+  //printf("ISDIR OUTPUT: inode_sector %d\n", inode_get_inumber(check_inode));
 
   bool o = inode_get_type(check_inode) == DIR_INODE;
   thread_fs_unlock();
