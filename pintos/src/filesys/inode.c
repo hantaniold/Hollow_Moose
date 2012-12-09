@@ -296,7 +296,11 @@ if (gd)    printf("---inode_close inode is null\n");
   }
 
   /* Release resources if this was the last opener. */
-  if (--inode->open_cnt == 0) {
+  lock_acquire (&open_inodes_lock);
+  inode->open_cnt--;
+  lock_release (&open_inodes_lock);
+  printf("OPEN_CNT %d\n", inode->open_cnt);
+  if (inode->open_cnt == 0) {
     if (gd)printf("removing resources\n");
     /* Remove from inode list and release lock. */
     list_remove (&inode->elem);

@@ -20,6 +20,8 @@ bool filesys_create_with_dir (struct dir *, const char *name, off_t initial_size
 
 struct file *filesys_open (const char *name);
 struct file *filesys_open_with_dir(struct dir *, const char *);
+
 bool filesys_remove (const char *name);
+bool filesys_remove_with_dir(struct dir *, const char *name);
 
 #endif /* filesys/filesys.h */

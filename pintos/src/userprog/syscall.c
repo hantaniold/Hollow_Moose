@@ -210,21 +210,27 @@ sys_wait(pid_t pid)
 static bool
 sys_create (const char *file, unsigned initial_size) 
 {
-  bool retval = false;
+ printf("ENTER CREATE\n");
+ bool retval = false;
   char *new_filename =  copy_in_string (file);
   char *filename_cp = copy_in_string(file);
+
+  printf("CREATE 2\n");
 
   struct thread *t = thread_current();
 
   struct dir *curr_root = dir_reopen(t->wd);
   if (new_filename[0] == '/') {
+    dir_close(curr_root);
     curr_root = dir_open_root();
   }
   char *token;
   const char *delim = "/";
   char *saveme;
   bool first = true;
-  
+ 
+  printf("CREATE 3\n");
+
   //printf("CREATING DIR %s\n", kdir);
   int count = 0;
   while (1) {
@@ -317,12 +323,12 @@ sys_open (const char * file)
   
   char * kfile = copy_in_string (file);
   char * kfile_cp = copy_in_string(file);
-  struct file * f;
 
   struct thread *t = thread_current();
 
   struct dir *curr_root = dir_reopen(t->wd);
   if (kfile[0] == '/') {
+    dir_close(curr_root);
     curr_root = dir_open_root();
   }
   char *token;
@@ -359,18 +365,54 @@ sys_open (const char * file)
     if (token != NULL) {
       count2 += 1;
       if (count2 < count) {
-        struct inode *inode_next;
-        bool lookup = dir_lookup(curr_root, token, &inode_next);
-        if (lookup) {
-          dir_close(curr_root);
-          curr_root = dir_open(inode_next);   
+        if (strcmp(token, "..") == 0) {
+          //go up
+          struct inode *up_node;
+          bool up_success = dir_lookup(curr_root, "..", &up_node);  
+          if (up_success && up_node != NULL) {
+            dir_close(curr_root);
+            curr_root = dir_open(up_node);
+          } else {
+            dir_close(curr_root);
+            palloc_free_page (kfile_cp);
+            palloc_free_page (kfile);
+            return false;
+          }
+        } else if (strcmp(token, ".") == 0) {
+          //stay where you are - do nothing
         } else {
+          struct inode *inode_next;
+          bool lookup = dir_lookup(curr_root, token, &inode_next);
+          if (lookup) {
+            dir_close(curr_root);
+            curr_root = dir_open(inode_next);   
+          } else {
+            dir_close(curr_root);
+            palloc_free_page (kfile_cp);
+            palloc_free_page (kfile);
+            return false;
+          }
+        }
+      } else {
+        if (strcmp(token, ".") == 0) {
+          thread_fs_lock();
+          ASSERT(curr_root != NULL);
+          struct inode *node = dir_get_inode(curr_root); 
+          ASSERT(node != NULL);          
+          struct inode *node2 = inode_reopen(node);
+          //ASSERT(node2 != NULL);
+          struct file *f = file_open(node2);
+          ASSERT(f != NULL);
+          thread_fs_unlock();
+          int fd = thread_get_new_fd(f);
+          printf("0-FD %d\n", fd);
           dir_close(curr_root);
           palloc_free_page (kfile_cp);
           palloc_free_page (kfile);
-          return false;
-        }
-      } else {
+          return fd;
+        } 
+                
+        struct file * f;
         thread_fs_lock();
         f = filesys_open_with_dir(curr_root, token);
         thread_fs_unlock();
@@ -383,6 +425,7 @@ sys_open (const char * file)
         }
         
         int fd = thread_get_new_fd(f);
+        printf("1-FD %d\n", fd);
         dir_close(curr_root);
         palloc_free_page (kfile_cp);
         palloc_free_page (kfile);
@@ -401,9 +444,28 @@ static void
 sys_close (int fd)
 {
   thread_fs_lock ();
-  struct file * fp = thread_close_fd (fd);
-  if (fp != NULL) file_close(fp);
-  thread_fs_unlock ();
+  
+  struct file *target = thread_get_file(fd);
+  if (target == NULL) {
+    thread_fs_unlock();
+    return false;
+  }  
+  struct inode *check_inode = file_get_inode(target);
+ 
+  if (check_inode == NULL) {
+    thread_fs_unlock();
+    return false;
+  }
+
+  if (inode_get_type(check_inode) == DIR_INODE) {
+    struct file *fp = thread_close_fd(fd);
+    file_close(fp);
+    thread_fs_unlock(); 
+  } else {
+    struct file * fp = thread_close_fd (fd);
+    if (fp != NULL) file_close(fp);
+    thread_fs_unlock (); 
+  }
 }
 
 
@@ -634,7 +696,7 @@ copy_in_data (const char *us, unsigned write_size)
   }
 
   return ks;
-
+;
   // don't forget to call palloc_free_page(..) when you're done
   // with this page, before you return to user from syscall
 }
@@ -692,14 +754,79 @@ copy_in_string (const char *us)
 static int 
 sys_remove (const char * file)
 {
-   if ((uint32_t) file <= 0x08048000 || ((PHYS_BASE - 4) <= file ))
-   {
-     sys_exit(-1);         
-   } 
-   char * kfile = copy_in_string (file); 
-   bool o = filesys_remove(kfile);
-   palloc_free_page(kfile);
-   return (int)o;
+  if ((uint32_t) file <= 0x08048000 || ((PHYS_BASE - 4) <= file )) {
+    sys_exit(-1);         
+  } 
+  char * kfile = copy_in_string (file); 
+  char * kfile_cp = copy_in_string(file); 
+   
+  struct thread *t = thread_current();
+
+  struct dir *curr_root = dir_reopen(t->wd);
+  if (kfile[0] == '/') {
+    dir_close(curr_root);
+    curr_root = dir_open_root();
+  }
+  char *token;
+  const char *delim = "/";
+  char *saveme;
+  bool first = true;
+  
+  //printf("CREATING DIR %s\n", kdir);
+  int count = 0;
+  while (1) {
+    if (first) {
+      token = strtok_r(kfile, delim, &saveme);
+      first = false;
+    } else {
+      token = strtok_r(NULL, delim, &saveme);
+    }
+    if (token != NULL) {
+      count += 1; 
+    } else {
+      break;
+    }
+  }
+
+  first = false;
+  char *saveme2;
+  
+  int count2 = 0;
+
+  while (1) {
+    if (first) {
+      token = strtok_r(kfile_cp, delim, &saveme2);
+      first = false;
+    } else {
+      token = strtok_r(NULL, delim, &saveme2);
+    }
+    if (token != NULL) {
+      count2 += 1;
+      if (count2 < count) {
+        //chdir
+        struct inode *inode_next;
+        bool lookup = dir_lookup(curr_root, token, &inode_next);
+        if (lookup) {
+          dir_close(curr_root);
+          curr_root = dir_open(inode_next);   
+        } else {
+          dir_close(curr_root);
+          palloc_free_page (kfile);
+          palloc_free_page (kfile_cp);
+          return false;
+        }
+      } else {
+        //rm
+        bool o = filesys_remove_with_dir(curr_root, kfile);
+        dir_close(curr_root);
+        palloc_free_page(kfile_cp);
+        palloc_free_page(kfile);
+        return (int)o;
+      }
+    } else {
+      break;
+    }
+  }
 }
 
 
@@ -722,7 +849,9 @@ sys_chdir (const char *dir)
     sys_exit(-1);         
   } 
   char * kdir = copy_in_string (dir); 
-  
+
+  printf("CHDIR kdir %s\n", kdir);
+
   char *token;
   const char *delim = "/";
   char *saveme;
@@ -730,9 +859,12 @@ sys_chdir (const char *dir)
   struct thread *t = thread_current();
   struct dir *curr_root = dir_reopen(t->wd); 
   if (kdir[0] == '/') {
+    dir_close(curr_root);
     curr_root = dir_open_root();
   }
-  
+ 
+  printf("0 IN chdir\n");
+
   while (1) {
     if (first) {
       token = strtok_r(kdir, delim, &saveme);
@@ -742,10 +874,16 @@ sys_chdir (const char *dir)
     }
     if (token != NULL) {
       struct inode *inode_next;
+      ASSERT(curr_root != NULL);
+      printf("BEFORE dir_lookup with token %s\n", token);
+      printf("SECTOR %d\n", inode_get_inumber(dir_get_inode(curr_root)));
       bool lookup = dir_lookup(curr_root, token, &inode_next);
+      printf("AFTER dir_lookup\n");
       if (lookup) {
         dir_close(curr_root);
+        printf("x0 here\n");
         curr_root = dir_open(inode_next);   
+        printf("x1 here\n");
       } else {
         dir_close(curr_root);
         palloc_free_page(kdir);
@@ -755,6 +893,8 @@ sys_chdir (const char *dir)
       break;
     }
   }
+  printf("BEFORE KEY dir_close\n");
+  dir_close(t->wd);
   t->wd = curr_root;
 
   palloc_free_page(kdir);
@@ -782,6 +922,7 @@ sys_mkdir (const char *dir)
   struct thread *t = thread_current();
   struct dir *curr_root = dir_reopen(t->wd); 
   if (kdir[0] == '/') {
+    dir_close(curr_root);
     curr_root = dir_open_root();
   }
   //printf("CREATING DIR %s\n", kdir);
@@ -830,7 +971,7 @@ sys_mkdir (const char *dir)
       } else {
         //printf("MKDIR DIR\n");
         struct inode *inode_next;
-        //printf("BEFORE LOOKUP\n");
+        //printf("BEFORE LOOKUP\n"); 
         bool lookup = dir_lookup(curr_root, token, &inode_next);
         //printf("AFTER LOOKUP\n"); 
         if (lookup) {
@@ -847,12 +988,28 @@ sys_mkdir (const char *dir)
             palloc_free_page(kdircp);
             return false;
           }
-          if (dir_create(sector, 16)) {
+          if (dir_create(sector, 32)) {
             bool output = dir_add(curr_root, token, sector);
-            dir_close(curr_root);
-            palloc_free_page(kdir);
-            palloc_free_page(kdircp);
-            return output;
+            if (output) {
+              //gotta add .. and .
+              struct inode *n = inode_open(sector);
+              struct dir *d = dir_open(n);
+              dir_add(d, ".", sector);
+              struct inode *root_inode = dir_get_inode(curr_root);
+              block_sector_t root_sector = inode_get_inumber(root_inode);
+              dir_add(d, "..", root_sector);
+              printf("CLOSING DDDDDDDDDDDDDDDDDD\n");
+              dir_close(d);
+              dir_close(curr_root);
+              palloc_free_page(kdir);
+              palloc_free_page(kdircp);
+              return true;
+            } else {
+              dir_close(curr_root);
+              palloc_free_page(kdir);
+              palloc_free_page(kdircp);
+              return output;
+            }
           } else {
             dir_close(curr_root);
             palloc_free_page(kdir);
@@ -878,21 +1035,139 @@ sys_readdir (int fd, char *name)
   if ((uint32_t) name <= 0x08048000 || ((PHYS_BASE - 4) <= name )) {
     sys_exit(-1);         
   } 
-  char * kname = copy_in_string (name); 
-  palloc_free_page(kname);
-  return true;
+
+  thread_fs_lock();
+
+  struct file * fp;
+  if (NULL == (fp = thread_get_file (fd))){
+    thread_fs_unlock();
+    return false; 
+  }
+  
+  struct inode *check_inode = file_get_inode(fp);
+
+  if (check_inode == NULL) {
+    thread_fs_unlock();
+    return false;
+  }
+
+  if (inode_get_type(check_inode) != DIR_INODE) {
+    thread_fs_unlock();
+    return false;
+  }
+
+  struct dir *d = dir_open(inode_reopen(check_inode));
+
+  dir_set_pos(d, file_tell(fp));
+
+
+  char *output = palloc_get_page(PAL_ZERO);
+  
+  bool test = dir_readdir(d, output); 
+  if (test) {
+    if (strcmp(output, ".") == 0) {
+      test = dir_readdir(d, output);
+      if (test) {
+        if (strcmp(output, "..") == 0) {
+          test = dir_readdir(d, output);
+          if (test) {
+            //cp and return 
+            int len = strlen(output);
+            printf("READDIR %s\n", output);
+            put_bytes(name, output, len + 1);
+            thread_fs_unlock();
+            int p = dir_get_pos(d);
+            file_seek(fp, p);
+            dir_close(d);
+            palloc_free_page(output);
+            return true;
+          } else {
+            //failure close
+            thread_fs_unlock();
+            dir_close(d);
+            palloc_free_page(output);
+            return false;
+          }
+        } else {
+          //cp and return
+          int len = strlen(output);
+          printf("READDIR %s\n", output);
+          put_bytes(name, output, len + 1);
+          thread_fs_unlock();
+          int p = dir_get_pos(d);
+          file_seek(fp, p);
+          dir_close(d);
+          palloc_free_page(output);
+          return true;
+        }
+      } else {
+        //failure close
+        thread_fs_unlock();
+        dir_close(d);
+        palloc_free_page(output);
+        return false;
+      }
+    } else {
+      //cp and return
+      int len = strlen(output);
+      printf("READDIR %s\n", output);
+      put_bytes(name, output, len + 1);
+      thread_fs_unlock();
+      int p = dir_get_pos(d);
+      file_seek(fp, p);
+      dir_close(d);
+      palloc_free_page(output);
+      return true;
+    }
+  } else {
+    thread_fs_unlock();
+    dir_close(d);
+    palloc_free_page(output);
+    return false;
+  }
 }
 
 static bool 
 sys_isdir (int fd)
 {
-  return true;
+  thread_fs_lock ();
+  struct file *target = thread_get_file(fd);
+  if (target == NULL) {
+    thread_fs_unlock();
+    return false;
+  }  
+  struct inode *check_inode = file_get_inode(target);
+ 
+  if (check_inode == NULL) {
+    thread_fs_unlock();
+    return false;
+  }
+
+  bool o = inode_get_type(check_inode) == DIR_INODE;
+  thread_fs_unlock();
+
+  return o;
 }
 
 static int
 sys_inumber(int fd)
 {
-  return -1;
+  thread_fs_lock ();
+  struct file *target = thread_get_file(fd);
+  if (target == NULL) {
+    thread_fs_unlock();
+    return -1;
+  }  
+  struct inode *check_inode = file_get_inode(target);
+ 
+  if (check_inode == NULL) {
+    thread_fs_unlock();
+    return -1;
+  }
+  block_sector_t o = inode_get_inumber(check_inode);
+  thread_fs_unlock();
+
+  return (int)o;
 }
 
 
