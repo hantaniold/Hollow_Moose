@@ -32,6 +32,9 @@ static struct list ready_list;
    when they are first scheduled and removed when they exit. */
 static struct list all_list;
 
+/* ADDED List of sleeping threads */
+static struct list wait_list;
+
 /* Added for process_wait */
 /* Keeps track of things that recently  died */
 static struct list dead_list;
@@ -112,6 +115,7 @@ thread_init (void)
   list_init (&ready_list);
   list_init (&all_list);
   list_init (&dead_list);
+  list_init (&wait_list);
   lock_init(&process_lock);
 
   /* Set up a thread structure for the running thread. */
@@ -976,4 +980,76 @@ void thread_fs_lock (void)
 void thread_fs_unlock (void)
 {
   lock_release(&fs_lock);
+}
+
+
+void
+thread_wake_routine ()
+{
+    enum intr_level old_level;
+    old_level = intr_disable ();
+    thread_foreach_wait(&thread_wake_routine_helper,NULL);
+    intr_set_level (old_level);
+}
+
+void
+thread_wake_routine_helper (struct thread * t, void * aux)
+{
+    if (timer_ticks () > t->wakeup_time) {
+        enum intr_level old_level;
+        old_level = intr_disable ();
+        list_remove (&(t->waitelem));
+        intr_set_level (old_level);
+        sema_up(&(t->timer_semaphore));
+        //remove from list
+        //up the semaphore
+    }
+}
+
+
+/* Same as thread_foreach but called on the wait_list */
+void 
+thread_foreach_wait (thread_action_func *func, void *aux)
+{ 
+  struct list_elem *e;
+
+  ASSERT (intr_get_level () == INTR_OFF);
+
+  for (e = list_begin (&wait_list); e != list_end (&wait_list);
+       e = list_next (e))
+    {
+      struct thread *t = list_entry (e, struct thread, waitelem);
+      func (t, aux);
+    }
+}
+
+/* Added for sleeping */
+void
+thread_sleep (int64_t ticks)
+{
+    struct thread *cur = thread_current ();
+
+    cur->wakeup_time = timer_ticks () + ticks;
+   
+
+    enum intr_level old_level;
+    old_level = intr_disable ();
+    list_insert_ordered (&wait_list,&(cur->waitelem),&wake_time_compare,NULL);
+    intr_set_level (old_level);
+
+    sema_init (&(cur->timer_semaphore),0);
+    sema_down (&(cur->timer_semaphore));
+
+}
+
+
+bool
+wake_time_compare ( const struct list_elem *a, const struct list_elem *b, void *aux)
+{
+      struct thread *ta = list_entry (a, struct thread, waitelem);
+      struct thread *tb = list_entry (b, struct thread, waitelem); // waitelem????
+      if (ta->wakeup_time < tb->wakeup_time) {
+        return true;
+      }
+      return false;
 }

@@ -139,10 +139,12 @@ main (void)
   printf ("Boot complete.\n");
   
   /* Run actions specified on kernel command line. */
+  intr_enable();
   run_actions (argv);
 
   /* Finish up. */
   intr_enable();
+  cache_flush();
   shutdown ();
   thread_exit ();
 }

@@ -121,6 +121,12 @@ struct thread
     /* Threads status upon exit from a user process*/
     int retval;
 
+    struct list_elem waitelem;
+    struct semaphore timer_semaphore;
+    int64_t wakeup_time;
+
+
+
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
@@ -199,5 +205,11 @@ struct file * thread_close_fd (int fd);
 void thread_fs_lock (void);
 void thread_fs_unlock (void);
 
+/* Added for sleeping */
+void thread_sleep (int64_t);
+void thread_wake_routine (void);
+void thread_wake_routine_helper (struct thread *, void *);
+void thread_foreach_wait (thread_action_func *, void *);
+bool wake_time_compare (const struct list_elem *, const struct list_elem *, void *);
 
 #endif /* threads/thread.h */
