@@ -68,6 +68,32 @@ filesys_create (const char *name, off_t initial_size, enum inode_type type)
   return success;
 }
 
+bool
+filesys_create_with_dir (struct dir *dir,const char *name, off_t initial_size, enum inode_type type) 
+{
+  block_sector_t inode_sector = 0;
+  bool success = (dir != NULL);
+  success &= free_map_allocate (1, &inode_sector);
+  success &= inode_create (inode_sector, initial_size, type);
+  bool dir_add_r = dir_add (dir, name, inode_sector);
+  success &= dir_add_r;
+  if (!success && inode_sector != 0) 
+    free_map_release (inode_sector, 1);
+
+  if (success) 
+  {
+    struct file * fp = filesys_open_with_dir(dir, name);
+    int bw = file_clear (fp, initial_size);
+    file_close (fp);
+  }
+
+  return success;
+}
+
+
+
+
+
 /* Opens the file with the given NAME.
    Returns the new file if successful or a null pointer
    otherwise.
@@ -82,6 +108,19 @@ filesys_open (const char *name)
   if (dir != NULL)
     dir_lookup (dir, name, &inode);
   dir_close (dir);
+
+  return file_open (inode);
+}
+
+struct file *
+filesys_open_with_dir(struct dir *dir, const char *name)
+{
+  if (dir == NULL) {
+    return NULL;
+  }
+  struct inode *inode = NULL;
+
+  dir_lookup (dir, name, &inode);
 
   return file_open (inode);
 }

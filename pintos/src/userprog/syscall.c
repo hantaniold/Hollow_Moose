@@ -32,11 +32,11 @@ static unsigned sys_tell (int fd);
 static void sys_seek (int fd, unsigned position);
 
 //ADDED FOR FILESYS PROJECT 4
-static bool chdir (const char *dir);
-static bool mkdir (const char *dir);
-static bool readdir (int fd, char *name);
-static bool isdir (int fd);
-static int  inumber(int fd);
+static bool sys_chdir (const char *dir);
+static bool sys_mkdir (const char *dir);
+static bool sys_readdir (int fd, char *name);
+static bool sys_isdir (int fd);
+static int  sys_inumber(int fd);
 
 static void copy_in (void *dst_, const void *usrc_, size_t size);
 static char * copy_in_string (const char *us);
@@ -128,23 +128,23 @@ static void syscall_handler (struct intr_frame *f UNUSED)
         break;
       case SYS_CHDIR:
         if (show_syscall) printf("CHDIR!\n");
-        retval = (int)chdir((const char *)args[0]);
+        retval = (int)sys_chdir((const char *)args[0]);
         break;
       case SYS_MKDIR:
         if (show_syscall) printf( "MKDIR!\n");
-        retval = (int)mkdir((const char *)args[0]);
+        retval = (int)sys_mkdir((const char *)args[0]);
         break;
       case SYS_READDIR:
         if (show_syscall) printf( "READDIR!\n");
-        retval = (int)readdir((int)args[0], (char *)args[1]);
+        retval = (int)sys_readdir((int)args[0], (char *)args[1]);
         break;
       case SYS_ISDIR:
         if (show_syscall) printf("ISDIR!\n");
-        retval = (int)isdir((int)args[0]);
+        retval = (int)sys_isdir((int)args[0]);
         break;
       case SYS_INUMBER:
         if (show_syscall) printf( "INUMBER!\n");
-        retval = inumber((int)args[0]);
+        retval = sys_inumber((int)args[0]);
         break;
       default:
         break;
@@ -212,11 +212,89 @@ sys_create (const char *file, unsigned initial_size)
 {
   bool retval = false;
   char *new_filename =  copy_in_string (file);
+  char *filename_cp = copy_in_string(file);
+
+  struct thread *t = thread_current();
+
+  struct dir *curr_root = dir_reopen(t->wd);
+  if (new_filename[0] == '/') {
+    curr_root = dir_open_root();
+  }
+  char *token;
+  const char *delim = "/";
+  char *saveme;
+  bool first = true;
+  
+  //printf("CREATING DIR %s\n", kdir);
+  int count = 0;
+  while (1) {
+    if (first) {
+      token = strtok_r(new_filename, delim, &saveme);
+      first = false;
+    } else {
+      token = strtok_r(NULL, delim, &saveme);
+    }
+    if (token != NULL) {
+      count += 1; 
+    } else {
+      break;
+    }
+  } 
+
+  first = true;
+  char *saveme2;
+  int counter2 = 0;
+  while (1) {
+    if (first) {
+      token = strtok_r(filename_cp, delim, &saveme2);
+      first = false;
+    } else {
+      token = strtok_r(NULL, delim, &saveme2); 
+    }
+    if (token != NULL) {
+      counter2 += 1;
+      if (counter2 < count) {
+        //chdir
+        struct inode *inode_next;
+        bool lookup = dir_lookup(curr_root, token, &inode_next);
+        if (lookup) {
+          dir_close(curr_root);
+          curr_root = dir_open(inode_next);   
+        } else {
+          dir_close(curr_root);
+          palloc_free_page (filename_cp);
+          palloc_free_page (new_filename);
+          return false;
+        }
+      } else {
+        //mk file
+        thread_fs_lock ();
+        retval = filesys_create_with_dir (curr_root, token,initial_size,FILE_INODE);
+        thread_fs_unlock ();
+        
+
+        dir_close(curr_root);
+        palloc_free_page (filename_cp);
+        palloc_free_page (new_filename);
+        return retval; 
+      }
+    } else {
+      break;
+    }
+  }
+
+  //this code is never reached
+  /*
   thread_fs_lock ();
-  retval = filesys_create (new_filename,initial_size,FILE_INODE);
+  retval = filesys_create_with_dir (curr_root, rew_filename,initial_size,FILE_INODE);
   thread_fs_unlock ();
+
+  dir_close(curr_root);
+  palloc_free_page (filename_cp);
   palloc_free_page (new_filename);
   return retval;
+  */
+  return false;
 }
 
 static void
@@ -238,20 +316,83 @@ sys_open (const char * file)
 
   
   char * kfile = copy_in_string (file);
+  char * kfile_cp = copy_in_string(file);
   struct file * f;
 
-  thread_fs_lock();
-  f = filesys_open (kfile);
-  thread_fs_unlock();
-  if (f == NULL)
-  {
-    return -1;
-  }
-  
-  int fd = thread_get_new_fd(f);
+  struct thread *t = thread_current();
 
-  palloc_free_page (kfile);
-  return fd;
+  struct dir *curr_root = dir_reopen(t->wd);
+  if (kfile[0] == '/') {
+    curr_root = dir_open_root();
+  }
+  char *token;
+  const char *delim = "/";
+  char *saveme;
+  bool first = true;
+  
+  //printf("CREATING DIR %s\n", kdir);
+  int count = 0;
+  while (1) {
+    if (first) {
+      token = strtok_r(kfile, delim, &saveme);
+      first = false;
+    } else {
+      token = strtok_r(NULL, delim, &saveme);
+    }
+    if (token != NULL) {
+      count += 1; 
+    } else {
+      break;
+    }
+  }
+
+  first = true;
+  char *saveme2;
+  int count2 = 0;
+  while(1) {
+    if (first) {
+      token = strtok_r(kfile_cp, delim, &saveme2);
+      first = false;
+    } else {
+      token = strtok_r(NULL, delim, &saveme2);
+    }
+    if (token != NULL) {
+      count2 += 1;
+      if (count2 < count) {
+        struct inode *inode_next;
+        bool lookup = dir_lookup(curr_root, token, &inode_next);
+        if (lookup) {
+          dir_close(curr_root);
+          curr_root = dir_open(inode_next);   
+        } else {
+          dir_close(curr_root);
+          palloc_free_page (kfile_cp);
+          palloc_free_page (kfile);
+          return false;
+        }
+      } else {
+        thread_fs_lock();
+        f = filesys_open_with_dir(curr_root, token);
+        thread_fs_unlock();
+        if (f == NULL)
+        {
+          dir_close(curr_root);
+          palloc_free_page (kfile_cp);
+          palloc_free_page (kfile);
+          return -1;
+        }
+        
+        int fd = thread_get_new_fd(f);
+        dir_close(curr_root);
+        palloc_free_page (kfile_cp);
+        palloc_free_page (kfile);
+        return fd;
+      }
+    } else {
+      break;
+    }
+    
+  }
 }
 
 // Try to close this fd. Fail silently if doesn't belong to thread,
@@ -567,18 +708,53 @@ sys_exit (int status) {
 
 
 static bool 
-chdir (const char *dir)
+sys_chdir (const char *dir)
 {
   if ((uint32_t) dir <= 0x08048000 || ((PHYS_BASE - 4) <= dir )) {
     sys_exit(-1);         
   } 
   char * kdir = copy_in_string (dir); 
+  
+  char *token;
+  const char *delim = "/";
+  char *saveme;
+  bool first = true;
+  struct thread *t = thread_current();
+  struct dir *curr_root = dir_reopen(t->wd); 
+  if (kdir[0] == '/') {
+    curr_root = dir_open_root();
+  }
+  
+  while (1) {
+    if (first) {
+      token = strtok_r(kdir, delim, &saveme);
+      first = false;
+    } else {
+      token = strtok_r(NULL, delim, &saveme);
+    }
+    if (token != NULL) {
+      struct inode *inode_next;
+      bool lookup = dir_lookup(curr_root, token, &inode_next);
+      if (lookup) {
+        dir_close(curr_root);
+        curr_root = dir_open(inode_next);   
+      } else {
+        dir_close(curr_root);
+        palloc_free_page(kdir);
+        return false;
+      }
+    } else {
+      break;
+    }
+  }
+  t->wd = curr_root;
+
   palloc_free_page(kdir);
   return true;
 }
 
 static bool 
-mkdir (const char *dir)
+sys_mkdir (const char *dir)
 {
   if ((uint32_t) dir <= 0x08048000 || ((PHYS_BASE - 4) <= dir )) {
     sys_exit(-1);         
@@ -689,7 +865,7 @@ mkdir (const char *dir)
 }
 
 static bool 
-readdir (int fd, char *name)
+sys_readdir (int fd, char *name)
 {
   if ((uint32_t) name <= 0x08048000 || ((PHYS_BASE - 4) <= name )) {
     sys_exit(-1);         
@@ -700,13 +876,13 @@ readdir (int fd, char *name)
 }
 
 static bool 
-isdir (int fd)
+sys_isdir (int fd)
 {
   return true;
 }
 
 static int
-inumber(int fd)
+sys_inumber(int fd)
 {
   return -1;
 }
