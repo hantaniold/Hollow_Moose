@@ -623,6 +623,17 @@ extend_file (struct inode *inode, off_t length, struct inode_disk * in_inode_dis
   block_sector_t last_old_sector = ((inode_disk->length - 1) / BLOCK_SECTOR_SIZE);
   if (inode_disk->length != -1 && last_new_sector <= last_old_sector) {
       if (gd)printf("\e[1;31m----extend_file:EXITING ( cur_length: %d, offset: %d \n\e[1;37m",inode_disk->length,length);
+
+      // Update length if nr of allocated sectors is the same
+      if (last_new_sector == last_old_sector) 
+      {
+        if (inode_disk->length < length) {
+          inode_disk->length = length;
+          if (id_alloc)  {
+            full_write (inode->sector, inode_disk, BLOCK_SECTOR_SIZE, 0);
+          }
+        }
+      }
     if (id_alloc) free (inode_disk);
     return true;
   }
