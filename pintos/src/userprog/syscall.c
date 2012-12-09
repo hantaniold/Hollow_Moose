@@ -892,7 +892,13 @@ sys_isdir (int fd)
 static int
 sys_inumber(int fd)
 {
-  return -1;
+  thread_fs_lock ();
+  struct file *target = thread_get_file(fd);
+  if (target == NULL) return -1;
+  struct inode *check_inode = file_get_inode(target);
+  if (check_inode == NULL) return -1;
+  thread_fs_unlock  ();
+  return inode_get_inumber (check_inode);
 }
 
 
