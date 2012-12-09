@@ -71,7 +71,6 @@ filesys_create (const char *name, off_t initial_size, enum inode_type type)
 bool
 filesys_create_with_dir (struct dir *dir,const char *name, off_t initial_size, enum inode_type type) 
 {
-  printf("WILL I DIE HERE?\n");
   block_sector_t inode_sector = 0;
   bool success = (dir != NULL);
   success &= free_map_allocate (1, &inode_sector);
@@ -87,7 +86,6 @@ filesys_create_with_dir (struct dir *dir,const char *name, off_t initial_size, e
     int bw = file_clear (fp, initial_size);
     file_close (fp);
   }
-  printf("NOT TODAY\n");
   return success;
 }
 

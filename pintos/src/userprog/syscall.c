@@ -210,14 +210,16 @@ sys_wait(pid_t pid)
 static bool
 sys_create (const char *file, unsigned initial_size) 
 {
- printf("ENTER CREATE\n");
- bool retval = false;
+ 
+  struct thread *t = thread_current();
+  bool retval = false;
   char *new_filename =  copy_in_string (file);
   char *filename_cp = copy_in_string(file);
 
-  printf("CREATE 2\n");
+  ASSERT(new_filename != NULL);
+  ASSERT(filename_cp != NULL);
 
-  struct thread *t = thread_current();
+
 
   struct dir *curr_root = dir_reopen(t->wd);
   if (new_filename[0] == '/') {
@@ -229,7 +231,6 @@ sys_create (const char *file, unsigned initial_size)
   char *saveme;
   bool first = true;
  
-  printf("CREATE 3\n");
 
   //printf("CREATING DIR %s\n", kdir);
   int count = 0;
@@ -288,7 +289,6 @@ sys_create (const char *file, unsigned initial_size)
       break;
     }
   }
-
   //this code is never reached
   /*
   thread_fs_lock ();
@@ -380,6 +380,7 @@ sys_open (const char * file)
           }
         } else if (strcmp(token, ".") == 0) {
           //stay where you are - do nothing
+          //dir_close(curr_root);
         } else {
           struct inode *inode_next;
           bool lookup = dir_lookup(curr_root, token, &inode_next);
@@ -405,7 +406,6 @@ sys_open (const char * file)
           ASSERT(f != NULL);
           thread_fs_unlock();
           int fd = thread_get_new_fd(f);
-          printf("0-FD %d\n", fd);
           dir_close(curr_root);
           palloc_free_page (kfile_cp);
           palloc_free_page (kfile);
@@ -425,7 +425,6 @@ sys_open (const char * file)
         }
         
         int fd = thread_get_new_fd(f);
-        printf("1-FD %d\n", fd);
         dir_close(curr_root);
         palloc_free_page (kfile_cp);
         palloc_free_page (kfile);
@@ -448,13 +447,11 @@ sys_close (int fd)
   struct file *target = thread_get_file(fd);
   if (target == NULL) {
     thread_fs_unlock();
-    return false;
   }  
   struct inode *check_inode = file_get_inode(target);
  
   if (check_inode == NULL) {
     thread_fs_unlock();
-    return false;
   }
 
   if (inode_get_type(check_inode) == DIR_INODE) {
@@ -850,7 +847,6 @@ sys_chdir (const char *dir)
   } 
   char * kdir = copy_in_string (dir); 
 
-  printf("CHDIR kdir %s\n", kdir);
 
   char *token;
   const char *delim = "/";
@@ -863,7 +859,6 @@ sys_chdir (const char *dir)
     curr_root = dir_open_root();
   }
  
-  printf("0 IN chdir\n");
 
   while (1) {
     if (first) {
@@ -875,15 +870,10 @@ sys_chdir (const char *dir)
     if (token != NULL) {
       struct inode *inode_next;
       ASSERT(curr_root != NULL);
-      printf("BEFORE dir_lookup with token %s\n", token);
-      printf("SECTOR %d\n", inode_get_inumber(dir_get_inode(curr_root)));
       bool lookup = dir_lookup(curr_root, token, &inode_next);
-      printf("AFTER dir_lookup\n");
       if (lookup) {
         dir_close(curr_root);
-        printf("x0 here\n");
         curr_root = dir_open(inode_next);   
-        printf("x1 here\n");
       } else {
         dir_close(curr_root);
         palloc_free_page(kdir);
@@ -893,7 +883,6 @@ sys_chdir (const char *dir)
       break;
     }
   }
-  printf("BEFORE KEY dir_close\n");
   dir_close(t->wd);
   t->wd = curr_root;
 
@@ -998,7 +987,6 @@ sys_mkdir (const char *dir)
               struct inode *root_inode = dir_get_inode(curr_root);
               block_sector_t root_sector = inode_get_inumber(root_inode);
               dir_add(d, "..", root_sector);
-              printf("CLOSING DDDDDDDDDDDDDDDDDD\n");
               dir_close(d);
               dir_close(curr_root);
               palloc_free_page(kdir);
@@ -1061,7 +1049,8 @@ sys_readdir (int fd, char *name)
   dir_set_pos(d, file_tell(fp));
 
 
-  char *output = palloc_get_page(PAL_ZERO);
+  char *output = name;
+
   
   bool test = dir_readdir(d, output); 
   if (test) {
@@ -1073,56 +1062,53 @@ sys_readdir (int fd, char *name)
           if (test) {
             //cp and return 
             int len = strlen(output);
-            printf("READDIR %s\n", output);
-            put_bytes(name, output, len + 1);
+            //put_bytes(name, output, len + 1);
             thread_fs_unlock();
             int p = dir_get_pos(d);
             file_seek(fp, p);
             dir_close(d);
-            palloc_free_page(output);
+            //palloc_free_page(output);
             return true;
           } else {
             //failure close
             thread_fs_unlock();
             dir_close(d);
-            palloc_free_page(output);
+            //palloc_free_page(output);
             return false;
           }
         } else {
           //cp and return
           int len = strlen(output);
-          printf("READDIR %s\n", output);
-          put_bytes(name, output, len + 1);
+          //put_bytes(name, output, len + 1);
           thread_fs_unlock();
           int p = dir_get_pos(d);
           file_seek(fp, p);
           dir_close(d);
-          palloc_free_page(output);
+          //palloc_free_page(output);
           return true;
         }
       } else {
         //failure close
         thread_fs_unlock();
         dir_close(d);
-        palloc_free_page(output);
+        //palloc_free_page(output);
         return false;
       }
     } else {
       //cp and return
       int len = strlen(output);
-      printf("READDIR %s\n", output);
-      put_bytes(name, output, len + 1);
+      //put_bytes(name, output, len + 1);
       thread_fs_unlock();
       int p = dir_get_pos(d);
       file_seek(fp, p);
       dir_close(d);
-      palloc_free_page(output);
+      //palloc_free_page(output);
       return true;
     }
   } else {
     thread_fs_unlock();
     dir_close(d);
-    palloc_free_page(output);
+    //palloc_free_page(output);
     return false;
   }
 }
