@@ -503,6 +503,14 @@ sys_write (int fd, const void * user_buf, unsigned size)
     thread_fs_lock ();
     struct file *target = thread_get_file(fd);
     struct thread *t = thread_current();
+    
+    struct inode *check_inode = file_get_inode(target);
+    
+    if (inode_get_type(check_inode) != FILE_INODE) {
+      thread_fs_unlock();
+      return -1;
+    }
+
 
     if (show_syscall) printf ("WRITE: file pointer is %x\n",target);
     if (target == NULL) return 0;
