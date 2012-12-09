@@ -1152,6 +1152,8 @@ sys_isdir (int fd)
     return false;
   }
 
+
+
   //printf("ISDIR OUTPUT: inode_sector %d\n", inode_get_inumber(check_inode));
 
   bool o = inode_get_type(check_inode) == DIR_INODE;
