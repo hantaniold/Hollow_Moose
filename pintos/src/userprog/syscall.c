@@ -600,7 +600,7 @@ mkdir (const char *dir)
   if (kdir[0] == '/') {
     curr_root = dir_open_root();
   }
-  printf("CREATING DIR %s\n", kdir);
+  //printf("CREATING DIR %s\n", kdir);
   int count = 0;
   while (1) {
     if (first) {
@@ -615,7 +615,7 @@ mkdir (const char *dir)
       break;
     }
   } 
-  printf("AFTER STRTOK\n");
+  //printf("AFTER STRTOK\n");
   
   first = true;
   char *saveme2;
@@ -631,7 +631,7 @@ mkdir (const char *dir)
     if (token != NULL) {
       count2 += 1;
       if (count2 < count) {
-        printf("CHANGE DIR\n");
+        //printf("CHANGE DIR\n");
         struct inode *inode_next;
         bool lookup = dir_lookup(curr_root, token, &inode_next);
         if (lookup) {
@@ -644,9 +644,11 @@ mkdir (const char *dir)
           return false;
         }
       } else {
-        printf("MKDIR DIR\n");
+        //printf("MKDIR DIR\n");
         struct inode *inode_next;
+        //printf("BEFORE LOOKUP\n");
         bool lookup = dir_lookup(curr_root, token, &inode_next);
+        //printf("AFTER LOOKUP\n"); 
         if (lookup) {
           dir_close(curr_root);
           palloc_free_page(kdir);
