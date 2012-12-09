@@ -64,7 +64,13 @@ process_execute (const char *file_name)
     if (child != NULL)
     {
       child->parent = t->tid;
+      if (t->wd == NULL) {
+        child->wd = dir_open_root();
+      } else {
+        child->wd = dir_reopen(t->wd);
+      }
     }
+    
     //printf("AFTER 11111\n");
    
 
