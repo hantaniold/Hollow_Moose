@@ -411,6 +411,7 @@ sys_open (const char * file)
           //dir_close(curr_root);
         } else {
           struct inode *inode_next;
+          //printf("SYSOPEN %s with TOKEN %s\n", file, token);
           bool lookup = dir_lookup(curr_root, token, &inode_next);
           if (lookup) {
             dir_close(curr_root);
@@ -419,7 +420,7 @@ sys_open (const char * file)
             dir_close(curr_root);
             palloc_free_page (kfile_cp);
             palloc_free_page (kfile);
-            return false;
+            return -1;
           }
         }
       } else {
@@ -852,8 +853,7 @@ sys_remove (const char * file)
           return false;
         }
       } else {
-        //rm
-        //printf("TOKEN %s\n", token);
+        //printf("rm %s with  TOKEN %s\n", kfile_cp, token);
         bool o = filesys_remove_with_dir(curr_root, token);
         dir_close(curr_root);
         palloc_free_page(kfile_cp);
