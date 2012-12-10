@@ -323,6 +323,12 @@ sys_open (const char * file)
   
   char * kfile = copy_in_string (file);
   char * kfile_cp = copy_in_string(file);
+  
+  if (strlen(kfile) < 1) {
+    palloc_free_page(kfile);
+    palloc_free_page(kfile_cp);
+    return -1;
+  }
 
   struct thread *t = thread_current();
 
