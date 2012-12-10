@@ -790,6 +790,8 @@ sys_remove (const char * file)
     return false;
   }
 
+  //printf("PAST BREAK\n");
+
   struct thread *t = thread_current();
 
   struct dir *curr_root = dir_reopen(t->wd);
@@ -818,7 +820,9 @@ sys_remove (const char * file)
     }
   }
 
-  first = false;
+  //printf("past loop 1 with count: %d\n", count);
+
+  first = true;
   char *saveme2;
   
   int count2 = 0;
@@ -830,7 +834,9 @@ sys_remove (const char * file)
     } else {
       token = strtok_r(NULL, delim, &saveme2);
     }
+    //printf("HERE MAYBE\n");
     if (token != NULL) {
+      //printf("PARSE 2 %s\n", token);
       count2 += 1;
       if (count2 < count) {
         //chdir
@@ -847,7 +853,8 @@ sys_remove (const char * file)
         }
       } else {
         //rm
-        bool o = filesys_remove_with_dir(curr_root, kfile);
+        //printf("TOKEN %s\n", token);
+        bool o = filesys_remove_with_dir(curr_root, token);
         dir_close(curr_root);
         palloc_free_page(kfile_cp);
         palloc_free_page(kfile);
