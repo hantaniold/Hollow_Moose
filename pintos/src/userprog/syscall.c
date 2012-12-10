@@ -783,7 +783,13 @@ sys_remove (const char * file)
   } 
   char * kfile = copy_in_string (file); 
   char * kfile_cp = copy_in_string(file); 
-   
+
+  if (strlen(kfile) == 1 && kfile[0] == '/') {
+    palloc_free_page(kfile);
+    palloc_free_page(kfile_cp);
+    return false;
+  }
+
   struct thread *t = thread_current();
 
   struct dir *curr_root = dir_reopen(t->wd);
