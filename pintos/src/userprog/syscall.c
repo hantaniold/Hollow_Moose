@@ -522,7 +522,9 @@ sys_read (int fd, void * buffer, unsigned size)
     {
       sys_exit(-1);         
     } 
+    thread_fs_lock();
     int bytes = file_read(fp, buffer, size);
+    thread_fs_unlock();
     return bytes;
     /*
     else
