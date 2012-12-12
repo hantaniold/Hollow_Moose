@@ -854,7 +854,28 @@ sys_remove (const char * file)
         }
       } else {
         //printf("rm %s with  TOKEN %s\n", kfile_cp, token);
+       
+        struct inode *file_inode;
+        bool lookup_result = dir_lookup(curr_root, token, &file_inode);
+        if (lookup_result) {
+         struct dir *maybe_dir = dir_open(file_inode);
+         char hats[20];
+         if (dir_readdir, hats) {
+           dir_close(curr_root);
+           palloc_free_page(kfile_cp);
+           palloc_free_page(kfile);
+           return false;
+         }
+         dir_close(maybe_dir);
+        } else {
+          dir_close(curr_root);
+          palloc_free_page(kfile_cp);
+          palloc_free_page(kfile);
+          return false;
+        }
+        
         bool o = filesys_remove_with_dir(curr_root, token);
+        dir_remove(curr_root, token);
         dir_close(curr_root);
         palloc_free_page(kfile_cp);
         palloc_free_page(kfile);
