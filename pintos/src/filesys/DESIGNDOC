@@ -149,6 +149,8 @@ struct cache_block
 >> C2: Describe how your cache replacement algorithm chooses a cache
 >> block to evict.
 
+Clock algorithm.
+
 >> C3: Describe your implementation of write-behind.
 
 >> C4: Describe your implementation of read-ahead.
@@ -159,13 +161,21 @@ struct cache_block
 >> buffer cache block, how are other processes prevented from evicting
 >> that block?
 
+A lock.
+
 >> C6: During the eviction of a block from the cache, how are other
 >> processes prevented from attempting to access the block?
+
+A lock.
 
 ---- RATIONALE ----
 
 >> C7: Describe a file workload likely to benefit from buffer caching,
 >> and workloads likely to benefit from read-ahead and write-behind.
+
+say we are creating many small files and reading and writing to them. Then buffer caching will help.
+read-ahead:
+write-ehind:
 
 			   SURVEY QUESTIONS
 			   ================
