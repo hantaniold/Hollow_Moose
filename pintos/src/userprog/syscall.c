@@ -857,7 +857,27 @@ sys_remove (const char * file)
        
         struct inode *file_inode;
         bool lookup_result = dir_lookup(curr_root, token, &file_inode);
+        
+        
         if (lookup_result) {
+         //prevent deleting your current working directory
+         struct inode *cwd = dir_get_inode(t->wd);
+         if (inode_get_inumber(cwd) == inode_get_inumber(file_inode)) {
+           inode_close(file_inode);
+           dir_close(curr_root);
+           palloc_free_page(kfile_cp);
+           palloc_free_page(kfile);
+           return false;
+         }
+        
+         if (inode_open_cnt(file_inode) > 1) {
+           inode_close(file_inode);
+           dir_close(curr_root);
+           palloc_free_page(kfile_cp);
+           palloc_free_page(kfile);
+           return false;
+         }
+
          struct dir *maybe_dir = dir_open(file_inode);
          char hats[20];
          if (dir_readdir(maybe_dir, hats) 
