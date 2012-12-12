@@ -522,7 +522,9 @@ sys_read (int fd, void * buffer, unsigned size)
     {
       sys_exit(-1);         
     } 
+    thread_fs_lock();
     int bytes = file_read(fp, buffer, size);
+    thread_fs_unlock();
     return bytes;
     /*
     else
@@ -795,6 +797,8 @@ sys_remove (const char * file)
 
   struct thread *t = thread_current();
 
+  thread_fs_lock();
+
   struct dir *curr_root = dir_reopen(t->wd);
   if (kfile[0] == '/') {
     dir_close(curr_root);
@@ -847,6 +851,7 @@ sys_remove (const char * file)
           dir_close(curr_root);
           curr_root = dir_open(inode_next);   
         } else {
+          thread_fs_unlock();
           dir_close(curr_root);
           palloc_free_page (kfile);
           palloc_free_page (kfile_cp);
@@ -854,8 +859,59 @@ sys_remove (const char * file)
         }
       } else {
         //printf("rm %s with  TOKEN %s\n", kfile_cp, token);
+       
+        struct inode *file_inode;
+        bool lookup_result = dir_lookup(curr_root, token, &file_inode);
+        
+        
+        if (lookup_result) {
+         //prevent deleting your current working directory
+         struct inode *cwd = dir_get_inode(t->wd);
+         if (inode_get_inumber(cwd) == inode_get_inumber(file_inode)) {
+           thread_fs_unlock();
+           inode_close(file_inode);
+           dir_close(curr_root);
+           palloc_free_page(kfile_cp);
+           palloc_free_page(kfile);
+           return false;
+         }
+        
+         
+
+         struct dir *maybe_dir = dir_open(file_inode);
+         char hats[20];
+         
+         if (dir_readdir(maybe_dir, hats) 
+           && inode_open_cnt(file_inode) > 1) {
+           thread_fs_unlock();
+           inode_close(file_inode);
+           dir_close(curr_root);
+           palloc_free_page(kfile_cp);
+           palloc_free_page(kfile);
+           return false;
+         }
+         
+         if (dir_readdir(maybe_dir, hats) 
+           && dir_readdir(maybe_dir, hats)) {
+           thread_fs_unlock();
+           dir_close(curr_root);
+           palloc_free_page(kfile_cp);
+           palloc_free_page(kfile);
+           return false;
+         }
+         dir_close(maybe_dir);
+        } else {
+          thread_fs_unlock();
+          dir_close(curr_root);
+          palloc_free_page(kfile_cp);
+          palloc_free_page(kfile);
+          return false;
+        }
+        
         bool o = filesys_remove_with_dir(curr_root, token);
+        dir_remove(curr_root, token);
         dir_close(curr_root);
+        thread_fs_unlock();
         palloc_free_page(kfile_cp);
         palloc_free_page(kfile);
         return (int)o;
