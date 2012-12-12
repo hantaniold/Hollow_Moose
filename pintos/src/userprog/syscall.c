@@ -860,7 +860,9 @@ sys_remove (const char * file)
         if (lookup_result) {
          struct dir *maybe_dir = dir_open(file_inode);
          char hats[20];
-         if (dir_readdir, hats) {
+         if (dir_readdir(maybe_dir, hats) 
+           && dir_readdir(maybe_dir, hats) 
+           && dir_readdir(maybe_dir, hats)) {
            dir_close(curr_root);
            palloc_free_page(kfile_cp);
            palloc_free_page(kfile);
