@@ -41,6 +41,10 @@ struct condition no_writers_cond // signaled when there are no writers
 int deny_write_cnt // 0: writes okay, >0 : deny writes
 int writer_cnt // nr of writers
 
+
+
+
+
 >> A2: What is the maximum size of a file supported by your inode
 >> structure?  Show your work.
 
@@ -73,7 +77,7 @@ A file position is only updated after the write completes. Reads don'te xtend a 
 >> processes writing to a file cannot prevent another process forever
 >> from reading the file.
 
-We use locks.
+We use locks.  The locking serializes the accesses on a first come, first serve basis.  Therefore, neither readers nor writers are starved.
 
 ---- RATIONALE ----
 
@@ -83,7 +87,7 @@ We use locks.
 >> structure, and what advantages and disadvantages does your
 >> structure have, compared to a multilevel index?
 
-Yes, we chose this, as it fits a max file as large as the filesystem (8 MB).
+Yes, we chose this, as it fits a max file as large as the filesystem (8 MB).  
 
 			    SUBDIRECTORIES
 			    ==============
@@ -94,7 +98,35 @@ Yes, we chose this, as it fits a max file as large as the filesystem (8 MB).
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
-Ain't none.
+In struct thread
+
+struct dir *wd //working directory added for keeping track of a processes working directory
+
+
+In struct thread:
+
+int64_t wakeup_time //added back code from project 1 so that timers don't busy wait
+struct semaphore timer_semaphore //used for switching threads
+struct list_elem waitelem //the wait list
+
+In thread.c
+
+struct list waitlist //this is here to hold the threads that are currently waiting
+
+//represents a directory
+struct dir 
+  {
+    struct inode *inode;                /* Backing store. */
+    off_t pos;                          /* Current position. */
+  };
+
+/* A single directory entry. */
+struct dir_entry 
+  {
+    block_sector_t inode_sector;        /* Sector number of header. */
+    char name[NAME_MAX + 1];            /* Null terminated file name. */
+    bool in_use;                        /* In use or free? */
+  };
 
 ---- ALGORITHMS ----
 
@@ -103,6 +135,8 @@ Ain't none.
 
 An absolute path starts with the root / sign. Otherwise, we just use the current htread's working directory to find the file.
 
+To perform a traversal, we walk the directory tree.  We break the passed in string up into a list of directories and descend down, following the list.  At the last element, we perform whatever action the user program has requested. 
+
 ---- SYNCHRONIZATION ----
 
 >> B4: How do you prevent races on directory entries?  For example,
@@ -110,17 +144,26 @@ An absolute path starts with the root / sign. Otherwise, we just use the current
 >> should succeed, as should only one of two simultaneous attempts to
 >> create a file with the same name, and so on.
 
+We use file system locks to prevent concurrent reads and writes to a directory.  
+Esetially, the reads and writes are seriliazed, on a directory level, to prevent races.
+These locks are at the inode level.
+
 >> B5: Does your implementation allow a directory to be removed if it
 >> is open by a process or if it is in use as a process's current
 >> working directory?  If so, what happens to that process's future
 >> file system operations?  If not, how do you prevent it?
+
+We allow it to be removed. Future file system operations involving the directory will fail gracefully.  
 
 ---- RATIONALE ----
 
 >> B6: Explain why you chose to represent the current directory of a
 >> process the way you did.
 
-We use a string. This gives the full path.
+We use a string. This gives the full path.  This is a simple implementation.
+
+Our directory struct is kepy simple because a directory is built on top of an inode,
+which contains most of the complications already.
 
 			     BUFFER CACHE
 			     ============
@@ -149,9 +192,28 @@ struct cache_block
 >> C2: Describe how your cache replacement algorithm chooses a cache
 >> block to evict.
 
+We use a clock algorithm.  The hand moves forward, looking for a cache block to evict. If no such block currently exists, we wait, giving the cache time to settle.  We then attempt to evict again.
+
 >> C3: Describe your implementation of write-behind.
 
+We write when:
+
+1) a sector is evicted from cache and it was dirty
+2) the OS is shutting down
+3) our flushd process flushes the cache
+
+When (2) occurs, we flush all blocks that we can; those currently 
+locked by other threads are left alone.
+
+In (3) everything is flushed. 
+
+
 >> C4: Describe your implementation of read-ahead.
+
+We do not read ahead.  This would unnecessarily complicate the cache for such a simple system.
+
+Furthermore, it in unncessary to pass the tests.
+
 
 ---- SYNCHRONIZATION ----
 
@@ -159,13 +221,26 @@ struct cache_block
 >> buffer cache block, how are other processes prevented from evicting
 >> that block?
 
+That process temporarily holds a block on the sector's data. This prevents eviction. 
+
 >> C6: During the eviction of a block from the cache, how are other
 >> processes prevented from attempting to access the block?
+
+We have global cache lock for these situations.  This serializes evictions. 
 
 ---- RATIONALE ----
 
 >> C7: Describe a file workload likely to benefit from buffer caching,
 >> and workloads likely to benefit from read-ahead and write-behind.
+
+Buffer cache works very well for traversing directory trees because sectors of root
+directories will be accessed frequently and will therefore remain in cache, speeding
+reads.
+
+Read-ahead would benefit sequential access most, like reading a large file piece by piece.
+
+Write behind is good for random writes because writies appear to happen very quickly.  The actual write to disk can take place later, so the program isn't slowed down.
+
 
 			   SURVEY QUESTIONS
 			   ================
